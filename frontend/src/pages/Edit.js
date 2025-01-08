@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 
 const Edit = () => {
   const { id } = useParams();
@@ -27,7 +27,6 @@ const Edit = () => {
 
     fetchContent(id);
     fetchInstances();
-
   }, [id]);
 
   useEffect(() => {
@@ -57,7 +56,7 @@ const Edit = () => {
       setUpdatedContentTitle(data.content?.title || "");
       setUpdatedContentDescription(data.content.description?.String || "");
       setUpdatedInstanceID(data.content.instance_id || "");
-      setUpdatedContentTag(data.content.tag || "")
+      setUpdatedContentTag(data.content.tag || "");
 
       const initialSubheadings = {};
       if (data.subheadings && Array.isArray(data.subheadings)) {
@@ -173,9 +172,37 @@ const Edit = () => {
     }
   };
 
+  // Breadcrumbs component
+  const Breadcrumbs = ({ paths }) => {
+    return (
+      <nav>
+        <ul className="breadcrumbs">
+          {paths.map((path, index) => (
+            <li key={index}>
+              {path.link ? (
+                <Link to={path.link}>{path.label}</Link>
+              ) : (
+                <span>{path.label}</span>
+              )}
+              {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  };
+
   return (
     <div className="container-wrapper">
       <div className="container">
+        <Breadcrumbs 
+          paths={[
+            { label: "Home", link: "/" },
+            { label: "Informasi", link: `/informasi/${id}` }, // Link ke halaman informasi sebelum edit
+            { label: "Edit Content" } // Halaman saat ini tidak memiliki link
+          ]} 
+        />
+        
         <div className="text">Edit Content</div>
         <form>
           <div className="form-row">
@@ -274,7 +301,6 @@ const Edit = () => {
                 </div>
               </div>
             ))}
-
           </div>
           <div className="submit-btn">
             <input

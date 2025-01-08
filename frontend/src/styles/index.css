@@ -59,18 +59,24 @@ body {
     background-color: #ffffff;
     padding: 5px;
     border-radius: 5px;
+    width: 500px;         /* Added width */
+    max-width: 100%; 
 }
 
 .navbar-center .search-bar input {
     border: none;
     outline: none;
     padding: 5px;
+    width: 100%;          /* Take full width of parent */
+    font-size: 14px;
 }
 
 .navbar-center .search-bar button {
     background: none;
     border: none;
     cursor: pointer;
+    padding: 8px;         /* Added padding */
+    margin-left: 5px;
 }
 
 .navbar-right {
@@ -605,4 +611,53 @@ select:focus {
 }
 .breadcrumbs li span {
     color: gray; /* Untuk teks breadcrumb saat ini */
+}
+.profile-container {
+    position: relative;
+}
+
+.profile {
+    cursor: pointer;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
+    z-index: 1000;
+    opacity: 0; /* Awalnya, dropdown tidak terlihat */
+    transform: translateY(-10px); /* Sedikit mengangkat dropdown */
+    transition: opacity 0.3s ease, transform 0.3s ease; /* Transisi untuk opacity dan transform */
+}
+
+.profile-dropdown.show {
+    opacity: 1; /* Dropdown terlihat */
+    transform: translateY(0); /* Menurunkan dropdown ke posisi normal */
+}
+
+.profile-dropdown a,
+.profile-dropdown button {
+    display: block;
+    padding: 10px 15px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.profile-dropdown a:hover,
+.profile-dropdown button:hover {
+    background-color: #f5f5f5;
+}
+
+.profile-dropdown button {
+    color: #dc3545; /* Warna merah untuk logout */
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -42,6 +42,25 @@ const Profile = () => {
         navigate('/');
     };
 
+    const Breadcrumbs = ({ paths }) => {
+        return (
+            <nav>
+                <ul className="breadcrumbs">
+                    {paths.map((path, index) => (
+                        <li key={index}>
+                            {path.link ? (
+                                <Link to={path.link}>{path.label}</Link>
+                            ) : (
+                                <span>{path.label}</span>
+                            )}
+                            {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        );
+    };
+
     if (!user) {
         return <p>Loading...</p>;
     }
@@ -49,6 +68,13 @@ const Profile = () => {
     return (
         <div className="container-wrapper profile-container-wrapper">
             <div className="container">
+                <Breadcrumbs 
+                    paths={[
+                        { label: "Home", link: "/" },
+                        { label: "Profile" } // Halaman saat ini tidak memiliki link
+                    ]} 
+                />
+                
                 <div className="text text-gradient">User Info</div>
                 <table className="profile-table">
                     <tbody>
@@ -81,4 +107,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

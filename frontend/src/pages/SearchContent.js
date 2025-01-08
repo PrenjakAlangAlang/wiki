@@ -57,11 +57,34 @@ function SearchContent() {
   
     if (term) fetchData();
   }, [term]);
-  
+  const Breadcrumbs = ({ paths }) => {
+          return (
+              <nav>
+                  <ul className="breadcrumbs">
+                      {paths.map((path, index) => (
+                          <li key={index}>
+                              {path.link ? (
+                                  <Link to={path.link}>{path.label}</Link>
+                              ) : (
+                                  <span>{path.label}</span>
+                              )}
+                              {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+                          </li>
+                      ))}
+                  </ul>
+              </nav>
+          );
+      };
 
   return (
     <div className="search-content-page">
       <div className="search-content">
+      <Breadcrumbs 
+                    paths={[
+                        { label: "Home", link: "/" },
+                        { label: "Search" } // Halaman saat ini tidak memiliki link
+                    ]} 
+                />
         {/* <h2>Cari : "{term || 'No Search Term'}"</h2> */}
 
         {loading ? (
