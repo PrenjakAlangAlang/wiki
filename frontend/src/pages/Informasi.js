@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 
 const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName }) => {
   const [user, setUser] = useState(null);
@@ -25,11 +25,11 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         const data = await response.json();
 
         setContent(data);
-        setSubheadings(data?.subheadings || []); // Kirim subheadings ke Sidebar
-        setTags(data.content.tag ? data.content.tag.split(',') : []); // Kirim tags ke Sidebar
-        setUpdatedAt(formatDate(data.content.updated_at)); // Send updated_at to Sidebar
-        setContentId(id)
-        setAuthorName(data.author_name)
+        setSubheadings(data?.subheadings || []);
+        setTags(data.content.tag ? data.content.tag.split(',') : []);
+        setUpdatedAt(formatDate(data.content.updated_at));
+        setContentId(id);
+        setAuthorName(data.author_name);
       } catch (err) {
         setError("Failed to fetch data. Please check your connection or try again later.");
       } finally {
@@ -42,9 +42,9 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
 
   useEffect(() => {
     return () => {
-      setContent(null); // Reset content
-      setSubheadings([]); // Reset subheadings
-      setTags([]); // Reset tags
+      setContent(null);
+      setSubheadings([]);
+      setTags([]);
     };
   }, [setSubheadings, setTags]);
 
@@ -84,12 +84,39 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     }
   };
 
+  // Breadcrumbs component
+  const Breadcrumbs = ({ paths }) => {
+    return (
+      <nav>
+        <ul className="breadcrumbs">
+          {paths.map((path, index) => (
+            <li key={index}>
+              {path.link ? (
+                <Link to={path.link}>{path.label}</Link>
+              ) : (
+                <span>{path.label}</span>
+              )}
+              {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  };
+
   if (loading) return <div>Loading content...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="main">
       <div className="content">
+        <Breadcrumbs 
+          paths={[
+            { label: "Home", link: "/" },
+            { label: "Informasi" }, // Halaman saat ini tidak memiliki link
+          ]} 
+        />
+        
         <h1>{content?.content?.title || "No Title Available"}</h1>
         <p>
           {content?.content?.description?.String &&
