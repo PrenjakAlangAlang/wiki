@@ -28,6 +28,7 @@ body {
     align-items: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     top: 0;
+    height: 75px; 
 }
 
 .navbar-left .nav-link.logo-container {
@@ -42,6 +43,13 @@ body {
     margin-right: 10px;
 }
 
+.navbar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    
+}
 .navbar-center .search-bar img {
     width: 20px;
     height: 20px;
@@ -57,8 +65,8 @@ body {
     display: flex;
     align-items: center;
     background-color: #ffffff;
-    padding: 5px;
-    border-radius: 5px;
+    padding: 8px;
+    border-radius: 30px;
     width: 500px;         /* Added width */
     max-width: 100%; 
 }
@@ -75,7 +83,7 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px;         /* Added padding */
+    padding: 3px;         /* Added padding */
     margin-left: 5px;
 }
 
@@ -83,6 +91,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    padding: 20px;
 }
 
 .navbar-right .profile img {
@@ -108,14 +117,13 @@ body {
     right: 20px;
     width: 350px;
     height: calc(100% - 80px);
-    background-color: #918e8e8a;
-    padding: 20px 0 10px 0;
+    padding: 10px 0 10px 0;
     overflow-y: auto;
     z-index: 900;
 }
 
 .small-box {
-    background-color: #e0e0e0;
+    background-color: #fff;
     margin-top: 20px;
     padding: 20px;
     max-width: 270px;
@@ -574,7 +582,7 @@ select:focus {
     justify-content: center;
     align-items: center;
     padding-bottom: 5px;
-    background-color: #f9f6f6;
+    
     margin-left: 350px;
 }
 
@@ -583,6 +591,10 @@ select:focus {
     align-items: center;
     text-align: center;
     margin: 0;
+}
+.footer-logo img {
+    width: 50px; /* Sesuaikan ukuran sesuai kebutuhan */
+    height: auto; /* Memastikan proporsi gambar tetap */
 }
 
 .logo {
@@ -660,4 +672,274 @@ select:focus {
 
 .profile-dropdown button {
     color: #dc3545; /* Warna merah untuk logout */
+}
+@keyframes fade-in {
+    from {
+        opacity: 0; /* Mulai dari transparan */
+        transform: translateY(20px); /* Mengangkat sedikit dari bawah */
+    }
+    to {
+        opacity: 1; /* Akhir menjadi terlihat */
+        transform: translateY(0); /* Kembali ke posisi normal */
+    }
+}
+.login-page {
+    display: flex;
+    
+    height: 115vh;
+   
+    animation: fade-in 0.5s ease-in-out; /* Menambahkan animasi pada login-page */
+}
+
+.login-left, .login-right {
+    padding: 20px;
+    border-radius: 0px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+.login-left {
+    flex: 1;
+    
+}
+
+.login-right {
+    flex: 1;
+    background-color: #0066b2; /* Warna tema sesuai foto */
+    color: white;
+    padding: 40px;
+}
+
+.login-left h2 {
+    margin-bottom: 10px;
+    text-align: center;
+}
+.login-left p {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.form-row {
+    margin: 15px 0;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.password-container {
+    position: relative;
+}
+
+.password-container button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn {
+    padding: 10px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-blue {
+    background-color: #007bff;
+    color: white;
+    margin-top: 10px;
+}
+
+.btn-blue:hover {
+    background-color: #0056b3;
+}
+
+.btn-gray {
+    background-color: #ccc;
+    color: #0056b3;
+}
+
+.btn-gray:hover {
+    background-color: #bbb;
+}
+
+.login-right h2 {
+    margin-top: 0;
+    font-size: 48px; /* Ganti ukuran sesuai keinginan */
+    font-weight: bold; /* Pastikan teksnya tebal */
+    color: white; 
+    animation: fade-in 0.5s ease-in-out;
+}
+
+.login-right p {
+    margin-bottom: 15px;
+    animation: fade-in 0.5s ease-in-out;
+    text-align: left; /* Penyesuaian jika diperlukan */
+}
+
+.login-right ul {
+    list-style: disc;
+    animation: fade-in 0.5s ease-in-out;
+    margin-left: 20px;
+}
+
+.help-links {
+    display: flex;               /* Menggunakan flexbox */
+    justify-content: center;     /* Center the links horizontally */
+    margin-top: 20px;
+    margin-top: auto; 
+}
+
+.help-links a {
+    color: white;
+    text-decoration: underline;
+    margin-right: 20px;         /* Memberikan ruang di antara link */
+}
+
+/* Jika Anda juga ingin menghilangkan margin pada link terakhir */
+.help-links a:last-child {
+    margin-right: 0;
+}
+.logo {
+    width: 100px; /* Atur sesuai ukuran yang diinginkan */
+    margin-bottom: 20px; /* Memberi ruang di bawah logo */
+    display: block; /* Memastikan logo di tengah */
+    margin-left: auto;
+    margin-right: auto;
+}
+.divider {
+    border: none;
+    height: 1px; /* Tinggi garis */
+    background-color: #ccc; /* Warna garis */
+    margin: 10px 0; /* Margin atas dan bawah untuk memberi ruang */
+    animation: fade-in 0.5s ease-in-out;
+    
+}
+.user-name {
+    color: #fff; /* Ubah sesuai kebutuhan */
+    margin-left: 10px; /* Memberikan ruang antara nama dan ikon profil */
+    font-size: 16px; /* Sesuaikan ukuran font */
+    display: block;
+    font-weight: bold
+}
+
+.user-name:hover {
+    text-decoration: underline; /* Menambahkan garis bawah saat hover untuk mengindikasikan bahwa ini ialah tautan */
+}
+.user-role {
+    display: block; /* Pastikan ini juga tampil di baris baru */
+    font-size: 0.9em; /* Opsional, buat teks lebih kecil */
+    color: rgb(255, 253, 253); /* Opsional, tambahkan warna untuk membedakan */
+}
+.user-info {
+    display: flex;
+    flex-direction: column; /* Atur elemen dalam kolom */
+    align-items: flex-start; /* Pastikan elemen rata kiri */
+}
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* Overlay hitam transparan */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Pastikan modal di atas elemen lainnya */
+    transition: opacity 0.5s ease;
+}
+
+.modal-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center; /* Mengatur teks menjadi ratakan di tengah */
+}
+
+.modal-actions {
+    margin-top: 10px; /* Ruang antara teks dan tombol */
+}
+
+
+
+.btn-confirm {
+    background-color: #0056b3; /* Warna untuk tombol logout */
+    color: white;
+}
+
+.btn-cancel {
+    background-color: #d62828; /* Warna untuk tombol batal */
+    color: white;
+}
+/* Sidebar2.css */
+/* Sidebar2.css */
+.sidebar2 {
+    position: fixed;
+    top: 0;
+    left: -300px; /* Hide by default dari sisi kiri */
+    height: 100%;
+    width: 300px;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3); /* Gaya bayangan dari sisi kanan */
+    transition: left 0.3s ease; /* Animasi untuk efek membuka */
+    z-index: 1000;
+}
+
+.sidebar2.open {
+    left: 0; /* Jika sidebar terbuka, ubah posisi ke 0 */
+}
+
+.close-btn {
+    position: absolute; /* Ubah posisi ke absolute */
+    top: 10px; /* Jarak dari atas */
+    right: 10px; /* Jarak dari kanan */
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.sidebar2 h2 {
+    margin: 20px;
+    color: #0066b2;
+}
+
+.sidebar2 ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar2 ul li {
+    padding: 10px 20px;
+}
+
+.sidebar2 ul li a {
+    text-decoration: none;
+    color: black;
+}
+.hamburger-menu {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white;
+}
+
+.hamburger-menu svg {
+    fill: none;
+    stroke: #000; /* Ganti dengan warna yang diinginkan */
+    stroke-width: 2;
 }
