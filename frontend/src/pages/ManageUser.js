@@ -115,7 +115,7 @@ const ManageUser = () => {
                                 ) : (
                                     <span>{path.label}</span>
                                 )}
-                                {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+                                {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
                             </li>
                         ))}
                     </ul>

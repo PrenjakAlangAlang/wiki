@@ -212,10 +212,12 @@ p {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.content h1 {
-    color: #0066b2;
+
+.content-title {
+    color: #0066b2; /* Warna untuk judul content */
     margin-bottom: 10px;
 }
+
 
 .content h2 {
     margin-bottom: 10px;

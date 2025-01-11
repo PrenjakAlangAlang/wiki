@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css"; // Import stylesheet ReactQuill
 
 const Edit = () => {
   const { id } = useParams();
@@ -13,14 +15,6 @@ const Edit = () => {
   const navigate = useNavigate();
   const [instances, setInstances] = useState([]);
 
-  const textareaRefs = useRef({});
-  const handleTextareaResize = (textarea) => {
-    if (textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
-  };
-
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser) setUser(storedUser);
@@ -28,12 +22,6 @@ const Edit = () => {
     fetchContent(id);
     fetchInstances();
   }, [id]);
-
-  useEffect(() => {
-    Object.values(textareaRefs.current).forEach((textarea) => {
-      handleTextareaResize(textarea);
-    });
-  }, [updatedContentDescription, updatedSubheadings]);
 
   const fetchInstances = async () => {
     try {
@@ -184,7 +172,7 @@ const Edit = () => {
               ) : (
                 <span>{path.label}</span>
               )}
-              {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
             </li>
           ))}
         </ul>
@@ -217,16 +205,12 @@ const Edit = () => {
             </div>
             <div className="input-data textarea">
               <label>Deskripsi</label>
-              <textarea
-                ref={(el) => (textareaRefs.current[0] = el || null)}
-                rows="2"
+              <ReactQuill
                 value={updatedContentDescription}
-                onChange={(e) => {
-                  setUpdatedContentDescription(e.target.value);
-                  handleTextareaResize(e.target);
-                }}
-                required
-              ></textarea>
+                onChange={setUpdatedContentDescription}
+                theme="snow" // Tema untuk ReactQuill
+                style={{ height: '150px' }} // Mengatur tinggi editor
+              />
             </div>
             <div className="input-data">
               <label>Instansi</label>
@@ -274,23 +258,20 @@ const Edit = () => {
                 </div>
                 <div className="input-data textarea">
                   <label>Deskripsi</label>
-                  <textarea
-                    ref={(el) => (textareaRefs.current[index + 1] = el || null)}
+                  <ReactQuill
                     value={
                       updatedSubheadings[subheading.id]?.subheading_description ||
                       subheading.subheading_description
                     }
-                    onChange={(e) => {
-                      handleSubheadingChange(
-                        subheading.id,
-                        "subheading_description",
-                        e.target.value
-                      );
-                      handleTextareaResize(e.target);
-                    }}
-                    required
-                  ></textarea>
+                    onChange={(value) =>
+                      handleSubheadingChange(subheading.id, "subheading_description", value)
+                    }
+                    theme="snow"
+                    style={{ height: '100px' }} // Mengatur tinggi editor
+                  />
                 </div>
+                <br></br>
+                <br></br>
                 <div className="submit-btn">
                   <input
                     type="button"

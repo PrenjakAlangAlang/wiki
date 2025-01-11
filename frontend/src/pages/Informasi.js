@@ -96,7 +96,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
               ) : (
                 <span>{path.label}</span>
               )}
-              {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
             </li>
           ))}
         </ul>
@@ -116,34 +116,23 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
             { label: "Informasi" }, // Halaman saat ini tidak memiliki link
           ]} 
         />
+        <div className='titel'></div>
+        <h1 className="content-title">{content?.content?.title || "No Title Available"}</h1>
         
-        <h1>{content?.content?.title || "No Title Available"}</h1>
-        <p>
-          {content?.content?.description?.String &&
-            content.content.description.String.split('\n').map((line, index) => (
-              <span key={index}>
-                {line}
-                <br />
-              </span>
-            ))}
-        </p>
+        {/* Menampilkan deskripsi sebagai HTML */}
+        <div
+          dangerouslySetInnerHTML={{ __html: content?.content?.description.String || '' }}
+        />
 
         <ul className="no-number">
           {content?.subheadings?.length > 0 &&
             content.subheadings.map((subheading) => (
               <li key={subheading.id} id={subheading.subheading}>
                 <strong id="subheading">{subheading.subheading}</strong>
-                <p>
-                  {subheading.subheading_description &&
-                    subheading.subheading_description
-                      .split('\n')
-                      .map((line, index) => (
-                        <span key={index}>
-                          {line.trim()}
-                          <br />
-                        </span>
-                      ))}
-                </p>
+                {/* Menampilkan deskripsi subheading sebagai HTML */}
+                <div
+                  dangerouslySetInnerHTML={{ __html: subheading.subheading_description || '' }}
+                />
               </li>
             ))}
         </ul>

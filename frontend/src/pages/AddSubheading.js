@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom'; // Tambahkan Link di sini
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import ReactQuill from 'react-quill'; // Tambahkan ReactQuill
+import 'react-quill/dist/quill.snow.css'; // Tambahkan style untuk ReactQuill
 
 const AddSubheading = () => {
     const [subheading, setSubheading] = useState('');
@@ -23,7 +25,7 @@ const AddSubheading = () => {
         const subheadingData = {
             content_id: parseInt(id, 10),
             subheading,
-            subheading_description: description,
+            subheading_description: description, // Menggunakan konten rich text
             author_id: user?.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -80,7 +82,7 @@ const AddSubheading = () => {
                             ) : (
                                 <span>{path.label}</span>
                             )}
-                            {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+                            {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
                         </li>
                     ))}
                 </ul>
@@ -95,7 +97,7 @@ const AddSubheading = () => {
                     paths={[
                         { label: "Home", link: "/" },
                         { label: "Informasi", link: `/informasi/${id}` },
-                        { label: "Edit Content", link: `/edit/${id}` }, // Tambah link yang benar
+                        { label: "Edit Content", link: `/edit/${id}` },
                         { label: "Tambah Sub Judul" }
                     ]} 
                 />
@@ -116,15 +118,10 @@ const AddSubheading = () => {
 
                     <div className="form-row">
                         <div className="input-data textarea">
-                            <textarea
-                                rows="2"
+                            <ReactQuill
+                                theme="snow" // Tema untuk react-quill
                                 value={description}
-                                onChange={(e) => {
-                                    setDescription(e.target.value);
-                                    e.target.style.height = 'auto';
-                                    e.target.style.height = `${e.target.scrollHeight}px`;
-                                }}
-                                required
+                                onChange={setDescription} // Mengupdate deskripsi menggunakan state
                             />
                             <div className="underline"></div>
                             <label>Deskripsi</label>
