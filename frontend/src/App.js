@@ -6,6 +6,7 @@ import Navbar from './component/Navbar';
 import Sidebar from './component/Sidebar';
 import Sidebar2 from './component/Sidebar2'; // Import Sidebar 2
 import Footer from './component/Footer';
+
 import './styles/index.css'; // Pastikan ini adalah file yang benar
 import Edit from './pages/Edit';
 import Login from './pages/Login';

@@ -306,6 +306,7 @@ form .form-row .input-data {
     flex: 1;
     background-color: #f9f9f9;
     margin-left: 30px;
+    margin-bottom: 175px;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -830,15 +831,13 @@ input {
 }
 .user-name {
     color: #fff; /* Ubah sesuai kebutuhan */
-    margin-left: 10px; /* Memberikan ruang antara nama dan ikon profil */
+    /* Memberikan ruang antara nama dan ikon profil */
     font-size: 16px; /* Sesuaikan ukuran font */
     display: block;
     font-weight: bold
 }
 
-.user-name:hover {
-    text-decoration: underline; /* Menambahkan garis bawah saat hover untuk mengindikasikan bahwa ini ialah tautan */
-}
+
 .user-role {
     display: block; /* Pastikan ini juga tampil di baris baru */
     font-size: 0.9em; /* Opsional, buat teks lebih kecil */
@@ -902,6 +901,9 @@ input {
 
 .sidebar2.open {
     left: 0; /* Jika sidebar terbuka, ubah posisi ke 0 */
+}
+.header-sidebar2{
+    margin-left: 15px;
 }
 
 .close-btn {

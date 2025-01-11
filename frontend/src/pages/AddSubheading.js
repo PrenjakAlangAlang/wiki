@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom'; // Tambahkan Link di sini
 
 const AddSubheading = () => {
     const [subheading, setSubheading] = useState('');
@@ -57,6 +57,10 @@ const AddSubheading = () => {
                 console.error("Failed to record add subheading history");
             }
 
+            // Reset form fields after submission
+            setSubheading('');
+            setDescription('');
+            
             navigate(`/informasi/${id}`);
         } catch (error) {
             console.error(error);
@@ -64,9 +68,37 @@ const AddSubheading = () => {
         }
     };
 
+    // Breadcrumbs component
+    const Breadcrumbs = ({ paths }) => {
+        return (
+            <nav>
+                <ul className="breadcrumbs">
+                    {paths.map((path, index) => (
+                        <li key={index}>
+                            {path.link ? (
+                                <Link to={path.link}>{path.label}</Link>
+                            ) : (
+                                <span>{path.label}</span>
+                            )}
+                            {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        );
+    };
+
     return (
         <div className="container-wrapper">
             <div className="container">
+                <Breadcrumbs 
+                    paths={[
+                        { label: "Home", link: "/" },
+                        { label: "Informasi", link: `/informasi/${id}` },
+                        { label: "Edit Content", link: `/edit/${id}` }, // Tambah link yang benar
+                        { label: "Tambah Sub Judul" }
+                    ]} 
+                />
                 <div className="text text-gradient">Tambah Sub Judul</div>
                 <form onSubmit={handleAddSubheading}>
                     <div className="form-row">

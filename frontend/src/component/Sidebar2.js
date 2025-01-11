@@ -4,6 +4,7 @@ import logo from '../assets/logojogja.png';
 const Sidebar2 = ({ isOpen, onClose }) => {
     return (
         <div className={`sidebar2 ${isOpen ? 'open' : ''}`}>
+            <div className="header-sidebar2">
             <div className="header">
                 <button className="close-btn" onClick={onClose}>×</button>
                 <div className="navbar-left">
@@ -11,6 +12,7 @@ const Sidebar2 = ({ isOpen, onClose }) => {
                         <img src={logo} alt="Logo Pemda DIY" className="logo" />
                         <h2>Wiki Pemda DIY</h2>
                     </div>
+                </div>
                 </div>
             </div>
             <ul>
