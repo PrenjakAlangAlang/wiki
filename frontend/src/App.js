@@ -52,25 +52,29 @@ const App = () => {
     return (
         <Router>
             <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} onToggleSidebar={() => setIsSidebar2Open(!isSidebar2Open)} />
-            <SidebarWrapper />
-            <Sidebar2 isOpen={isSidebar2Open} onClose={() => setIsSidebar2Open(false)} />
             <div className="App">
-                <Routes>
-                    <Route path="/" element={<Home setSubheadings={setSubheadings} setTags={setTags} />} />
-                    <Route path="/informasi/:id" element={
-                        <Informasi setSubheadings={setSubheadings} setTags={setTags} setUpdatedAt={setUpdatedAt} setContentId={setContentId} setAuthorName={setAuthorName} />
-                    } />
-                    <Route path="/edit/:id" element={<Edit />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/addcontent" element={<AddContent />} />
-                    <Route path="/addsubheading/:id" element={<AddSubheading />} />
-                    <Route path="/search/:term" element={<SearchContent setSearchTerm={setSearchTerm} />} />
-                    <Route path="/manage" element={<ManageUser />} />
-                    <Route path="/detail/:id" element={<DetailUser />} />
-                </Routes>
+                <div className="app-container">
+                    <SidebarWrapper />
+                    <Sidebar2 isOpen={isSidebar2Open} onClose={() => setIsSidebar2Open(false)} />
+                    <div className="main-content">
+                        <Routes>
+                            <Route path="/" element={<Home setSubheadings={setSubheadings} setTags={setTags} />} />
+                            <Route path="/informasi/:id" element={
+                                <Informasi setSubheadings={setSubheadings} setTags={setTags} setUpdatedAt={setUpdatedAt} setContentId={setContentId} setAuthorName={setAuthorName} />
+                            } />
+                            <Route path="/edit/:id" element={<Edit />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/addcontent" element={<AddContent />} />
+                            <Route path="/addsubheading/:id" element={<AddSubheading />} />
+                            <Route path="/search/:term" element={<SearchContent setSearchTerm={setSearchTerm} />} />
+                            <Route path="/manage" element={<ManageUser />} />
+                            <Route path="/detail/:id" element={<DetailUser />} />
+                        </Routes>
+                    </div>
+                </div>
+                <FooterWrapper />
             </div>
-            <FooterWrapper />
         </Router>
     );
 };

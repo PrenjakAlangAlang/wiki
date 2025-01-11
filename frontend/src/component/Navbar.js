@@ -99,7 +99,6 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                 <div className="navbar-left">
                     <Link to="/" className="nav-link logo-container" onClick={clearSearch}>
                         <img src={logo} alt="Logo Pemda DIY" className="logo" />
-                        Wiki Pemda DIY
                     </Link>  
                 </div>
             </div>

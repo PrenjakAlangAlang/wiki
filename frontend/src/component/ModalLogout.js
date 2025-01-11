@@ -1,5 +1,5 @@
 import React from 'react';
- // Pastikan untuk menambahkan CSS
+
 
 const ModalLogout = ({ isOpen, onClose, onConfirm }) => {
     if (!isOpen) return null; // Tidak menampilkan modal jika tidak terbuka
