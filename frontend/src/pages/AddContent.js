@@ -150,7 +150,7 @@ const AddContent = () => {
                             />
                         </div>
                     </div>
-
+                    <br></br>
                     <div className="form-row">
                         <div className="input-data">
                             <input

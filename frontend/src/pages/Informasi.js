@@ -117,7 +117,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
           ]} 
         />
         <div className='titel'></div>
-        <h1 className="content-title">{content?.content?.title || "No Title Available"}</h1>
+        <h1 className="content-title2">{content?.content?.title || "No Title Available"}</h1>
         
         {/* Menampilkan deskripsi sebagai HTML */}
         <div

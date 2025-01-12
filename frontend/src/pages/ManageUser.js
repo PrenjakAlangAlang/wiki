@@ -163,7 +163,7 @@ const ManageUser = () => {
                                             <button>Detail</button>
                                         </Link> */}
                                         <Link to={`/detail/${user.id}`}>
-                                            <button>Detail</button>
+                                            <button className="green-button">Detail</button>
                                         </Link>
                                     </td>
                                     <td>

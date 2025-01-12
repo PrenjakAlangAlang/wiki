@@ -8,6 +8,19 @@ function SearchContent({ setSearchTerm }) {
     
     const timeAgo = (dateString) => {
         // Fungsi untuk memformat tanggal
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now - date;
+
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        if (seconds < 60) return `${seconds} seconds ago`;
+        if (minutes < 60) return `${minutes} minutes ago`;
+        if (hours < 24) return `${hours} hours ago`;
+        return `${days} days ago`;
     };
 
     useEffect(() => {
@@ -29,34 +42,36 @@ function SearchContent({ setSearchTerm }) {
     
         if (term) fetchData();
     }, [term]);
-const Breadcrumbs = ({ paths }) => {
-    return (
-      <nav>
-        <ul className="breadcrumbs">
-          {paths.map((path, index) => (
-            <li key={index}>
-              {path.link ? (
-                <Link to={path.link}>{path.label}</Link>
-              ) : (
-                <span>{path.label}</span>
-              )}
-              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
-            </li>
-          ))}
-        </ul>
-      </nav>
-    );
-  };
+
+    const Breadcrumbs = ({ paths }) => {
+        return (
+            <nav>
+                <ul className="breadcrumbs">
+                    {paths.map((path, index) => (
+                        <li key={index}>
+                            {path.link ? (
+                                <Link to={path.link}>{path.label}</Link>
+                            ) : (
+                                <span>{path.label}</span>
+                            )}
+                            {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        );
+    };
+
     return (
         <div className="search-content-page">
             <div className="search-content">
                 {/* Breadcrumbs rendering */}
                 <Breadcrumbs 
-          paths={[
-            { label: "Home", link: "/" },
-            { label: "Pencarian" }, // Halaman saat ini tidak memiliki link
-          ]} 
-        />
+                    paths={[
+                        { label: "Home", link: "/" },
+                        { label: "Pencarian" },
+                    ]} 
+                />
                 {loading ? (
                     <p>Loading...</p>
                 ) : (
@@ -79,8 +94,8 @@ const Breadcrumbs = ({ paths }) => {
                                             <br />
                                             <hr className="divider" />
                                             <br />
-                                            <p className="description">
-                                                {content.description.String.slice(0, 86)}
+                                            <p className="description"
+                                               dangerouslySetInnerHTML={{ __html: content.description.String }}>
                                             </p>
                                             <p className="last-updated">
                                                 Last updated {content.updated_at && timeAgo(content.updated_at)}

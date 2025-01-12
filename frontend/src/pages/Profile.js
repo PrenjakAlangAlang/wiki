@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import ModalLogout from '../component/ModalLogout';
 
 const Profile = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false); // Status untuk modal logout
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -30,11 +32,9 @@ const Profile = () => {
         fetchUserData();
     }, [navigate]);
 
+    // Panggil modal konfirmasi saat pengguna ingin logout
     const handleLogoutConfirmation = () => {
-        const isConfirmed = window.confirm("Apakah Anda yakin ingin keluar dari akun?");
-        if (isConfirmed) {
-            handleLogout();
-        }
+        setIsModalOpen(true);
     };
 
     const handleLogout = () => {
@@ -71,7 +71,7 @@ const Profile = () => {
                 <Breadcrumbs 
                     paths={[
                         { label: "Home", link: "/" },
-                        { label: "Profile" } // Halaman saat ini tidak memiliki link
+                        { label: "Profile" }
                     ]} 
                 />
                 
@@ -101,7 +101,14 @@ const Profile = () => {
                     </tbody>
                 </table>
                 <button onClick={handleLogoutConfirmation} className="btn btn-red">Logout</button>
-            </div>
+
+                {/* Modal Logout */}
+                <ModalLogout
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)} // Menutup modal
+                    onConfirm={handleLogout} // Logout jika konfirmasi
+                />
+            </div> 
         </div>
     );
 };

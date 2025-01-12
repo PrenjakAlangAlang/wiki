@@ -356,7 +356,7 @@ const DetailUser = () => {
                     className="btn btn-gray"
                     onClick={handleToggleHistory}
                 />
-
+                
                 {showHistory && (
                     <table className="history-table">
                         <thead className="thead">

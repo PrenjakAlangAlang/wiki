@@ -121,6 +121,7 @@ body {
     padding: 10px 0 10px 0;
     overflow-y: auto;
     z-index: 900;
+    animation: fade-in 0.5s ease-in-out; 
 }
 
 .small-box {
@@ -184,6 +185,7 @@ button {
     padding: 20px;
     margin-left: 350px;
     padding-top: 45px;
+    
 }
 
 .welcome-box {
@@ -192,6 +194,7 @@ button {
     padding: 20px 20px 5px 20px;
     margin-bottom: 20px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    animation: fade-in 0.5s ease-in-out; 
 }
 
 .welcome-box p {
@@ -210,12 +213,19 @@ p {
     background-color: #fff;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    animation: fade-in 0.5s ease-in-out; 
 }
 
 
 .content-title {
     color: #0066b2; /* Warna untuk judul content */
     margin-bottom: 10px;
+    animation: fade-in 0.5s ease-in-out; 
+}
+.content-title2 {
+    color: #0066b2; /* Warna untuk judul content */
+    margin-bottom: 10px;
+    
 }
 
 
@@ -231,6 +241,7 @@ p {
 
 ul.no-number {
     list-style-type: none;
+    
 }
 
 ul.numbered {
@@ -244,6 +255,7 @@ ul.numbered {
     align-items: flex-start;
     padding-top: 80px;
     height: auto;
+    animation: fade-in 0.5s ease-in-out; 
 }
 
 .container {
@@ -270,6 +282,7 @@ ul.numbered {
     padding-top: 20px;
     height: auto;
     margin-top: 5%;
+    animation: fade-in 0.5s ease-in-out; 
 }
 
 .container form .form-row {
@@ -295,6 +308,7 @@ form .form-row .input-data {
     height: auto;
     gap: 40px;
     margin: 20px 90px;
+    animation: fade-in 0.5s ease-in-out; 
 }
 
 .main-container .text {
@@ -326,6 +340,7 @@ form .form-row .input-data {
 .manage {
     border-collapse: collapse;
     padding: 10px;
+    margin-left: 35px;
 }
 
 .thead th {
@@ -344,6 +359,9 @@ form .form-row .input-data {
 .history-table {
     padding-top: 20px;
     border-collapse: collapse;
+    margin-left: 150px;
+    margin-top: 25px;
+    animation: fade-in 0.5s ease-in-out; 
 }
 
 .history-table td {
@@ -460,6 +478,7 @@ select:focus {
 
 .btn-blue {
     background-color: #007bff;
+    animation: fade-in 0.5s ease-in-out; 
 }
 
 .btn-blue:hover {
@@ -526,9 +545,10 @@ select:focus {
 
 .wiki-pemda-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(1, 1fr);
     grid-gap: 30px;
     margin: 50px 40px;
+    animation: fade-in 0.5s ease-in-out; 
 }
 
 .wiki-pemda-item {
@@ -862,6 +882,7 @@ input {
     align-items: center;
     z-index: 1000; /* Pastikan modal di atas elemen lainnya */
     transition: opacity 0.5s ease;
+    
 }
 
 .modal-card {
@@ -982,4 +1003,27 @@ input {
     font-size: 20px; /* Ukuran font yang lebih kecil */
     line-height: 1.2; /* Jarak antar baris untuk teks */
     margin-bottom: 15px;
+}
+.green-button {
+    background-color: green; /* Mengatur warna latar belakang menjadi hijau */
+    color: white; /* Mengatur warna teks menjadi putih agar kontras */
+    border: none; /* Menghapus border default */
+    padding: 8px 15px; /* Menambahkan padding untuk menjaga ukuran tombol */
+    cursor: pointer; /* Mengubah kursor menjadi pointer saat hover */
+    border-radius: 20px; /* Mengatur border radius untuk efek bulat */
+    font-size: 16px; /* Mengatur ukuran font */
+    font-weight: bold;
+}
+
+.green-button:hover {
+    background-color: darkgreen; /* Mengatur warna latar belakang saat hover */
+}
+.content-p{
+    animation: fade-in 0.5s ease-in-out; 
+}
+.content-h2{
+    animation: fade-in 0.5s ease-in-out; 
+}
+.numbered{
+    animation: fade-in 0.5s ease-in-out; 
 }
