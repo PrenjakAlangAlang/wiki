@@ -113,39 +113,55 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     }
   };
 
+  // Breadcrumbs component
+  const Breadcrumbs = ({ paths }) => {
+    return (
+      <nav>
+        <ul className="breadcrumbs">
+          {paths.map((path, index) => (
+            <li key={index}>
+              {path.link ? (
+                <Link to={path.link}>{path.label}</Link>
+              ) : (
+                <span>{path.label}</span>
+              )}
+              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  };
+
   if (loading) return <div>Loading content...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="main">
       <div className="content">
-        <h1>{content?.content?.title || "No Title Available"}</h1>
-        <p>
-          {content?.content?.description?.String &&
-            content.content.description.String.split('\n').map((line, index) => (
-              <span key={index}>
-                {line}
-                <br />
-              </span>
-            ))}
-        </p>
+        <Breadcrumbs 
+          paths={[
+            { label: "Home", link: "/" },
+            { label: "Informasi" }, // Halaman saat ini tidak memiliki link
+          ]} 
+        />
+        <div className='titel'></div>
+        <h1 className="content-title2">{content?.content?.title || "No Title Available"}</h1>
+        
+        {/* Menampilkan deskripsi sebagai HTML */}
+        <div
+          dangerouslySetInnerHTML={{ __html: content?.content?.description.String || '' }}
+        />
 
         <ul className="no-number">
           {content?.subheadings?.length > 0 &&
             content.subheadings.map((subheading) => (
               <li key={subheading.id} id={subheading.subheading}>
                 <strong id="subheading">{subheading.subheading}</strong>
-                <p>
-                  {subheading.subheading_description &&
-                    subheading.subheading_description
-                      .split('\n')
-                      .map((line, index) => (
-                        <span key={index}>
-                          {line.trim()}
-                          <br />
-                        </span>
-                      ))}
-                </p>
+                {/* Menampilkan deskripsi subheading sebagai HTML */}
+                <div
+                  dangerouslySetInnerHTML={{ __html: subheading.subheading_description || '' }}
+                />
               </li>
             ))}
         </ul>

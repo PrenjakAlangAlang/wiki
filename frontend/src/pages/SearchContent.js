@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
-function SearchContent() {
-  const { term } = useParams();
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+function SearchContent({ setSearchTerm }) {
+    const { term } = useParams();
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
+    
+    const timeAgo = (dateString) => {
+        // Fungsi untuk memformat tanggal
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now - date;
 
-  const timeAgo = (dateString) => {
-    const now = new Date();
-    const past = new Date(dateString);
-    const diffInSeconds = Math.floor((now - past) / 1000);
-
-    const secondsInMinute = 60;
-    const secondsInHour = 3600;
-    const secondsInDay = 86400;
-    const secondsInMonth = 2592000;
-    const secondsInYear = 31536000;
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
 
     if (diffInSeconds < secondsInMinute) {
       return `${diffInSeconds} seconds ago`;

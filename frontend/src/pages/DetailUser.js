@@ -211,10 +211,35 @@ const DetailUser = () => {
     if (!user || !histories || !contents) {
         return <div>Loading...</div>;
     }
+        const Breadcrumbs = ({ paths }) => {
+            return (
+                <nav>
+                    <ul className="breadcrumbs">
+                        {paths.map((path, index) => (
+                            <li key={index}>
+                                {path.link ? (
+                                    <Link to={path.link}>{path.label}</Link>
+                                ) : (
+                                    <span>{path.label}</span>
+                                )}
+                                {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            );
+        };
 
     return (
         <div className="container-wrapper profile-wrapper">
             <div className="container">
+            <Breadcrumbs 
+                    paths={[
+                        { label: "Home", link: "/" },
+                        { label: "Manage User", link: `/manage` },
+                        { label: "Detail User" }
+                    ]} 
+                />
                 <div className="text text-gradient">Detail User</div>
                 {!isEditing ? (
                     <>
@@ -353,11 +378,14 @@ const DetailUser = () => {
                         </div>
                     </form>
                 )}
-                <div className="form-row">
-                    <button onClick={handleToggleHistory}>
-                        {showHistory ? "Hide History" : "Show History"}
-                    </button>
-                </div>
+
+                <input
+                    type="button"
+                    value={showHistory ? "Hide History" : "Show History"}
+                    className="btn btn-gray"
+                    onClick={handleToggleHistory}
+                />
+                
                 {showHistory && (
                     <table className="history-table">
                         <thead>

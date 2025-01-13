@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import ReactQuill from "react-quill"; // Import ReactQuill
+import "react-quill/dist/quill.snow.css"; // Import stylesheet
 
 const AddContent = () => {
     const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
+    const [description, setDescription] = useState(""); // State untuk deskripsi
     const [tag, setTag] = useState("");
     const [instanceId, setInstanceId] = useState("");
     const [instances, setInstances] = useState([]);
@@ -118,11 +120,6 @@ const AddContent = () => {
         }
     };
 
-    const handleTextareaResize = (e) => {
-        e.target.style.height = "auto";
-        e.target.style.height = `${e.target.scrollHeight}px`;
-    };
-
     const Breadcrumbs = ({ paths }) => {
         return (
             <nav>
@@ -134,7 +131,7 @@ const AddContent = () => {
                             ) : (
                                 <span>{path.label}</span>
                             )}
-                            {index < paths.length - 1 && " > "}
+                            {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
                         </li>
                     ))}
                 </ul>
@@ -168,19 +165,16 @@ const AddContent = () => {
 
                     <div className="form-row">
                         <div className="input-data textarea">
-                            <textarea
-                                rows="2"
-                                value={description}
-                                onChange={(e) => {
-                                    setDescription(e.target.value);
-                                    handleTextareaResize(e);
-                                }}
-                            />
-                            <div className="underline"></div>
                             <label>Deskripsi (Opsional)</label>
+                            <ReactQuill
+                                value={description}
+                                onChange={setDescription} // Update state on change
+                                theme="snow" // Theme untuk ReactQuill
+                                style={{ height: '150px' }} // Mengatur tinggi editor
+                            />
                         </div>
                     </div>
-
+                    <br></br>
                     <div className="form-row">
                         <div className="input-data">
                             <input
