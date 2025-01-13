@@ -7,49 +7,55 @@ import (
 	rolecontroller "backend/controllers"
 	subheadingcontroller "backend/controllers"
 	usercontroller "backend/controllers"
+	middleware "backend/middlewares"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	 
+	
 )
 
 func main() {
-	// Buat router baru
+	// Inisialisasi router
 	r := mux.NewRouter()
 
 	// Konfigurasi CORS
 	cors := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:3001"}),                                       // Frontend URL
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),                     // Allowed HTTP methods
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-Requested-With", "Accept"}), // Allow additional headers if needed
-		handlers.AllowCredentials(), // Allow cookies or other credentials
+		handlers.AllowedOrigins([]string{"http://localhost:3001"}), // Frontend URL
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-Requested-With", "Accept"}),
+		handlers.AllowCredentials(), // Izinkan penggunaan credentials (cookies, dll.)
 	)
 
-	// Tambahkan endpoint ke router
-	r.HandleFunc("/api", contentcontroller.GetIdTitleAllContents).Methods("GET")
-	r.HandleFunc("/api/content", contentcontroller.SearchContent).Methods("GET")
-	r.HandleFunc("/api/content/{id}", contentcontroller.GetContentByID).Methods("GET")
-	r.HandleFunc("/api/content/edit/{id}", contentcontroller.EditContentByID).Methods("PUT")
-	r.HandleFunc("/api/content/add", contentcontroller.CreateContent).Methods("POST")
-	r.HandleFunc("/api/subheading/add/{id}", subheadingcontroller.CreateSubheading).Methods("POST")
-	r.HandleFunc("/api/subheading/delete/{id}", contentcontroller.DeleteSubheadingByID).Methods("DELETE")
-	r.HandleFunc("/api/login", usercontroller.Login).Methods("POST")
-	r.HandleFunc("/api/content/delete/{id}", contentcontroller.DeleteContent).Methods("DELETE")
-	r.HandleFunc("/api/instances", instancecontroller.GetInstances).Methods("GET")
-	r.HandleFunc("/api/user/{id}", usercontroller.GetUserByID).Methods("GET")
-	r.HandleFunc("/api/users", usercontroller.GetAllUsers).Methods("GET")
-	r.HandleFunc("/api/roles", rolecontroller.GetRoles).Methods("GET")
-	r.HandleFunc("/api/createuser", usercontroller.CreateUser).Methods("POST")
-	r.HandleFunc("/api/user/edit/{id}", usercontroller.EditUserById).Methods("PUT")
-	r.HandleFunc("/api/user/{id}", usercontroller.DeleteUser).Methods("DELETE")
-	r.HandleFunc("/api/history/add", historycontroller.AddHistory).Methods("POST")
-	r.HandleFunc("/api/history/user/{id}", historycontroller.GetByIdUser).Methods("GET")
-	r.HandleFunc("/api/latest-editor-name/{contentId}", historycontroller.GetLatestEditorNameByContentId).Methods("GET")
-	r.HandleFunc("/api/contents/user/{id}", contentcontroller.GetUserContents).Methods("GET")
+// Endpoint dengan middleware JWT dan RoleAuth untuk role 1 dan 2
+r.Handle("/api", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(contentcontroller.GetIdTitleAllContents)))).Methods("GET")
+r.Handle("/api/content", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(contentcontroller.SearchContent)))).Methods("GET")
+r.Handle("/api/content/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(contentcontroller.GetContentByID)))).Methods("GET")
+r.Handle("/api/content/edit/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(contentcontroller.EditContentByID)))).Methods("PUT")
+r.Handle("/api/content/add", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(contentcontroller.CreateContent)))).Methods("POST")
+r.Handle("/api/subheading/add/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(subheadingcontroller.CreateSubheading)))).Methods("POST")
+r.Handle("/api/subheading/delete/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(contentcontroller.DeleteSubheadingByID)))).Methods("DELETE")
+r.Handle("/api/content/delete/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(contentcontroller.DeleteContent)))).Methods("DELETE")
+r.Handle("/api/contents/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(contentcontroller.GetUserContents)))).Methods("GET")
+r.Handle("/api/instances", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(instancecontroller.GetInstances)))).Methods("GET")
+r.Handle("/api/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(usercontroller.GetUserByID)))).Methods("GET")
+r.Handle("/api/users", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(usercontroller.GetAllUsers)))).Methods("GET")
+r.Handle("/api/roles", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(rolecontroller.GetRoles)))).Methods("GET")
+r.Handle("/api/createuser", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(usercontroller.CreateUser)))).Methods("POST")
+r.Handle("/api/user/edit/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(usercontroller.EditUserById)))).Methods("PUT")
+r.Handle("/api/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(usercontroller.DeleteUser)))).Methods("DELETE")
+r.Handle("/api/history/add", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(historycontroller.AddHistory)))).Methods("POST")
+r.Handle("/api/history/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(historycontroller.GetByIdUser)))).Methods("GET")
+r.Handle("/api/latest-editor-name/{contentId}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2}, http.HandlerFunc(historycontroller.GetLatestEditorNameByContentId)))).Methods("GET")
 
+// Endpoint tanpa middleware untuk login
+r.HandleFunc("/api/login", usercontroller.Login).Methods("POST")
 
 	// Jalankan server dengan middleware CORS
-	// log.Println("Server is running on port 3000")
-	log.Fatal(http.ListenAndServe(":3000", cors(r)))
+	log.Println("Server is running on port 3000")
+	if err := http.ListenAndServe(":3000", cors(r)); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

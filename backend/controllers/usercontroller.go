@@ -7,15 +7,20 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 )
 
 var userModel = models.NewUserModel()
+var jwtKey = []byte("wiki") 
 
+// Login adalah fungsi handler untuk login dan menghasilkan token JWT
 func Login(response http.ResponseWriter, request *http.Request) {
 	var user entities.User
 
+	// Decode request body untuk mendapatkan data user
 	err := json.NewDecoder(request.Body).Decode(&user)
 	if err != nil {
 		response.WriteHeader(http.StatusBadRequest)
@@ -26,6 +31,7 @@ func Login(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	// Verifikasi kredensial pengguna
 	userModel := models.NewUserModel()
 	authenticatedUser, err := userModel.Authenticate(user.Email, user.Password)
 	if err != nil {
@@ -37,7 +43,7 @@ func Login(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	// Fetch role and instance data
+	// Ambil data role dan instance berdasarkan user
 	roleModel := models.NewRoleModel()
 	role, err := roleModel.FindRoleById(authenticatedUser.Role_Id)
 	if err != nil {
@@ -60,6 +66,34 @@ func Login(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	// Membuat JWT token
+	expirationTime := time.Now().Add(1 * time.Hour) // Token berakhir dalam 1 jam
+	claims := jwt.MapClaims{
+		"id":          authenticatedUser.Id,
+		"role":        authenticatedUser.Role_Id,  // Role pengguna
+		"instance_id": authenticatedUser.Instance_Id,
+		"exp":         expirationTime.Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(response).Encode(map[string]string{
+			"error": "Could not generate token: " + err.Error(),
+		})
+		return
+	}
+
+	// Return token as response (you can return it in headers or body)
+	// response.Header().Set("Authorization", "Bearer "+tokenString)
+	// response.WriteHeader(http.StatusOK)
+	// json.NewEncoder(response).Encode(map[string]string{
+	// 	"token": tokenString,
+	// })
+
+	// Membuat response JSON dengan token dan data pengguna
 	jsonResponse := map[string]interface{}{
 		"id":          authenticatedUser.Id,
 		"name":        authenticatedUser.Name,
@@ -69,8 +103,10 @@ func Login(response http.ResponseWriter, request *http.Request) {
 		"role":        role.Name,
 		"role_id":     authenticatedUser.Role_Id,
 		"nip":         authenticatedUser.NIP,
+		"token":       tokenString,  // Menambahkan token ke response
 	}
 
+	// Kirim response dengan data pengguna dan token
 	response.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(response).Encode(jsonResponse)
 }

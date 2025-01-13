@@ -1,0 +1,235 @@
+### Get all contents
+# @name GetAllContents
+GET http://localhost:3001/api
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY2OTI3ODMsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.5XUnZ9jOlcWVAJG2mS5ZGVf-iSTIL4Kx_MmPD2HLaVs
+Accept: application/json
+
+###
+
+### Search content
+# @name SearchContent
+GET http://localhost:3001/api/content?q=Holaku
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY2OTI3ODMsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.5XUnZ9jOlcWVAJG2mS5ZGVf-iSTIL4Kx_MmPD2HLaVs
+Accept: application/json
+
+###
+
+### Get content by ID
+# @name GetContentByID
+GET http://localhost:3001/api/content/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY2OTI3ODMsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.5XUnZ9jOlcWVAJG2mS5ZGVf-iSTIL4Kx_MmPD2HLaVs
+Accept: application/json
+
+###
+
+### Edit content by ID
+# @name EditContentByID
+PUT http://localhost:3001/api/content/edit/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY2OTI3ODMsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.5XUnZ9jOlcWVAJG2mS5ZGVf-iSTIL4Kx_MmPD2HLaVs
+Content-Type: application/json
+
+{
+  "title": "Holaku",
+  "description": "Updated bang",
+  "instance_id": 1,
+  "tag": "Updated, Tag Example",
+  "subheadings": [
+  ]
+}
+
+
+###
+
+### Add new content
+# @name AddContent
+POST http://localhost:3001/api/content/add
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MzM4MDUsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.DaUismXwfZ_NEijqy_puGwfesGmVqzJU8iHgqhCOppQ
+
+{
+    "title": "kocak",
+    "tag": "example_tag",
+    "author_id": 2,
+    "instance_id": 2
+
+}
+
+### Login User
+# @name LoginUser
+POST http://localhost:3001/api/login
+Content-Type: application/json
+
+{
+  "email": "user@gmail.com",
+  "password": "user"
+}
+
+
+
+
+
+
+
+###
+
+### Add subheading
+# @name AddSubheading
+POST http://localhost:3001/api/subheading/add/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY2OTY0OTYsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.CS2JNYKXdTgeN0vVi6yW5bvgi7MYrcigeFcLOhe0SkI
+Content-Type: application/json
+
+{
+  "content_id": 3,
+  "subheading": "hola",
+  "subheading_description": "This is the description for the new subheading.",
+  "author_id": 2,
+  "created_at": "2025-01-10T10:00:00Z",
+  "updated_at": "2025-01-10T10:00:00Z"
+}
+
+
+###
+
+### Delete subheading by ID
+# @name DeleteSubheading
+DELETE http://localhost:3001/api/subheading/delete/5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY2OTY0OTYsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.CS2JNYKXdTgeN0vVi6yW5bvgi7MYrcigeFcLOhe0SkI
+Accept: application/json
+
+###
+
+### Login Admin
+# @name LoginAdmin
+POST http://localhost:3001/api/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password"
+}
+### Login User
+# @name LoginUser
+POST http://localhost:3001/api/login
+Content-Type: application/json
+
+{
+  "email": "user@gmail.com",
+  "password": "user"
+}
+
+###
+
+### Delete content by ID
+# @name DeleteContent
+DELETE http://localhost:3001/api/content/delete/13
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Accept: application/json
+
+###
+
+### Get all instances
+# @name GetInstances
+GET http://localhost:3001/api/instances
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Accept: application/json
+
+###
+
+### Get user by ID
+# @name GetUserByID
+GET http://localhost:3001/api/user/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Accept: application/json
+###
+
+### Get all users
+# @name GetAllUsers
+GET http://localhost:3001/api/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Accept: application/json
+
+###
+
+### Get roles
+# @name GetRoles
+GET http://localhost:3001/api/roles
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Accept: application/json
+
+###
+
+### Create new user
+# @name CreateUser
+POST http://localhost:3001/api/createuser
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Content-Type: application/json
+
+{
+  "name": "yoi man",
+  "email": "yoiman@gmail.com",
+  "password": "coba",
+  "role_id": 2,
+  "instance_id": 1,
+  "nip": 12345
+}
+
+###
+
+### Edit user by ID
+# @name EditUserByID
+PUT http://localhost:3001/api/user/edit/8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Content-Type: application/json
+
+{
+  "name": "zzzUciha User",
+  "email": "userzzz@example.com",
+  "password": "securepassword",
+  "role_id": 2,
+  "instance_id": 1,
+  "nip": 12345
+}
+###
+
+### Delete user by ID
+# @name DeleteUser
+DELETE http://localhost:3001/api/user/8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Accept: application/json
+
+###
+
+### Add history
+# @name AddHistory
+POST http://localhost:3001/api/history/add
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Content-Type: application/json
+
+{
+  "content_id": 1,
+  "user_id": 1,
+  "action": "Edited content"
+}
+
+###
+
+### Get user history by ID
+# @name GetUserHistoryByID
+GET http://localhost:3001/api/history/user/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Accept: application/json
+
+###
+
+### Get latest editor name by content ID
+# @name GetLatestEditorName
+GET http://localhost:3001/api/latest-editor-name/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Accept: application/json
+
+###
+
+### Get contents by user ID
+# @name GetContentsByUserID
+GET http://localhost:3001/api/contents/user/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Accept: application/json
