@@ -17,90 +17,108 @@ function SearchContent({ setSearchTerm }) {
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
 
-    if (diffInSeconds < secondsInMinute) {
-      return `${diffInSeconds} seconds ago`;
-    } else if (diffInSeconds < secondsInHour) {
-      const minutes = Math.floor(diffInSeconds / secondsInMinute);
-      return `${minutes} minutes ago`;
-    } else if (diffInSeconds < secondsInDay) {
-      const hours = Math.floor(diffInSeconds / secondsInHour);
-      return `${hours} hours ago`;
-    } else if (diffInSeconds < secondsInMonth) {
-      const days = Math.floor(diffInSeconds / secondsInDay);
-      return `${days} days ago`;
-    } else if (diffInSeconds < secondsInYear) {
-      const months = Math.floor(diffInSeconds / secondsInMonth);
-      return `${months} months ago`;
-    } else {
-      const years = Math.floor(diffInSeconds / secondsInYear);
-      return `${years} years ago`;
-    }
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const token = localStorage.getItem('token');  // Ambil token dari localStorage
-      try {
-        const response = await fetch(`http://localhost:3000/api/content?q=${term}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,  // Sertakan token dalam header
-          },
-        });
-        if (!response.ok) {
-          console.error("Error fetching data:", response.statusText);
-          setResults([]);
-        } else {
-          const data = await response.json();
-          setResults(data.data);
-        }
-      } catch (error) {
-        console.error("Fetch error:", error);
-        setResults([]);
-      }
-      setLoading(false);
+        if (seconds < 60) return `${seconds} seconds ago`;
+        if (minutes < 60) return `${minutes} minutes ago`;
+        if (hours < 24) return `${hours} hours ago`;
+        return `${days} days ago`;
     };
 
-    if (term) fetchData();
-  }, [term]);
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            const token = localStorage.getItem('token'); // Ambil token dari localStorage atau sumber lain
+            try {
+                const response = await fetch(`http://localhost:3000/api/content?q=${term}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`, // Tambahkan token ke header Authorization
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!response.ok) {
+                    setResults([]);
+                } else {
+                    const data = await response.json();
+                    setResults(data.data);
+                }
+            } catch (error) {
+                setResults([]);
+            }
+            setLoading(false);
+        };
+    
+        if (term) fetchData();
+    }, [term]);
 
-  return (
-    <div className="search-content-page">
-      <div className="search-content">
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div>
-            {results.length > 0 ? (
-              <div className="wiki-pemda-container">
-                {results.map((content) => (
-                  <Link to={`/informasi/${content.id}`} key={content.id} className="wiki-pemda-item-link">
-                    <div className="wiki-pemda-item">
-                      <div className="title-container">
-                        <h4 className="search">{content.title}</h4>
-                      </div>
-                      <br />
-                      <hr className="divider" />
-                      <br />
-                      <p className="description">
-                        {content.description.String.slice(0, 86)}
-                      </p>
-                      <p className="last-updated">
-                        Last updated {content.updated_at && timeAgo(content.updated_at)}
-                      </p>
+    const Breadcrumbs = ({ paths }) => {
+        return (
+            <nav>
+                <ul className="breadcrumbs">
+                    {paths.map((path, index) => (
+                        <li key={index}>
+                            {path.link ? (
+                                <Link to={path.link}>{path.label}</Link>
+                            ) : (
+                                <span>{path.label}</span>
+                            )}
+                            {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        );
+    };
+
+    return (
+        <div className="search-content-page">
+            <div className="search-content">
+                {/* Breadcrumbs rendering */}
+                <Breadcrumbs 
+                    paths={[
+                        { label: "Home", link: "/" },
+                        { label: "Pencarian" },
+                    ]} 
+                />
+                {loading ? (
+                    <p>Loading...</p>
+                ) : (
+                    <div>
+                        {results.length > 0 ? (
+                            <div className="wiki-pemda-container">
+                                {results.map((content) => (
+                                    <Link
+                                        to={`/informasi/${content.id}`}
+                                        key={content.id}
+                                        className="wiki-pemda-item-link"
+                                        onClick={() => {
+                                            setSearchTerm(''); // Kosongkan search term saat item ini diklik
+                                        }}
+                                    >
+                                        <div className="wiki-pemda-item">
+                                            <div className="title-container">
+                                                <h4 className="search">{content.title}</h4>
+                                            </div>
+                                            <br />
+                                            <hr className="divider" />
+                                            <br />
+                                            <p className="description"
+                                               dangerouslySetInnerHTML={{ __html: content.description.String }}>
+                                            </p>
+                                            <p className="last-updated">
+                                                Last updated {content.updated_at && timeAgo(content.updated_at)}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        ) : (
+                            <p>No results found.</p>
+                        )}
                     </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <p>No results found.</p>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+                )}
+            </div>
+        </div>
+    );
 }
 
 export default SearchContent;
