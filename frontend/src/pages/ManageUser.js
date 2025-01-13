@@ -22,22 +22,48 @@ const ManageUser = () => {
         fetchInstances();
     }, []);
 
+    const fetchToken = () => {
+        // Dapatkan token dari localStorage atau dari state aplikasi Anda
+        return localStorage.getItem("token"); // Sesuaikan sesuai kebutuhan
+    };
+
     const fetchUsers = () => {
-        fetch("http://localhost:3000/api/users")
+        const token = fetchToken();
+        fetch("http://localhost:3000/api/users", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then((data) => setUsers(data))
             .catch((err) => console.error("Failed to fetch users:", err));
     };
 
     const fetchRoles = () => {
-        fetch("http://localhost:3000/api/roles")
+        const token = fetchToken();
+        fetch("http://localhost:3000/api/roles", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then((data) => setRoles(data))
             .catch((err) => console.error("Failed to fetch roles:", err));
     };
 
     const fetchInstances = () => {
-        fetch("http://localhost:3000/api/instances")
+        const token = fetchToken();
+        fetch("http://localhost:3000/api/instances", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then((data) => setInstances(data))
             .catch((err) => console.error("Failed to fetch instances:", err));
@@ -61,10 +87,12 @@ const ManageUser = () => {
             instance_id: parseInt(formData.instance_id, 10),
         };
 
+        const token = fetchToken();
         fetch("http://localhost:3000/api/createuser", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(formattedData),
         })
@@ -89,8 +117,13 @@ const ManageUser = () => {
         if (!isConfirmed) return;
 
         try {
+            const token = fetchToken();
             const response = await fetch(`http://localhost:3000/api/user/${id}`, {
                 method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
             });
 
             if (response.ok) {
@@ -114,7 +147,6 @@ const ManageUser = () => {
                         <th>Role</th>
                         <th>Instance</th>
                         <th colSpan={2}>Actions</th>
-
                     </thead>
                     <tbody>
                         {Array.isArray(users) &&
@@ -124,19 +156,6 @@ const ManageUser = () => {
                                     <td>{user.role_name}</td>
                                     <td>{user.instance}</td>
                                     <td>
-                                        {/* <input
-                                            type="button"
-                                            value="Detail"
-                                            className="btn btn-green"
-                                            onClick={() => {
-                                                <Link to={`/detail/${user.id}`}>
-                                                    <button>Detail</button>
-                                                </Link>
-                                            }}
-                                        /> */}
-                                        {/* <Link className="btn btn-green" to={`/detail/${user.id}`}>
-                                            <button>Detail</button>
-                                        </Link> */}
                                         <Link to={`/detail/${user.id}`}>
                                             <button>Detail</button>
                                         </Link>
@@ -170,7 +189,6 @@ const ManageUser = () => {
                             />
                         </div>
                     </div>
-
 
                     <div className="form-row">
                         <div className="input-data">
@@ -264,7 +282,6 @@ const ManageUser = () => {
                         className="btn btn-blue"
                         onClick={handleFormSubmit}
                     />
-
                 </form>
             </div>
         </div>

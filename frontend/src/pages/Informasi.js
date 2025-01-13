@@ -19,11 +19,29 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     if (storedUser) setUser(storedUser);
 
     const fetchData = async () => {
-      try {
-        const response = await fetch(`http://localhost:3000/api/content/${id}`);
-        if (!response.ok) throw new Error('Failed to fetch data');
-        const data = await response.json();
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
 
+      if (!token) {
+        setError("Authorization token is missing. Please log in again.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/content/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`, // Properly format the Authorization header
+          },
+        });
+
+        if (!response.ok) {
+          const errorMessage = await response.text();
+          throw new Error(errorMessage || 'Failed to fetch data');
+        }
+
+        const data = await response.json();
         setContent(data);
         setSubheadings(data?.subheadings || []);
         setTags(data.content.tag ? data.content.tag.split(',') : []);
@@ -31,7 +49,8 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         setContentId(id);
         setAuthorName(data.author_name);
       } catch (err) {
-        setError("Failed to fetch data. Please check your connection or try again later.");
+        console.error("Error fetching content:", err);
+        setError("Failed to fetch content. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -64,9 +83,19 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     } else if (user.role_id === 1 || user.role_id === 2 || (user.role_id === 3 && user.user_instance_id === content?.content?.instance_id)) {
       const confirmDelete = window.confirm("Are you sure you want to delete this content?");
       if (confirmDelete) {
+        const token = localStorage.getItem('token'); // Retrieve token for deletion request
+        if (!token) {
+          alert("Authorization token is missing for deletion.");
+          return;
+        }
+
         try {
           const response = await fetch(`http://localhost:3000/api/content/delete/${id}`, {
             method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`, // Add token to Authorization header for delete request
+            },
           });
 
           if (response.ok) {
@@ -84,39 +113,12 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     }
   };
 
-  // Breadcrumbs component
-  const Breadcrumbs = ({ paths }) => {
-    return (
-      <nav>
-        <ul className="breadcrumbs">
-          {paths.map((path, index) => (
-            <li key={index}>
-              {path.link ? (
-                <Link to={path.link}>{path.label}</Link>
-              ) : (
-                <span>{path.label}</span>
-              )}
-              {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
-            </li>
-          ))}
-        </ul>
-      </nav>
-    );
-  };
-
   if (loading) return <div>Loading content...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="main">
       <div className="content">
-        <Breadcrumbs 
-          paths={[
-            { label: "Home", link: "/" },
-            { label: "Informasi" }, // Halaman saat ini tidak memiliki link
-          ]} 
-        />
-        
         <h1>{content?.content?.title || "No Title Available"}</h1>
         <p>
           {content?.content?.description?.String &&

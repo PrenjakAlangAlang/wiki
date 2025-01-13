@@ -22,16 +22,20 @@ function Login() {
 
       const data = await response.json();
 
-      if (response.ok && data) {
-        const user = {
+      if (response.ok && data.token) {  // Pastikan token ada dalam respons
+        // Simpan token JWT di localStorage
+        localStorage.setItem('token', data.token);  // Menyimpan token
+        localStorage.setItem('user', JSON.stringify({
           id: data.id,
           name: data.name,
           email: data.email,
-          user_instance_id: data.instance_id,
           role_id: data.role_id
-        };
-        localStorage.setItem('user', JSON.stringify(user));
+        }));
+        
+        // Trigger storage event untuk mendeteksi perubahan
         window.dispatchEvent(new Event('storage'));
+
+        // Redirect ke halaman utama setelah login berhasil
         navigate('/');
       } else {
         alert(data.error || 'Invalid login credentials');

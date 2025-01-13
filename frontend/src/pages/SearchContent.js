@@ -5,6 +5,7 @@ function SearchContent() {
   const { term } = useParams();
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const timeAgo = (dateString) => {
     const now = new Date();
     const past = new Date(dateString);
@@ -39,8 +40,14 @@ function SearchContent() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      const token = localStorage.getItem('token');  // Ambil token dari localStorage
       try {
-        const response = await fetch(`http://localhost:3000/api/content?q=${term}`);
+        const response = await fetch(`http://localhost:3000/api/content?q=${term}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,  // Sertakan token dalam header
+          },
+        });
         if (!response.ok) {
           console.error("Error fetching data:", response.statusText);
           setResults([]);
@@ -54,16 +61,13 @@ function SearchContent() {
       }
       setLoading(false);
     };
-  
+
     if (term) fetchData();
   }, [term]);
-  
 
   return (
     <div className="search-content-page">
       <div className="search-content">
-        {/* <h2>Cari : "{term || 'No Search Term'}"</h2> */}
-
         {loading ? (
           <p>Loading...</p>
         ) : (
@@ -94,11 +98,9 @@ function SearchContent() {
             )}
           </div>
         )}
-
       </div>
     </div>
   );
-
 }
 
 export default SearchContent;

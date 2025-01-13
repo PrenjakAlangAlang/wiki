@@ -1,13 +1,25 @@
 export const API_BASE_URL = "http://localhost:3000"; 
 
+const getAuthHeader = () => {
+    const token = localStorage.getItem('token');  // Retrieve token from localStorage
+    if (token) {
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        };
+    }
+    return {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+    };
+};
+
 export const getIdTitleAllContents = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}/api`, {
             method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            }
+            headers: getAuthHeader(),  // Include Authorization header if token exists
         });
 
         if (!response.ok) {
@@ -25,10 +37,7 @@ export const getContentByID = async (id) => {
     try {
         const response = await fetch(`${API_BASE_URL}/api/content/${id}`, {
             method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            }
+            headers: getAuthHeader(),  // Include Authorization header if token exists
         });
         if (!response.ok) {
             throw new Error('Failed to fetch data');
@@ -53,7 +62,8 @@ export const login = async (email, password) => {
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'login failed');
-        } return await response.json();
+        }
+        return await response.json();
 
     } catch (error) {
         console.error('Error during login:', error);
@@ -66,8 +76,7 @@ export const updateContentByID = async (id, content, subheadings) => {
         const response = await fetch(`${API_BASE_URL}/api/content/edit/${id}`, {
             method: 'PUT',
             headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
+                ...getAuthHeader(),  // Include Authorization header if token exists
             },
             body: JSON.stringify({ content, subheadings }),
         });
@@ -86,7 +95,7 @@ export const addContent = async (contentData) => {
       const response = await fetch(`${API_BASE_URL}/api/content/add`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          ...getAuthHeader(),  // Include Authorization header if token exists
         },
         body: JSON.stringify(contentData),
       });
@@ -100,4 +109,4 @@ export const addContent = async (contentData) => {
       console.error('Error in addContent:', error);
       throw error;
     }
-  };
+};

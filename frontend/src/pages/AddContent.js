@@ -6,7 +6,7 @@ const AddContent = () => {
     const [description, setDescription] = useState("");
     const [tag, setTag] = useState("");
     const [instanceId, setInstanceId] = useState("");
-    const [instances, setInstances] = useState([]); // To store instance data
+    const [instances, setInstances] = useState([]);
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
@@ -16,26 +16,40 @@ const AddContent = () => {
             setUser(storedUser);
             console.log("User Instance ID:", storedUser.user_instance_id);
             if (storedUser.role_id === 3 && storedUser.user_instance_id) {
-                // Check if an instance matches the user's instance ID
                 const selectedInstance = instances.find(
                     (instance) => instance.id === parseInt(storedUser.user_instance_id, 10)
                 );
                 if (selectedInstance) {
-                    setInstanceId(selectedInstance.id); // Set instanceId for role 3 user
+                    setInstanceId(selectedInstance.id);
                 }
             }
         } else {
             console.warn("User ID not found in localStorage.");
         }
-    }, [instances]); 
+    }, [instances]);
 
     useEffect(() => {
         const fetchInstances = async () => {
             try {
-                const response = await fetch("/api/instances");
+                // Ambil token dari localStorage atau sessionStorage
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    console.error("Authorization token is missing");
+                    return;
+                }
+
+                // Tambahkan token pada header Authorization
+                const response = await fetch("/api/instances", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`, // Menambahkan token di header
+                    },
+                });
+
                 if (response.ok) {
                     const data = await response.json();
-                    setInstances(data); 
+                    setInstances(data);
                     console.log("Fetched Instances:", data);
                 } else {
                     console.error("Failed to fetch instances.");
@@ -46,7 +60,7 @@ const AddContent = () => {
         };
 
         fetchInstances();
-    }, []); 
+    }, []); // Fetch instances only once when the component is mounted
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -65,7 +79,7 @@ const AddContent = () => {
             },
             tag,
             author_id: user?.id,
-            instance_id: parseInt(instanceId, 10), 
+            instance_id: parseInt(instanceId, 10),
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         };
@@ -73,9 +87,19 @@ const AddContent = () => {
         console.log("Content Data to Send:", JSON.stringify(contentData, null, 2));
 
         try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Authorization token is missing");
+                navigate("/login");
+                return;
+            }
+
             const response = await fetch(`/api/content/add`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
                 body: JSON.stringify(contentData),
             });
 
@@ -96,7 +120,7 @@ const AddContent = () => {
 
     const handleTextareaResize = (e) => {
         e.target.style.height = "auto";
-        e.target.style.height = `${e.target.scrollHeight}px`; 
+        e.target.style.height = `${e.target.scrollHeight}px`;
     };
 
     const Breadcrumbs = ({ paths }) => {
@@ -110,7 +134,7 @@ const AddContent = () => {
                             ) : (
                                 <span>{path.label}</span>
                             )}
-                            {index < paths.length - 1 && " > "} {/* Menambahkan separator */}
+                            {index < paths.length - 1 && " > "}
                         </li>
                     ))}
                 </ul>
@@ -121,13 +145,12 @@ const AddContent = () => {
     return (
         <div className="container-wrapper profile-wrapper">
             <div className="container">
-                <Breadcrumbs 
+                <Breadcrumbs
                     paths={[
                         { label: "Home", link: "/" },
-                        { label: "Add Content" }  // Halaman saat ini tidak memiliki link
-                    ]} 
+                        { label: "Add Content" },
+                    ]}
                 />
-
                 <div className="text text-gradient">Tambah Konten</div>
                 <form onSubmit={handleSubmit}>
                     <div className="form-row">

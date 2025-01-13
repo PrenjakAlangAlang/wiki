@@ -22,8 +22,16 @@ const DetailUser = () => {
     const { id } = useParams();
     const [passwordVisible, setPasswordVisible] = useState(false);
 
+    // Retrieve token from localStorage (or sessionStorage)
+    const token = localStorage.getItem("token");
+
     useEffect(() => {
-        fetch(`http://localhost:3000/api/user/${id}`)
+        // Fetch user details with token in Authorization header
+        fetch(`http://localhost:3000/api/user/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then((data) => {
                 setUser(data);
@@ -39,21 +47,36 @@ const DetailUser = () => {
             })
             .catch((err) => console.error("Failed to fetch user:", err));
 
-        fetch("http://localhost:3000/api/roles")
+        // Fetch roles with token
+        fetch("http://localhost:3000/api/roles", {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then((data) => setRoles(data))
             .catch((err) => console.error("Failed to fetch roles:", err));
 
-        fetch("http://localhost:3000/api/instances")
+        // Fetch instances with token
+        fetch("http://localhost:3000/api/instances", {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then((data) => setInstances(data))
             .catch((err) => console.error("Failed to fetch instances:", err));
 
-        fetch("http://localhost:3000/api")
+        // Fetch contents with token
+        fetch("http://localhost:3000/api", {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then((data) => setContents(data || []))
             .catch((err) => console.error("Failed to fetch contents:", err));
-    }, [id]);
+    }, [id, token]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -73,10 +96,12 @@ const DetailUser = () => {
             instance_id: parseInt(formData.instance_id, 10),
         };
 
+        // Submit form with token in Authorization header
         fetch(`http://localhost:3000/api/user/edit/${formData.id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
             },
             body: JSON.stringify(formattedData),
         })
@@ -89,7 +114,11 @@ const DetailUser = () => {
             .then(() => {
                 alert("User updated successfully!");
                 setIsEditing(false);
-                fetch(`http://localhost:3000/api/user/${id}`)
+                fetch(`http://localhost:3000/api/user/${id}`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                })
                     .then((res) => res.json())
                     .then((data) => setUser(data))
                     .catch((err) => console.error("Failed to fetch updated user:", err));
@@ -98,14 +127,24 @@ const DetailUser = () => {
     };
 
     const loadHistories = () => {
-        fetch(`http://localhost:3000/api/history/user/${id}`)
+        // Fetch history with token
+        fetch(`http://localhost:3000/api/history/user/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
             .then((data) => setHistories(data || []))
             .catch((err) => console.error("Failed to fetch histories:", err));
 
-        fetch(`http://localhost:3000/api/contents/user/${id}`)
+        // Fetch contents with token
+        fetch(`http://localhost:3000/api/contents/user/${id}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            },
+        })
             .then((res) => res.json())
-            .then((data) => setContents(data || [])) // Ensure contents is always an array
+            .then((data) => setContents(data || []))
             .catch((err) => console.error("Failed to fetch contents:", err));
     };
 
@@ -140,7 +179,6 @@ const DetailUser = () => {
         // Gabungkan jam dan tanggal dengan pemisah "-"
         return `${formattedTime} - ${formattedDate}`;
     };
-    
 
     const getContentTitle = (contentId) => {
         const content = contents.find((c) => c.id === contentId);
@@ -169,7 +207,6 @@ const DetailUser = () => {
     ];
 
     mergedData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Urutkan berdasarkan tanggal terbaru
-
 
     if (!user || !histories || !contents) {
         return <div>Loading...</div>;
@@ -225,7 +262,6 @@ const DetailUser = () => {
                                     required
                                 />
                             </div>
-
                         </div>
                         <div className="form-row">
                             <div className="input-data">
@@ -273,86 +309,75 @@ const DetailUser = () => {
                             </div>
                         </div>
                         <div className="form-row">
-                            <label>Role:</label>
-                            <select
-                                name="role_id"
-                                value={formData.role_id}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                <option value="">Select Role</option>
-                                {roles.map((role) => (
-                                    <option key={role.id} value={role.id}>
-                                        {role.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-row">
-                            <label>Instance:</label>
-                            <select
-                                name="instance_id"
-                                value={formData.instance_id}
-                                onChange={handleInputChange}
-                                required
-                            >
-                                <option value="">Select Instance</option>
-                                {instances.map((instance) => (
-                                    <option key={instance.id} value={instance.id}>
-                                        {instance.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-row submit-btn">
                             <div className="input-data">
-                                <div className="inner"></div>
-                                {/* <input type="submit" value="Save Changes" /> */}
-                                <input
-                                    type="submit"
-                                    value="Save Changes"
-                                    className="btn btn-blue"
-                                />
+                                <label>Role:</label>
+                                <select
+                                    name="role_id"
+                                    value={formData.role_id}
+                                    onChange={handleInputChange}
+                                    required
+                                >
+                                    <option value="">Select Role</option>
+                                    {roles.map((role) => (
+                                        <option key={role.id} value={role.id}>
+                                            {role.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
-
-                        <input
-                            type="button"
-                            value="Cancel"
-                            className="btn btn-gray"
-                            onClick={() => setIsEditing(false)}
-                        />
+                        <div className="form-row">
+                            <div className="input-data">
+                                <label>Instance:</label>
+                                <select
+                                    name="instance_id"
+                                    value={formData.instance_id}
+                                    onChange={handleInputChange}
+                                    required
+                                >
+                                    <option value="">Select Instance</option>
+                                    {instances.map((instance) => (
+                                        <option key={instance.id} value={instance.id}>
+                                            {instance.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <input
+                                type="submit"
+                                value="Save"
+                                className="btn btn-blue"
+                            />
+                        </div>
                     </form>
                 )}
-
-                <input
-                    type="button"
-                    value={showHistory ? "Hide History" : "Show History"}
-                    className="btn btn-gray"
-                    onClick={handleToggleHistory}
-                />
-
+                <div className="form-row">
+                    <button onClick={handleToggleHistory}>
+                        {showHistory ? "Hide History" : "Show History"}
+                    </button>
+                </div>
                 {showHistory && (
                     <table className="history-table">
-                        <thead className="thead">
+                        <thead>
                             <tr>
                                 <th>Title</th>
-                                <th>Date</th>
                                 <th>Action</th>
+                                <th>Date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {mergedData.map((item) => (
-                                <tr key={item.id}>
-                                    <td>{item.title}</td>
-                                    <td>{formatDateTime(item.created_at)}</td>
-                                    <td>{item.action}</td>
+                            {mergedData.map((history) => (
+                                <tr key={history.id}>
+                                    <td>{history.title}</td>
+                                    <td>{history.action}</td>
+                                    <td>{formatDateTime(history.created_at)}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 )}
-
             </div>
         </div>
     );
