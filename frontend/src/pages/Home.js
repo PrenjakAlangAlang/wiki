@@ -46,11 +46,11 @@ function Home() {
           <p>Knowledge Management system Pemda DIY untuk berbagi pengetahuan</p>
         </div>
 
-        <h1 id="welcome">Selamat datang di Wiki Pemda DIY</h1>
-        <p>Selamat datang di wiki Pemda DIY. Disini anda akan menemukan banyak informasi, panduan dan petunjuk terkait SPBE
+        <h1 id="welcome" className="content-title">Selamat datang di Wiki Pemda DIY</h1>
+        <p className='content-p'>Selamat datang di wiki Pemda DIY. Disini anda akan menemukan banyak informasi, panduan dan petunjuk terkait SPBE
           (Sistem Pemerintahan Berbasis Elektronik) di lingkungan Pemerintah Daerah DIY.</p>
 
-        <h2 id="organisasi">Organisasi Perangkat Daerah Pemda DIY</h2>
+        <h2 id="organisasi" className='content-h2'>Organisasi Perangkat Daerah Pemda DIY</h2>
         <ul className="numbered">
           {(contents||[]).map(content => (
             <li key={content.id}>

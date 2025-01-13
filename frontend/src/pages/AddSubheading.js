@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import ReactQuill from 'react-quill'; // Tambahkan ReactQuill
+import 'react-quill/dist/quill.snow.css'; // Tambahkan style untuk ReactQuill
 
 const AddSubheading = () => {
     const [subheading, setSubheading] = useState('');
@@ -23,7 +25,7 @@ const AddSubheading = () => {
         const subheadingData = {
             content_id: parseInt(id, 10),
             subheading,
-            subheading_description: description,
+            subheading_description: description, // Menggunakan konten rich text
             author_id: user?.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -57,6 +59,10 @@ const AddSubheading = () => {
                 console.error("Failed to record add subheading history");
             }
 
+            // Reset form fields after submission
+            setSubheading('');
+            setDescription('');
+            
             navigate(`/informasi/${id}`);
         } catch (error) {
             console.error(error);
@@ -64,9 +70,37 @@ const AddSubheading = () => {
         }
     };
 
+    // Breadcrumbs component
+    const Breadcrumbs = ({ paths }) => {
+        return (
+            <nav>
+                <ul className="breadcrumbs">
+                    {paths.map((path, index) => (
+                        <li key={index}>
+                            {path.link ? (
+                                <Link to={path.link}>{path.label}</Link>
+                            ) : (
+                                <span>{path.label}</span>
+                            )}
+                            {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        );
+    };
+
     return (
         <div className="container-wrapper">
             <div className="container">
+                <Breadcrumbs 
+                    paths={[
+                        { label: "Home", link: "/" },
+                        { label: "Informasi", link: `/informasi/${id}` },
+                        { label: "Edit Content", link: `/edit/${id}` },
+                        { label: "Tambah Sub Judul" }
+                    ]} 
+                />
                 <div className="text text-gradient">Tambah Sub Judul</div>
                 <form onSubmit={handleAddSubheading}>
                     <div className="form-row">
@@ -84,15 +118,10 @@ const AddSubheading = () => {
 
                     <div className="form-row">
                         <div className="input-data textarea">
-                            <textarea
-                                rows="2"
+                            <ReactQuill
+                                theme="snow" // Tema untuk react-quill
                                 value={description}
-                                onChange={(e) => {
-                                    setDescription(e.target.value);
-                                    e.target.style.height = 'auto';
-                                    e.target.style.height = `${e.target.scrollHeight}px`;
-                                }}
-                                required
+                                onChange={setDescription} // Mengupdate deskripsi menggunakan state
                             />
                             <div className="underline"></div>
                             <label>Deskripsi</label>
