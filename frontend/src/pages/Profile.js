@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import ModalLogout from '../component/ModalLogout';
 
 const Profile = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false); // Status untuk modal logout
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -30,16 +32,33 @@ const Profile = () => {
         fetchUserData();
     }, [navigate]);
 
+    // Panggil modal konfirmasi saat pengguna ingin logout
     const handleLogoutConfirmation = () => {
-        const isConfirmed = window.confirm("Apakah Anda yakin ingin keluar dari akun?");
-        if (isConfirmed) {
-            handleLogout();
-        }
+        setIsModalOpen(true);
     };
 
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/');
+    };
+
+    const Breadcrumbs = ({ paths }) => {
+        return (
+            <nav>
+                <ul className="breadcrumbs">
+                    {paths.map((path, index) => (
+                        <li key={index}>
+                            {path.link ? (
+                                <Link to={path.link}>{path.label}</Link>
+                            ) : (
+                                <span>{path.label}</span>
+                            )}
+                            {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        );
     };
 
     if (!user) {
@@ -49,6 +68,13 @@ const Profile = () => {
     return (
         <div className="container-wrapper profile-container-wrapper">
             <div className="container">
+                <Breadcrumbs 
+                    paths={[
+                        { label: "Home", link: "/" },
+                        { label: "Profile" }
+                    ]} 
+                />
+                
                 <div className="text text-gradient">User Info</div>
                 <table className="profile-table">
                     <tbody>
@@ -75,10 +101,16 @@ const Profile = () => {
                     </tbody>
                 </table>
                 <button onClick={handleLogoutConfirmation} className="btn btn-red">Logout</button>
-            </div>
+
+                {/* Modal Logout */}
+                <ModalLogout
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)} // Menutup modal
+                    onConfirm={handleLogout} // Logout jika konfirmasi
+                />
+            </div> 
         </div>
     );
 };
 
 export default Profile;
-
