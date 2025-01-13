@@ -71,6 +71,19 @@ body {
     width: 500px;         /* Added width */
     max-width: 100%; 
 }
+@media (max-width: 600px) {
+    .navbar-center .search-bar {
+        width: 90%;       /* Mengurangi lebar untuk layar kecil */
+    }
+}
+
+/* Media query untuk layar yang sangat kecil */
+@media (max-width: 400px) {
+    .navbar-center .search-bar {
+        width: 80%;       /* Mengurangi lebar lebih lanjut untuk layar yang lebih kecil */
+        padding: 6px;     /* Mengurangi padding untuk layar kecil */
+    }
+}
 
 .navbar-center .search-bar input {
     border: none;
@@ -102,6 +115,7 @@ body {
     object-fit: cover;
 }
 
+
 .nav-link {
     color: #fff;
     text-decoration: none;
@@ -122,6 +136,11 @@ body {
     overflow-y: auto;
     z-index: 900;
     animation: fade-in 0.5s ease-in-out; 
+}
+@media (max-width: 768px) {
+    .sidebar {
+        display: none; /* Menyembunyikan sidebar pada layar kecil */
+    }
 }
 
 .small-box {
@@ -188,6 +207,21 @@ button {
     
 }
 
+
+/* Media query untuk layar kecil */
+@media (max-width: 768px) {
+    .main {
+        margin-left: 15px; /* Mengurangi margin left lebih lanjut pada layar kecil */
+    }
+}
+
+/* Media query untuk layar sangat kecil */
+@media (max-width: 480px) {
+    .main {
+        margin-left: 20px; /* Menghilangkan margin left pada layar sangat kecil */
+    }
+}
+
 .welcome-box {
     border-radius: 10px;
     background-color: #e0e0e0;
@@ -215,6 +249,7 @@ p {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     animation: fade-in 0.5s ease-in-out; 
 }
+
 
 
 .content-title {
@@ -268,6 +303,7 @@ ul.numbered {
     max-height: calc(100vh - 120px);
     overflow: auto;
     margin-top: 20px;
+    
 }
 
 .container .text {
@@ -285,6 +321,26 @@ ul.numbered {
     animation: fade-in 0.5s ease-in-out; 
 }
 
+/* Media query untuk layar sedang */
+@media (max-width: 1024px) {
+    .profile-container-wrapper {
+        margin-top: 8%; /* Menambah margin top untuk layar sedang */
+    }
+}
+
+/* Media query untuk layar kecil */
+@media (max-width: 768px) {
+    .profile-container-wrapper {
+        margin-top: 10%; /* Menambah margin top lebih lanjut untuk layar kecil */
+    }
+}
+
+/* Media query untuk layar sangat kecil */
+@media (max-width: 480px) {
+    .profile-container-wrapper {
+        margin-top: 12%; /* Menambah margin top lebih lanjut untuk layar sangat kecil */
+    }
+}
 .container form .form-row {
     display: flex;
     flex-direction: column;
@@ -309,6 +365,8 @@ form .form-row .input-data {
     gap: 40px;
     margin: 20px 90px;
     animation: fade-in 0.5s ease-in-out; 
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
 .main-container .text {
@@ -336,12 +394,67 @@ form .form-row .input-data {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+@media (max-width: 820px) {
+    .main-container {
+        flex-direction: column; /* Mengubah arah flex menjadi kolom pada layar kecil */
+    }
 
+    .table-container {
+        flex: 0.6; /* Mengurangi flex untuk mengecilkan table container */
+        margin-left: 0; /* Menghapus margin kiri pada layar kecil */
+        margin-bottom: 15px; /* Menambahkan margin bawah untuk memberi jarak dengan form */
+    }
+
+    .form-container {
+        flex: 1; /* Menambah flex untuk membesarkan form container */
+        margin-left: 0; /* Menghapus margin kiri pada layar kecil */
+    }
+}
+/* Media query khusus untuk layar iPhone XR (max-width: 414px) */
+@media (max-width: 414px) {
+    .main-container {
+        flex-direction: column; /* Mengubah arah flex menjadi kolom pada layar kecil */
+        margin: 10px; /* Mengurangi margin pada layar sangat kecil */
+        padding-top: 40px; /* Mengurangi padding atas untuk menyesuaikan */
+    }
+
+    .table-container {
+        flex: 0.8; /* Mengurangi flex untuk mengecilkan table container */
+        margin-left: 0; /* Menghapus margin kiri pada layar kecil */
+        margin-bottom: 10px; /* Mengurangi margin bawah untuk menyesuaikan */
+    }
+
+    .form-container {
+        flex: 1.2; /* Menambah flex untuk membesarkan form container */
+        margin-left: 0; /* Menghapus margin kiri pada layar kecil */
+    }
+}
+
+/* Media query untuk layar sangat kecil (max-width: 300px) */
+@media (max-width: 300px) {
+    .main-container {
+        flex-direction: column; /* Mengubah arah flex menjadi kolom pada layar sangat kecil */
+        margin: 5px; /* Mengurangi margin pada layar sangat kecil */
+        padding-top: 20px; /* Mengurangi padding atas untuk menyesuaikan */
+    }
+
+    .table-container {
+        flex: 0.5; /* Mengurangi flex lebih lanjut untuk mengecilkan table container */
+        margin-left: 0; /* Menghapus margin kiri pada layar sangat kecil */
+        margin-bottom: 5px; /* Mengurangi margin bawah untuk menyesuaikan */
+    }
+
+    .form-container {
+        flex: 1.5; /* Menambah flex lebih lanjut untuk membesarkan form container */
+        margin-left: 0; /* Menghapus margin kiri pada layar sangat kecil */
+    }
+}
 .manage {
     border-collapse: collapse;
     padding: 10px;
     margin-left: 35px;
 }
+
 
 .thead th {
     border-bottom: 1px solid #ddd;
@@ -362,6 +475,31 @@ form .form-row .input-data {
     margin-left: 150px;
     margin-top: 25px;
     animation: fade-in 0.5s ease-in-out; 
+}
+@media (max-width: 1024px) {
+    .history-table {
+        margin-left: 100px; /* Mengurangi margin kiri untuk layar sedang */
+    }
+}
+@media (max-width: 900px) {
+    .history-table {
+        margin-left: 55px; /* Mengurangi margin kiri untuk layar sedang */
+    }
+}
+
+/* Media query untuk layar kecil */
+@media (max-width: 768px) {
+    .history-table {
+        margin-left: 2px; /* Mengurangi margin kiri lebih lanjut untuk layar kecil */
+    }
+}
+
+/* Media query untuk layar sangat kecil */
+@media (max-width: 480px) {
+    .history-table {
+        margin-left: -10px;
+         /* Mengurangi margin kiri lebih lanjut untuk layar sangat kecil */
+    }
 }
 
 .history-table td {
@@ -609,6 +747,19 @@ select:focus {
     
     margin-left: 350px;
 }
+@media (max-width: 768px) {
+    .footer {
+        margin-left: 15px; /* Mengurangi margin left lebih lanjut pada layar kecil */
+    }
+}
+
+/* Media query untuk layar sangat kecil */
+@media (max-width: 480px) {
+    .footer {
+        margin-left: 20px; /* Menghilangkan margin left pada layar sangat kecil */
+    }
+}
+
 
 .footer-logo {
     display: flex;
