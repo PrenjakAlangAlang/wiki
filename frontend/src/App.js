@@ -16,6 +16,8 @@ import AddSubheading from './pages/AddSubheading';
 import SearchContent from './pages/SearchContent';
 import ManageUser from './pages/ManageUser';
 import DetailUser from './pages/DetailUser';
+import ManageContent from './pages/ManageContent'; // Import ManageContent
+import ContentDetail from './pages/ContentDetail'; // Import ContentDetail
 
 // App Komponen Utama
 const App = () => {
@@ -71,6 +73,8 @@ const App = () => {
                             <Route path="/search/:term" element={<SearchContent setSearchTerm={setSearchTerm} />} />
                             <Route path="/manage" element={<ManageUser />} />
                             <Route path="/detail/:id" element={<DetailUser />} />
+                            <Route path="/manage-content" element={<ManageContent />} /> {/* Tambahkan rute ManageContent */}
+                            <Route path="/content/:id" element={<ContentDetail />} /> {/* Tambahkan rute ContentDetail */}
                         </Routes>
                     </div>
                 </div>

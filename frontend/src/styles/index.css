@@ -10,6 +10,7 @@ body {
     height: 100%;
     scroll-behavior: smooth;
     scroll-padding-top: 100px;
+    line-height: 1.5;
 }
 
 .preserve-format {
@@ -276,8 +277,9 @@ p {
 
 ul.no-number {
     list-style-type: none;
-    
 }
+
+
 
 ul.numbered {
     list-style-type: decimal;
@@ -810,6 +812,7 @@ select:focus {
 .profile-dropdown {
     position: absolute;
     top: 100%;
+    display: none;
     right: 0;
     background-color: white;
     border: 1px solid #ddd;
@@ -824,6 +827,7 @@ select:focus {
 
 .profile-dropdown.show {
     opacity: 1; /* Dropdown terlihat */
+    display: block;
     transform: translateY(0); /* Menurunkan dropdown ke posisi normal */
 }
 
