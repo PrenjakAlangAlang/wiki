@@ -87,23 +87,21 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
 
     return (
         <main className="main-nav">
-                <div className="header">
-                    <nav>
+            <div className="header">
+                <nav>
                     <div className="navbar-header">
-                    <button onClick={() => setIsSidebar2Open(!isSidebar2Open)} className="hamburger-menu">
-                        <svg width="24" height="24" viewBox="0 0 24 24">
-                            <path d="M3 6h18M3 12h18m-7 6h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                    </button>
-                    
-                    <div className="navbar-left">
-                        <Link to="/" className="nav-link logo-container" onClick={clearSearch}>
-                            <img src={logo} alt="Logo Pemda DIY" className="logo" />
-                        </Link>  
+                        <button onClick={() => setIsSidebar2Open(!isSidebar2Open)} className="hamburger-menu">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path d="M3 6h18M3 12h18m-7 6h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                        </button>
+                        <div className="navbar-left">
+                            <Link to="/" className="nav-link logo-container" onClick={clearSearch}>
+                                <img src={logo} alt="Logo Pemda DIY" className="logo" />
+                            </Link>
+                        </div>
                     </div>
-                </div>
 
-                    
                     <div className="navbar-center">
                         <div className="search-bar">
                             <input
@@ -119,7 +117,6 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                     </div>
 
                     <div className="navbar-right">
-
                         {user ? (
                             <>
                                 <div className="profile-container">
@@ -145,11 +142,10 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                                         }}>Logout</button>
                                     </div>
                                 </div>
-                                <div className="username-contaner">
-                                <span className="user-name">{user.name}</span>
-                                <span className="user-role">{user.role_id}</span>
+                                <div className="username-container">
+                                    <span className="user-name">{user.name}</span>
+                                    <span className="user-role">{user.role}</span> {/* Menampilkan role */}
                                 </div>
-                                    
                             </>
                         ) : (
                             <input

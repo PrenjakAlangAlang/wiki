@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import logo from '../assets/logojogja.png'; // Pastikan path sesuai
- // Sesuaikan dengan path yang benar
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -24,29 +23,50 @@ function Login() {
 
             const data = await response.json();
 
-      if (response.ok && data.token) {  // Pastikan token ada dalam respons
-        // Simpan token JWT di localStorage
-        localStorage.setItem('token', data.token);  // Menyimpan token
-        localStorage.setItem('user', JSON.stringify({
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          role_id: data.role_id
-        }));
-        
-        // Trigger storage event untuk mendeteksi perubahan
-        window.dispatchEvent(new Event('storage'));
+            if (response.ok && data.token) {  // Pastikan token ada dalam respons
+                // Simpan token JWT di localStorage
+                localStorage.setItem('token', data.token);  // Menyimpan token
 
-        // Redirect ke halaman utama setelah login berhasil
-        navigate('/');
-      } else {
-        alert(data.error || 'Invalid login credentials');
-      }
-    } catch (error) {
-      console.error("Login failed:", error);
-      alert('Failed to connect to server');
-    }
-  };
+                // Ambil roles menggunakan token setelah login berhasil
+                const getRoles = await fetch('http://localhost:3000/api/roles', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${data.token}`,
+                    },
+                });
+                const roles = await getRoles.json();
+
+                if (roles && data) {
+                    const userRole = roles.find(role => role.id === data.role_id);
+                    if (!userRole) {
+                        alert("Invalid role assignment");
+                        return;
+                    }
+
+                    const user = {
+                        id: data.id,
+                        name: data.name,
+                        email: data.email,
+                        user_instance_id: data.instance_id,
+                        role_id: data.role_id,
+                        role: userRole.name,
+                    };
+                    localStorage.setItem('user', JSON.stringify(user));
+                    window.dispatchEvent(new Event('storage'));
+
+                    // Redirect ke halaman utama setelah login berhasil
+                    navigate('/');
+                } else {
+                    alert(data.error || 'Invalid login credentials');
+                }
+            } else {
+                alert(data.error || 'Invalid login credentials');
+            }
+        } catch (error) {
+            console.error("Login failed:", error);
+            alert('Failed to connect to server');
+        }
+    };
 
     return (
         <div className="login-page">
@@ -109,7 +129,6 @@ function Login() {
                     <li>Jaga kerahasiaan akun Anda dan tidak membagikan password kepada orang lain</li>
                     <li>Selalu mengingat password Anda secara berkala</li>
                     <li>Pastikan menggunakan kata sandi yang unik dan mudah diingat untuk memudahkan Anda saat login. Hindari password yang mudah ditebak, gunakan kombinasi karakter huruf besar maupun kecil, angka dan panjang minimal 12 karakter</li>
-              
                 </ul>
                 <div className="help-links">
                     <a href="https://api.whatsapp.com/send/?phone=6282133576291&text=Hello&type=phone_number&app_absent=0">FAQ</a>
