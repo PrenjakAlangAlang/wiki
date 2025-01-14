@@ -21,11 +21,11 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     const fetchData = async () => {
       const token = localStorage.getItem('token'); // Retrieve the token from localStorage
 
-      if (!token) {
-        setError("Authorization token is missing. Please log in again.");
-        setLoading(false);
-        return;
-      }
+      // if (!token) {
+      //   setError("Authorization token is missing. Please log in again.");
+      //   setLoading(false);
+      //   return;
+      // }
 
       try {
         const response = await fetch(`http://localhost:3000/api/content/${id}`, {
