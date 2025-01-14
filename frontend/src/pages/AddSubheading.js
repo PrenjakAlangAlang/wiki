@@ -9,13 +9,21 @@ const AddSubheading = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [user, setUser] = useState(null);
+    const [token, setToken] = useState(null);
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
+        const storedToken = localStorage.getItem('token');
         if (storedUser && storedUser.id) {
             setUser(storedUser);
         } else {
             console.warn('User ID not found in localStorage.');
+        }
+
+        if (storedToken) {
+            setToken(storedToken);
+        } else {
+            console.warn('Token not found in localStorage.');
         }
     }, []);
 
@@ -35,7 +43,10 @@ const AddSubheading = () => {
         try {
             const response = await fetch(`http://localhost:3000/api/subheading/add/${id}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
                 body: JSON.stringify(subheadingData),
             });
 
@@ -51,7 +62,10 @@ const AddSubheading = () => {
 
             const historyResponse = await fetch("http://localhost:3000/api/history/add", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
                 body: JSON.stringify(historyData),
             });
 

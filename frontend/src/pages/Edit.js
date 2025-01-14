@@ -25,7 +25,10 @@ const Edit = () => {
 
   const fetchInstances = async () => {
     try {
-      const response = await fetch("/api/instances");
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/instances", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!response.ok) throw new Error("Failed to fetch instances");
       const data = await response.json();
       setInstances(data);
@@ -37,7 +40,10 @@ const Edit = () => {
 
   const fetchContent = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/content/${id}`);
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:3000/api/content/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!response.ok) throw new Error("Failed to fetch content");
       const data = await response.json();
 
@@ -82,10 +88,12 @@ const Edit = () => {
     }
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `http://localhost:3000/api/subheading/delete/${subheadingId}`,
         {
           method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -125,9 +133,13 @@ const Edit = () => {
     };
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:3000/api/content/edit/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(requestBody),
       });
 
@@ -138,11 +150,12 @@ const Edit = () => {
           edited_at: new Date().toISOString(),
         };
 
-        console.log("History Data:", historyData);
-
         const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(historyData),
         });
 

@@ -12,7 +12,25 @@ function Home() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch('/api');
+        // Ambil token dari localStorage
+        const token = localStorage.getItem('token');
+
+        // Pastikan token ada sebelum membuat permintaan
+        if (!token) {
+          alert('You need to login to access this content.');
+          navigate('/login');
+          return;
+        }
+
+        // Fetch data dengan menambahkan Authorization header
+        const response = await fetch('/api', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`, // Menambahkan token di header
+          },
+        });
+
         if (!response.ok) {
           throw new Error('Failed to fetch content data');
         }
@@ -25,7 +43,7 @@ function Home() {
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
   const handleAddClick = () => {
     if (!user) {
@@ -41,7 +59,7 @@ function Home() {
   return (
     <div className="main">
       <div className="content">
-        <div class="welcome-box">
+        <div className="welcome-box">
           <h2>Wiki Pemda DIY</h2>
           <p>Knowledge Management system Pemda DIY untuk berbagi pengetahuan</p>
         </div>
@@ -52,7 +70,7 @@ function Home() {
 
         <h2 id="organisasi" className='content-h2'>Organisasi Perangkat Daerah Pemda DIY</h2>
         <ul className="numbered">
-          {(contents||[]).map(content => (
+          {(contents || []).map(content => (
             <li key={content.id}>
               <Link to={`/informasi/${content.id}`}>{content.title}</Link>
             </li>

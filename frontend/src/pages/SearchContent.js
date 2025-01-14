@@ -26,8 +26,15 @@ function SearchContent({ setSearchTerm }) {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
+            const token = localStorage.getItem('token'); // Ambil token dari localStorage atau sumber lain
             try {
-                const response = await fetch(`http://localhost:3000/api/content?q=${term}`);
+                const response = await fetch(`http://localhost:3000/api/content?q=${term}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`, // Tambahkan token ke header Authorization
+                        'Content-Type': 'application/json',
+                    },
+                });
                 if (!response.ok) {
                     setResults([]);
                 } else {

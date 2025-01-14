@@ -10,13 +10,20 @@ const Profile = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             const userData = JSON.parse(localStorage.getItem('user'));
-            if (!userData) {
+            const token = localStorage.getItem('token');  // Ambil token dari localStorage
+            if (!userData || !token) {
                 navigate('/login');
                 return;
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/user/${userData.id}`);
+                const response = await fetch(`http://localhost:3000/api/user/${userData.id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,  // Sertakan token dalam header
+                    },
+                });
+
                 if (response.ok) {
                     const data = await response.json();
                     setUser(data);
@@ -39,6 +46,7 @@ const Profile = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('user');
+        localStorage.removeItem('token');  // Hapus token juga saat logout
         navigate('/');
     };
 
