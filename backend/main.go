@@ -48,6 +48,9 @@ func main() {
 	r.Handle("/api/history/add", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2, 3, 4}, http.HandlerFunc(historycontroller.AddHistory)))).Methods("POST")
 	r.Handle("/api/history/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2, 3, 4}, http.HandlerFunc(historycontroller.GetByIdUser)))).Methods("GET")
 	r.Handle("/api/latest-editor-name/{contentId}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2, 3, 4}, http.HandlerFunc(historycontroller.GetLatestEditorNameByContentId)))).Methods("GET")
+r.Handle("/api/content/approve/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2, 3, 4}, http.HandlerFunc(contentcontroller.ApproveContent)))).Methods("PUT")
+r.Handle("/api/content/reject/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware([]int{1, 2, 3, 4}, http.HandlerFunc(contentcontroller.RejectContent)))).Methods("PUT")
+
 
 	// Endpoint tanpa middleware untuk login
 	r.HandleFunc("/api/login", usercontroller.Login).Methods("POST")

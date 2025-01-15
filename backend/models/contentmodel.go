@@ -24,7 +24,7 @@ func NewContentModel() *ContentModel {
 }
 
 func (p *ContentModel) FindAll() ([]entities.Content, error) {
-	query := "SELECT id, title FROM content WHERE status = 'approve'"
+	query := "SELECT id, title FROM content WHERE status = 'approved'"
 	rows, err := p.conn.Query(query)
 	if err != nil {
 		return []entities.Content{}, err
@@ -220,3 +220,12 @@ func (s *ContentModel) GetContentsByAuthorId(authorId int64) ([]entities.Content
 	}
 	return contents, nil
 }
+// UpdateStatus mengubah status konten di database
+func (m *ContentModel) UpdateStatus(contentID int, status string) error {
+	// Query untuk update status konten
+	query := "UPDATE content SET status = ? WHERE id = ?"
+	_, err := m.conn.Exec(query, status, contentID) // Tipe data contentID diubah ke int
+	return err
+}
+
+

@@ -1,3 +1,31 @@
+# @name ApproveContent
+PUT http://localhost:3001/api/content/approve/15
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY5Mjk1MzksImlkIjoxMiwiaW5zdGFuY2VfaWQiOjMyLCJyb2xlIjoyfQ.92K7De0l684jttf5Va1WY_4XlECBoozDmwkL5lubaNc
+
+
+### @name RejectContent
+PUT http://localhost:3001/api/content/reject/15
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY5Mjk1MzksImlkIjoxMiwiaW5zdGFuY2VfaWQiOjMyLCJyb2xlIjoyfQ.92K7De0l684jttf5Va1WY_4XlECBoozDmwkL5lubaNc
+
+{
+  "id": 15
+}
+
+### Login User
+# @name LoginMAnagerContent
+POST http://localhost:3001/api/login
+Content-Type: application/json
+
+{
+  "email": "manwe@gmail.com",
+  "password": "12321"
+}
+
+
+
+
+
+
 ### Get all contents
 # @name GetAllContents
 GET http://localhost:3001/api
