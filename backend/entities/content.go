@@ -13,4 +13,6 @@ type Content struct {
 	Created_at  string         `json:"created_at"`
 	Updated_at  string         `json:"updated_at"`
 	Tag         string         `json:"tag"`
+	Author_name string         `json:"author_name"`
+	Status      string         `json:"status"`
 }

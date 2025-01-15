@@ -135,6 +135,12 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                                                 setShowDropdown(false);
                                             }}>Manage User</Link>
                                         )}
+                                        {(user.role_id === 1 || user.role_id === 2) && (
+                                            <Link to="/manage-content" onClick={() => {
+                                                clearSearch();
+                                                setShowDropdown(false);
+                                            }}>Manage Konten</Link>
+                                        )}
 
                                         <button onClick={() => {
                                             setShowDropdown(false);

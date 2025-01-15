@@ -73,6 +73,14 @@ const AddContent = () => {
             return;
         }
 
+        // Jika user role 3, tampilkan konfirmasi
+        if (user.role_id === 3) {
+            const isConfirmed = window.confirm("Konten Anda akan dikirim untuk ditinjau. Apakah Anda yakin ingin melanjutkan?");
+            if (!isConfirmed) {
+                return;
+            }
+        }
+
         const contentData = {
             title,
             description: {
@@ -82,6 +90,7 @@ const AddContent = () => {
             tag,
             author_id: user?.id,
             instance_id: parseInt(instanceId, 10),
+            status: user.role_id === 3 ? "pending" : "approved", // Tambahkan status "pending" untuk user role 3
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         };

@@ -16,11 +16,11 @@ function Home() {
         const token = localStorage.getItem('token');
 
         // Pastikan token ada sebelum membuat permintaan
-        if (!token) {
-          alert('You need to login to access this content.');
-          navigate('/login');
-          return;
-        }
+        // if (!token) {
+        //   alert('You need to login to access this content.');
+        //   navigate('/login');
+        //   return;
+        // }
 
         // Fetch data dengan menambahkan Authorization header
         const response = await fetch('/api', {

@@ -31,23 +31,35 @@ func JWTAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Ambil header Authorization dari request
 		authHeader := r.Header.Get("Authorization")
+
+		// Fungsi untuk memberikan role default
+		assignDefaultRole := func(w http.ResponseWriter, r *http.Request) {
+			defaultClaims := &Claims{
+				ID:   0, // ID 0 untuk pengguna anonim
+				Role: 4, // Role 4 untuk pengguna tidak terdaftar
+			}
+			// Simpan klaim pengguna dengan role default (role 4)
+			ctx := context.WithValue(r.Context(), UserContextKey, defaultClaims)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+
+		// Jika header Authorization tidak ada, beri role default
 		if authHeader == "" {
-			// Jika header Authorization tidak ada
-			fmt.Println("Authorization header is missing")
-			http.Error(w, "Unauthorized: Missing Authorization header", http.StatusUnauthorized)
+			fmt.Println("No Authorization header, assigning default role (role 4).")
+			assignDefaultRole(w, r)
 			return
 		}
 
 		// Periksa format header Authorization (harus dimulai dengan "Bearer ")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			fmt.Println("Authorization header is malformed:", authHeader)
-			http.Error(w, "Unauthorized: Malformed Authorization header", http.StatusUnauthorized)
+			fmt.Println("Malformed Authorization header. Assigning default role.")
+			assignDefaultRole(w, r)
 			return
 		}
 
 		// Ambil token JWT dari header Authorization
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		claims := &Claims{} // Membuat klaim kosong untuk diisi dengan informasi dari token
+		claims := &Claims{} // Klaim kosong untuk diisi dengan informasi dari token
 
 		// Parsing token JWT dan verifikasi tanda tangan
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -59,38 +71,31 @@ func JWTAuth(next http.Handler) http.Handler {
 			return jwtKey, nil
 		})
 
-		// Cek jika ada error parsing token
-		if err != nil {
-			fmt.Println("Error parsing token:", err)
-			http.Error(w, "Unauthorized: Invalid token", http.StatusUnauthorized)
-			return
-		}
-
-		// Periksa apakah token valid
-		if !token.Valid {
-			fmt.Println("Token is invalid")
-			http.Error(w, "Unauthorized: Invalid token", http.StatusUnauthorized)
+		// Cek jika ada error parsing token atau token tidak valid
+		if err != nil || !token.Valid {
+			fmt.Println("Invalid or expired token. Assigning default role.")
+			assignDefaultRole(w, r)
 			return
 		}
 
 		// Validasi klaim `exp` (token belum expired)
 		if claims.ExpiresAt == nil || claims.ExpiresAt.Time.Before(time.Now()) {
-			fmt.Println("Token has expired")
-			http.Error(w, "Unauthorized: Token has expired", http.StatusUnauthorized)
+			// Jika token sudah expired, beri pemberitahuan
+			fmt.Println("Token has expired, assigning default role (role 4).")
+			http.Error(w, "Your session has expired. Please login again.", http.StatusUnauthorized)
+			assignDefaultRole(w, r)
 			return
 		}
 
 		// Validasi klaim ID (contoh tambahan)
 		if claims.ID == 0 {
-			fmt.Println("Claims ID is missing or invalid")
-			http.Error(w, "Unauthorized: Invalid claims", http.StatusUnauthorized)
+			fmt.Println("Claims ID is missing or invalid. Assigning default role.")
+			assignDefaultRole(w, r)
 			return
 		}
 
-		// Log klaim untuk debugging
+		// Token valid, simpan klaim pengguna dalam context
 		fmt.Printf("Token is valid. User ID: %d, Role: %d\n", claims.ID, claims.Role)
-
-		// Simpan klaim pengguna dalam context untuk digunakan di handler berikutnya
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)
 		next.ServeHTTP(w, r.WithContext(ctx)) // Lanjutkan ke handler berikutnya dengan context baru
 	})

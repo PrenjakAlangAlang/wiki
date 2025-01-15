@@ -31,36 +31,48 @@ func GetIdTitleAllContents(response http.ResponseWriter, request *http.Request) 
 	json.NewEncoder(response).Encode(contents)
 }
 
+func GetIdTitleAllDrafts(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Content-Type", "application/json")
+
+	contents, err := contentModel.FindDrafts()
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(response).Encode(contents)
+}
+
 func SearchContent(response http.ResponseWriter, request *http.Request) {
-    response.Header().Set("Content-Type", "application/json")
+	response.Header().Set("Content-Type", "application/json")
 
-    searchTerm := request.URL.Query().Get("q")
-    if searchTerm == "" {
-        http.Error(response, "Query parameter 'q' is required", http.StatusBadRequest)
-        return
-    }
+	searchTerm := request.URL.Query().Get("q")
+	if searchTerm == "" {
+		http.Error(response, "Query parameter 'q' is required", http.StatusBadRequest)
+		return
+	}
 
-    // log.Printf("Received search term: %s", searchTerm)
+	// log.Printf("Received search term: %s", searchTerm)
 
-    contents, err := contentModel.Search(searchTerm)
-    if err != nil {
-        http.Error(response, fmt.Sprintf("Error during search: %v", err), http.StatusInternalServerError)
-        return
-    }
+	contents, err := contentModel.Search(searchTerm)
+	if err != nil {
+		http.Error(response, fmt.Sprintf("Error during search: %v", err), http.StatusInternalServerError)
+		return
+	}
 
-    if len(contents) == 0 {
-        response.WriteHeader(http.StatusOK)
-        json.NewEncoder(response).Encode(map[string]interface{}{
-            "message": "Kalimat tidak ada di database",
-            "data":    []string{}, // Kirim array kosong
-        })
-        return
-    }
+	if len(contents) == 0 {
+		response.WriteHeader(http.StatusOK)
+		json.NewEncoder(response).Encode(map[string]interface{}{
+			"message": "Kalimat tidak ada di database",
+			"data":    []string{}, // Kirim array kosong
+		})
+		return
+	}
 
-    json.NewEncoder(response).Encode(map[string]interface{}{
-        "message": "Data ditemukan",
-        "data":    contents,
-    })
+	json.NewEncoder(response).Encode(map[string]interface{}{
+		"message": "Data ditemukan",
+		"data":    contents,
+	})
 }
 
 func GetContentByID(response http.ResponseWriter, request *http.Request) {
@@ -140,7 +152,7 @@ func EditContentByID(response http.ResponseWriter, request *http.Request) {
 		Id:          contentID,
 		Title:       requestData.Title,
 		Description: sql.NullString{String: requestData.Description, Valid: requestData.Description != ""},
-		Author_id:   0,  // Don't update the Author_id
+		Author_id:   0, // Don't update the Author_id
 		Updated_at:  time.Now().Format("2006-01-02 15:04:05"),
 		Instance_id: requestData.InstanceID,
 		Tag:         requestData.Tag,
@@ -155,7 +167,7 @@ func EditContentByID(response http.ResponseWriter, request *http.Request) {
 
 	// Update each subheading related to the content (same logic here)
 	for _, subheading := range requestData.Subheadings {
-		subheading.Author_id = 0  // Don't update the Author_id for subheadings either
+		subheading.Author_id = 0 // Don't update the Author_id for subheadings either
 		subheading.Updated_at = time.Now().Format("2006-01-02 15:04:05")
 
 		err = subheadingModel.UpdateByID(subheading)
@@ -171,7 +183,6 @@ func EditContentByID(response http.ResponseWriter, request *http.Request) {
 		"message": "Content and subheadings updated successfully",
 	})
 }
-
 
 func CreateContent(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Request received: %s %s", r.Method, r.URL.Path)
@@ -228,7 +239,7 @@ func DeleteContent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Invalid content ID: %v", err), http.StatusBadRequest)
 		return
 	}
-	
+
 	fmt.Println("Received DELETE request for content ID:", contentID)
 
 	err = contentModel.DeleteByID(contentID)
@@ -242,23 +253,23 @@ func DeleteContent(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUserContents(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    id, err := strconv.ParseInt(vars["id"], 10, 64)
+	vars := mux.Vars(r)
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
 
-    if err != nil {
-        // Return an error if the userId cannot be parsed
-        http.Error(w, "Invalid user ID", http.StatusBadRequest)
-        return
-    }
+	if err != nil {
+		// Return an error if the userId cannot be parsed
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
 
-    // Fetch contents for the given userId
-    contents, err := contentModel.GetContentsByAuthorId(id)
-    if err != nil {
-        // Return an error if fetching contents fails
-        http.Error(w, "Error fetching contents", http.StatusInternalServerError)
-        return
-    }
+	// Fetch contents for the given userId
+	contents, err := contentModel.GetContentsByAuthorId(id)
+	if err != nil {
+		// Return an error if fetching contents fails
+		http.Error(w, "Error fetching contents", http.StatusInternalServerError)
+		return
+	}
 
-    // Return the fetched contents as JSON
-    json.NewEncoder(w).Encode(contents)
+	// Return the fetched contents as JSON
+	json.NewEncoder(w).Encode(contents)
 }

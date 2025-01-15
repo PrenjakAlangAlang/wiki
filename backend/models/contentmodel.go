@@ -24,7 +24,7 @@ func NewContentModel() *ContentModel {
 }
 
 func (p *ContentModel) FindAll() ([]entities.Content, error) {
-	query := "SELECT id, title FROM content"
+	query := "SELECT id, title FROM content WHERE status = 'approve'"
 	rows, err := p.conn.Query(query)
 	if err != nil {
 		return []entities.Content{}, err
@@ -35,7 +35,7 @@ func (p *ContentModel) FindAll() ([]entities.Content, error) {
 	for rows.Next() {
 		var content entities.Content
 		err := rows.Scan(
-			&content.Id, 
+			&content.Id,
 			&content.Title)
 		if err != nil {
 			return []entities.Content{}, err
@@ -43,6 +43,39 @@ func (p *ContentModel) FindAll() ([]entities.Content, error) {
 		dataContent = append(dataContent, content)
 	}
 
+	return dataContent, nil
+}
+
+func (p *ContentModel) FindDrafts() ([]entities.Content, error) {
+
+	// Join with user table to get author name
+	query := `
+		SELECT c.id, c.description, c.title, c.author_id, u.name as author_name 
+		FROM content c 
+		LEFT JOIN user u ON c.author_id = u.id 
+		WHERE c.status = 'pending'`
+	rows, err := p.conn.Query(query)
+	if err != nil {
+		return []entities.Content{}, err
+	}
+	defer rows.Close()
+
+	var dataContent []entities.Content
+	for rows.Next() {
+		var content entities.Content
+		var authorName string
+		err := rows.Scan(
+			&content.Id,
+			&content.Description,
+			&content.Title,
+			&content.Author_id,
+			&authorName)
+		if err != nil {
+			return []entities.Content{}, err
+		}
+		content.Author_name = authorName // Add the author name to content
+		dataContent = append(dataContent, content)
+	}
 	return dataContent, nil
 }
 
@@ -82,11 +115,11 @@ func (p *ContentModel) UpdateByID(content entities.Content) error {
         UPDATE content 
         SET title = ?, description = ?, updated_at = ?, instance_id = ?, tag = ? 
         WHERE id = ?`
-	
+
 	_, err := p.conn.Exec(
-		query, 
-		content.Title, 
-		content.Description, 
+		query,
+		content.Title,
+		content.Description,
 		content.Updated_at,
 		content.Instance_id,
 		content.Tag,
@@ -103,7 +136,7 @@ func (p *ContentModel) CreateContent(content entities.Content) (int64, error) {
 	result, err := p.conn.Exec(
 		query,
 		content.Title,
-		content.Description, 
+		content.Description,
 		content.Author_id,
 		content.Created_at,
 		content.Updated_at,
@@ -162,28 +195,28 @@ func (p *ContentModel) FindByIDWithAuthorName(id int64) (*entities.Content, stri
 		return nil, "", err
 	}
 
-	return &content, authorName, nil 
+	return &content, authorName, nil
 }
 
 func (s *ContentModel) GetContentsByAuthorId(authorId int64) ([]entities.Content, error) {
-    var contents []entities.Content
-    query := `SELECT id, title, created_at, author_id FROM content WHERE author_id = ?`
-    rows, err := s.conn.Query(query, authorId)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+	var contents []entities.Content
+	query := `SELECT id, title, created_at, author_id FROM content WHERE author_id = ?`
+	rows, err := s.conn.Query(query, authorId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    for rows.Next() {
-        var content entities.Content
-        if err := rows.Scan(
-			&content.Id, 
-			&content.Title, 
-			&content.Created_at, 
+	for rows.Next() {
+		var content entities.Content
+		if err := rows.Scan(
+			&content.Id,
+			&content.Title,
+			&content.Created_at,
 			&content.Author_id); err != nil {
-            return nil, err
-        }
-        contents = append(contents, content)
-    }
-    return contents, nil
+			return nil, err
+		}
+		contents = append(contents, content)
+	}
+	return contents, nil
 }

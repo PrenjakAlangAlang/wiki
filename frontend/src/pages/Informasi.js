@@ -21,11 +21,11 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     const fetchData = async () => {
       const token = localStorage.getItem('token'); // Retrieve the token from localStorage
 
-      if (!token) {
-        setError("Authorization token is missing. Please log in again.");
-        setLoading(false);
-        return;
-      }
+      // if (!token) {
+      //   setError("Authorization token is missing. Please log in again.");
+      //   setLoading(false);
+      //   return;
+      // }
 
       try {
         const response = await fetch(`http://localhost:3000/api/content/${id}`, {
@@ -36,12 +36,14 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
           },
         });
 
+
         if (!response.ok) {
           const errorMessage = await response.text();
           throw new Error(errorMessage || 'Failed to fetch data');
         }
 
         const data = await response.json();
+        console.log(data.content)
         setContent(data);
         setSubheadings(data?.subheadings || []);
         setTags(data.content.tag ? data.content.tag.split(',') : []);
@@ -153,20 +155,21 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
           dangerouslySetInnerHTML={{ __html: content?.content?.description.String || '' }}
         />
 
-        <ul className="no-number">
+       <div style={{ marginTop: "2rem" }} className="no-number">
           {content?.subheadings?.length > 0 &&
             content.subheadings.map((subheading) => (
-              <li key={subheading.id} id={subheading.subheading}>
-                <strong id="subheading">{subheading.subheading}</strong>
+              <div key={subheading.id} id={subheading.subheading}>
+                <h2 style={{marginBottom: "1rem"}} id="subheading">{subheading.subheading}</h2>
                 {/* Menampilkan deskripsi subheading sebagai HTML */}
                 <div
-                  dangerouslySetInnerHTML={{ __html: subheading.subheading_description || '' }}
+                  dangerouslySetInnerHTML={{
+                    __html: subheading.subheading_description || "",
+                  }}
                 />
-              </li>
+              </div>
             ))}
-        </ul>
-
-        {user && (user.role_id === 1 || user.role_id === 2 || user.role_id === 3) && (
+        </div>
+        {user && (user.role_id === 1 || user.role_id === 2 || (user.role_id === 3 && user.id === content?.content?.author_id)) && (
           <div className="submit-btn">
             <input
               type="button"
