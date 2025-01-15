@@ -45,7 +45,7 @@ const ManageContent = () => {
         const token = localStorage.getItem('token');
         try {
             const response = await fetch(`http://localhost:3000/api/content/approve/${id}`, {
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
@@ -67,7 +67,7 @@ const ManageContent = () => {
         const token = localStorage.getItem('token');
         try {
             const response = await fetch(`http://localhost:3000/api/content/reject/${id}`, {
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,

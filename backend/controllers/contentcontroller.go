@@ -273,3 +273,47 @@ func GetUserContents(w http.ResponseWriter, r *http.Request) {
 	// Return the fetched contents as JSON
 	json.NewEncoder(w).Encode(contents)
 }
+
+func ApproveContent(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	contentIDStr := vars["id"]
+	contentID, err := strconv.Atoi(contentIDStr) // Menggunakan strconv.Atoi untuk konversi ke int
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid content ID: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Update konten dengan status "approved"
+	err = contentModel.UpdateStatus(contentID, "approved")
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to approve content: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Kirim response sukses
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Content approved successfully"))
+}
+
+// RejectContent mengubah status konten menjadi rejected
+func RejectContent(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	contentIDStr := vars["id"]
+	contentID, err := strconv.Atoi(contentIDStr) // Menggunakan strconv.Atoi untuk konversi ke int
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid content ID: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Update konten dengan status "rejected"
+	err = contentModel.UpdateStatus(contentID, "rejected")
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to reject content: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Kirim response sukses
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Content rejected successfully"))
+}
+
