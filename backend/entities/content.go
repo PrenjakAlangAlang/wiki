@@ -9,6 +9,7 @@ type Content struct {
 	Title       string         `json:"title"`
 	Description sql.NullString `json:"description"`
 	Author_id   int64          `json:"author_id"`
+	Author_role_id int  `json:"author_role_id"`
 	Instance_id int64          `json:"instance_id"`
 	Created_at  string         `json:"created_at"`
 	Updated_at  string         `json:"updated_at"`
