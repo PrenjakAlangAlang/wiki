@@ -21,12 +21,6 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     const fetchData = async () => {
       const token = localStorage.getItem('token'); // Retrieve the token from localStorage
 
-      // if (!token) {
-      //   setError("Authorization token is missing. Please log in again.");
-      //   setLoading(false);
-      //   return;
-      // }
-
       try {
         const response = await fetch(`http://localhost:3000/api/content/${id}`, {
           method: 'GET',
@@ -36,14 +30,13 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
           },
         });
 
-
         if (!response.ok) {
           const errorMessage = await response.text();
           throw new Error(errorMessage || 'Failed to fetch data');
         }
 
         const data = await response.json();
-        console.log(data.content)
+        console.log("Fetched content data:", data); // Tambahkan log ini untuk debugging
         setContent(data);
         setSubheadings(data?.subheadings || []);
         setTags(data.content.tag ? data.content.tag.split(',') : []);

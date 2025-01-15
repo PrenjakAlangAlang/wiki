@@ -39,7 +39,7 @@ const ContentDetail = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="main">
+    <div className="container-details">
       <div className="content">
         <h1>{content.content.title}</h1>
         <div

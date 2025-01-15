@@ -90,7 +90,7 @@ const AddContent = () => {
             tag,
             author_id: user?.id,
             instance_id: parseInt(instanceId, 10),
-            status: user.role_id === 3 ? "pending" : "approved", // Tambahkan status "pending" untuk user role 3
+            status: user.role_id === 3 ? "pending" : "approved", // Tambahkan status "pending" untuk user role 3, "approved" untuk role 1
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         };
