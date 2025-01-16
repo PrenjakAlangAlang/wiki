@@ -17,8 +17,8 @@ POST http://localhost:3001/api/login
 Content-Type: application/json
 
 {
-  "email": "manwe@gmail.com",
-  "password": "12321"
+  "email": "budi.santoso@jogjaprov.go.id",
+  "password": "123"
 }
 
 
@@ -45,9 +45,8 @@ Accept: application/json
 ### Get content by ID
 # @name GetContentByID
 GET http://localhost:3001/api/content/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY2OTI3ODMsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.5XUnZ9jOlcWVAJG2mS5ZGVf-iSTIL4Kx_MmPD2HLaVs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwMDA2MjcsImlkIjo5LCJpbnN0YW5jZV9pZCI6MTAsInJvbGUiOjN9.JR0v0zBqzE9QNErwJrFtur38NLD0X0ZO3IQs-XpqAgE
 Accept: application/json
-
 ###
 
 ### Edit content by ID
@@ -258,6 +257,6 @@ Accept: application/json
 
 ### Get contents by user ID
 # @name GetContentsByUserID
-GET http://localhost:3001/api/contents/user/2
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+GET http://localhost:3001/api/contents/user/9
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwMDIyMTksImlkIjo5LCJpbnN0YW5jZV9pZCI6MTAsInJvbGUiOjN9.3grYIheEc4pGH3gQ2UUvmY1lMExgAZpv_S7CVIJwuWE
 Accept: application/json

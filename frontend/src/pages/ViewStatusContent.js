@@ -46,7 +46,8 @@ const ViewStatusContent = () => {
                     <thead className="thead">
                         <tr>
                             <th>Title</th>
-                            <th>Author</th>
+                            <th>created_at</th>
+                            <th>updated_at</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -54,7 +55,8 @@ const ViewStatusContent = () => {
                         {contents.map(content => (
                             <tr key={content.id}>
                                 <td>{content.title}</td>
-                                <td>{content.author_name}</td>
+                                <td>{content.created_at}</td>
+                                <td>{content.updated_at}</td>
                                 <td>{content.status}</td>
                             </tr>
                         ))}

@@ -157,7 +157,7 @@ func (p *ContentModel) FindByIDWithAuthorName(id int64) (*entities.Content, stri
 
 func (s *ContentModel) GetContentsByAuthorId(authorId int64) ([]entities.Content, error) {
 	var contents []entities.Content
-	query := `SELECT id, title, created_at, author_id FROM content WHERE author_id = ?`
+	query := `SELECT id, title, created_at, updated_at, author_id, status FROM content WHERE author_id = ?`
 	rows, err := s.conn.Query(query, authorId)
 	if err != nil {
 		return nil, err
@@ -166,7 +166,7 @@ func (s *ContentModel) GetContentsByAuthorId(authorId int64) ([]entities.Content
 
 	for rows.Next() {
 		var content entities.Content
-		if err := rows.Scan(&content.Id, &content.Title, &content.Created_at, &content.Author_id); err != nil {
+		if err := rows.Scan(&content.Id, &content.Title, &content.Created_at, &content.Updated_at, &content.Author_id, &content.Status); err != nil {
 			return nil, err
 		}
 		contents = append(contents, content)
