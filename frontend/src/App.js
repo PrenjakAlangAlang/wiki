@@ -18,6 +18,7 @@ import ManageUser from './pages/ManageUser';
 import DetailUser from './pages/DetailUser';
 import ManageContent from './pages/ManageContent'; // Import ManageContent
 import ContentDetail from './pages/ContentDetail'; // Import ContentDetail
+import ViewStatusContent from './pages/ViewStatusContent'; // Import komponen baru
 
 // App Komponen Utama
 const App = () => {
@@ -75,6 +76,7 @@ const App = () => {
                             <Route path="/detail/:id" element={<DetailUser />} />
                             <Route path="/manage-content" element={<ManageContent />} /> {/* Tambahkan rute ManageContent */}
                             <Route path="/content/:id" element={<ContentDetail />} /> {/* Tambahkan rute ContentDetail */}
+                            <Route path="/view-status-content" element={<ViewStatusContent />} /> {/* Tambahkan rute baru */}
                         </Routes>
                     </div>
                 </div>

@@ -141,6 +141,12 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                                                 setShowDropdown(false);
                                             }}>Manage Konten</Link>
                                         )}
+                                        {user.role_id === 3 && (
+                                            <Link to="/view-status-content" onClick={() => {
+                                                clearSearch();
+                                                setShowDropdown(false);
+                                            }}>View Status Content</Link>
+                                        )}
 
                                         <button onClick={() => {
                                             setShowDropdown(false);

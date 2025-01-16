@@ -116,11 +116,6 @@ function Login() {
             </div>
             <div className="login-right">
               <br></br>
-              <br></br>
-              <br></br>
-              <br></br>
-              <br></br>
-              <br></br>
                 <h2>Selamat datang di Wiki Pemda DIY</h2>
                 <hr className="divider" />
                 <p>Knowledge Management system Pemda DIY untuk berbagi pengetahuan</p>

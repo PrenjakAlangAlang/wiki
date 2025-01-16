@@ -7,7 +7,6 @@ function SearchContent({ setSearchTerm }) {
     const [loading, setLoading] = useState(false);
     
     const timeAgo = (dateString) => {
-        // Fungsi untuk memformat tanggal
         const date = new Date(dateString);
         const now = new Date();
         const diff = now - date;
@@ -26,12 +25,12 @@ function SearchContent({ setSearchTerm }) {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const token = localStorage.getItem('token'); // Ambil token dari localStorage atau sumber lain
+            const token = localStorage.getItem('token');
             try {
                 const response = await fetch(`http://localhost:3000/api/content?q=${term}`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`, // Tambahkan token ke header Authorization
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
                 });
@@ -61,7 +60,7 @@ function SearchContent({ setSearchTerm }) {
                             ) : (
                                 <span>{path.label}</span>
                             )}
-                            {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+                            {index < paths.length - 1 && " / "}
                         </li>
                     ))}
                 </ul>
@@ -72,7 +71,6 @@ function SearchContent({ setSearchTerm }) {
     return (
         <div className="search-content-page">
             <div className="search-content">
-                {/* Breadcrumbs rendering */}
                 <Breadcrumbs 
                     paths={[
                         { label: "Home", link: "/" },
@@ -91,7 +89,7 @@ function SearchContent({ setSearchTerm }) {
                                         key={content.id}
                                         className="wiki-pemda-item-link"
                                         onClick={() => {
-                                            setSearchTerm(''); // Kosongkan search term saat item ini diklik
+                                            setSearchTerm('');
                                         }}
                                     >
                                         <div className="wiki-pemda-item">

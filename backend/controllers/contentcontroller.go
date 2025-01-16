@@ -52,18 +52,24 @@ func SearchContent(response http.ResponseWriter, request *http.Request) {
         return
     }
 
-    // log.Printf("Received search term: %s", searchTerm)
-
     contents, err := contentModel.Search(searchTerm)
     if err != nil {
         http.Error(response, fmt.Sprintf("Error during search: %v", err), http.StatusInternalServerError)
         return
     }
 
-    if len(contents) == 0 {
+    // Filter konten yang berstatus "approved"
+    approvedContents := []entities.Content{}
+    for _, content := range contents {
+        if content.Status == "approved" {
+            approvedContents = append(approvedContents, content)
+        }
+    }
+
+    if len(approvedContents) == 0 {
         response.WriteHeader(http.StatusOK)
         json.NewEncoder(response).Encode(map[string]interface{}{
-            "message": "Kalimat tidak ada di database",
+            "message": "No approved content found",
             "data":    []string{}, // Kirim array kosong
         })
         return
@@ -71,7 +77,7 @@ func SearchContent(response http.ResponseWriter, request *http.Request) {
 
     json.NewEncoder(response).Encode(map[string]interface{}{
         "message": "Data ditemukan",
-        "data":    contents,
+        "data":    approvedContents,
     })
 }
 
