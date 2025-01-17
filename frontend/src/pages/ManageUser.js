@@ -166,8 +166,8 @@ const ManageUser = () => {
                     ]} 
                 />
                 <div className="text text-gradient">Manage User</div>
-                <table className="manage">
-                    <thead className="thead">
+                <table className="manageuser">
+                    <thead className="theaduser">
                         <th>Name</th>
                         <th>Role</th>
                         <th>Instance</th>

@@ -84,17 +84,45 @@ const ManageContent = () => {
             console.error('Error rejecting content:', error);
         }
     };
+    
+    const Breadcrumbs = ({ paths }) => {
+        return (
+          <nav>
+            <ul className="breadcrumbs">
+              {paths.map((path, index) => (
+                <li key={index}>
+                  {path.link ? (
+                    <Link to={path.link}>{path.label}</Link>
+                  ) : (
+                    <span>{path.label}</span>
+                  )}
+                  {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+                </li>
+              ))}
+            </ul>
+          </nav>
+        );
+      };
 
     return (
         <div className="main-container">
             <div className="table-container">
+            <Breadcrumbs 
+          paths={[
+            { label: "Home", link: "/" },
+            { label: "Manage Content    " }, // Halaman saat ini tidak memiliki link
+          ]} 
+        />
+                <div className="manage-content">
                 <h1 className="manage-content-h1">Manage Content</h1>
-                <table className="manage">
-                    <thead className="thead">
+                <p className='manage-content-p'>Manage, optimize, and distribute your content easily to achieve maximum results.</p>
+                </div>
+                <table className="table-manage">
+                    <thead className="thead-manage">
                         <tr>
                             <th>Title</th>
                             <th>Author</th>
-                            <th>Actions</th>
+                            <th colSpan={3}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -104,11 +132,13 @@ const ManageContent = () => {
                                 <td>{content.author_name}</td>
                                 <td>
                                     <Link to={`/content/${content.id}`}>
-                                        <button className="btn btn-blue">Detail</button>
+                                        <button className="Detail Button">Detail</button>
                                     </Link>
-                                    <button className="btn btn-green" onClick={() => handleApprove(content.id)}>Approve</button>
-                                    <button className="btn btn-red" onClick={() => handleReject(content.id)}>Reject</button>
+                                    
+                                    
                                 </td>
+                                <td><button className="Detail Approve" onClick={() => handleApprove(content.id)}>Approve</button></td>
+                                <td><button className="Detail Reject" onClick={() => handleReject(content.id)}>Reject</button></td>
                             </tr>
                         ))}
                     </tbody>

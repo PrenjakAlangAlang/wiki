@@ -41,13 +41,16 @@ const ViewStatusContent = () => {
     return (
         <div className="main-container">
             <div className="table-container">
+                <div className="view-status-header">
                 <h1 className="view-status-content-h1">View Status Content</h1>
+                <p className="view-status-content-p">Tracking Progress with View Status Content</p>
+                </div>
                 <table className="view-status">
-                    <thead className="thead">
+                    <thead className="thead-status">
                         <tr>
                             <th>Title</th>
-                            <th>created_at</th>
-                            <th>updated_at</th>
+                            <th>Created</th>
+                            <th>Updated</th>
                             <th>Status</th>
                         </tr>
                     </thead>

@@ -140,6 +140,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
             { label: "Informasi" }, // Halaman saat ini tidak memiliki link
           ]} 
         />
+        
         <div className='titel'></div>
         <h1 className="content-title2">{content?.content?.title || "No Title Available"}</h1>
         
@@ -147,12 +148,13 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         <div
           dangerouslySetInnerHTML={{ __html: content?.content?.description.String || '' }}
         />
-
+      <hr></hr>
        <div style={{ marginTop: "2rem" }} className="no-number">
           {content?.subheadings?.length > 0 &&
             content.subheadings.map((subheading) => (
               <div key={subheading.id} id={subheading.subheading}>
-                <h2 style={{marginBottom: "1rem"}} id="subheading">{subheading.subheading}</h2>
+                <h2 style={{marginBottom: "1rem"}} id="subheading">{subheading.subheading}<hr></hr></h2>
+                
                 {/* Menampilkan deskripsi subheading sebagai HTML */}
                 <div
                   dangerouslySetInnerHTML={{
