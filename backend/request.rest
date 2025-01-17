@@ -238,14 +238,14 @@ Accept: application/json
 ### Add history
 # @name AddHistory
 POST http://localhost:3001/api/history/add
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwMTgyMTMsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.8wn2drpNvAbQI_VMWE5c7f2AhVvYFi6dx1GXsL_f8Xk
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwODM0MDYsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.VIu9Pc-4rddShkz4dTInEReyiLTtb1QOmjHaI_p7QWk
 Content-Type: application/json
 
 {
   "content_id": 54,
   "editor_id": 7,
-  "action": "Approved",
-  "edited_at": "2025-01-16 12:00:00"
+  "edited_at": "2025-01-16 12:00:00",
+  "action": "Approved"
 }
 
 
@@ -254,7 +254,7 @@ Content-Type: application/json
 ### Get user history by ID
 # @name GetUserHistoryByID
 GET http://localhost:3001/api/history/user/7
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwNDA0NzYsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.pWDYV6mWRvZL3zZNRUtxObJ_Nj_CQc2j_-2WIud0nxg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwODYzNDUsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.8kzAhwhJ4K2hOAOaYP3BMifIfa_CDKUJ7CBw0_mKAi8
 Accept: application/json
 
 ###

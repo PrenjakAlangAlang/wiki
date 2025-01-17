@@ -44,88 +44,90 @@ const ManageContent = () => {
   const handleApprove = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:3000/api/content/approve/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: "approved" }), // Update status to "approved"
-      });
-
-      if (response.ok) {
-        const historyData = {
-          content_id: Number(id),
-          editor_id: user.id, // ID user yang sedang login
-          action: "Approved", // Menambahkan tindakan
-          edited_at: new Date().toISOString().replace("T", " ").slice(0, 19), // Waktu saat perubahan dengan format yang sesuai
-        };
-
-        const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(historyData),
+        const response = await fetch(`http://localhost:3000/api/content/approve/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ status: "approved" }), // Update status to "approved"
         });
 
-        if (!historyResponse.ok) {
-          console.error("Failed to record edit history");
+        if (response.ok) {
+            const historyData = {
+                content_id: id, // content_id digunakan di tabel history
+                editor_id: user.id, // ID user yang sedang login
+                action: "Approved", // Tindakan yang dilakukan
+                edited_at: new Date().toISOString().replace("T", " ").slice(0, 19), // Waktu perubahan dengan format yang sesuai
+            };
+
+            const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(historyData),
+            });
+
+            if (!historyResponse.ok) {
+                console.error("Failed to record edit history");
+            }
+
+            alert("Content approved successfully");
+            setContents(contents.filter((content) => content.id !== id));
+        } else {
+            alert("Failed to approve content");
         }
-
-        alert("Content approved successfully");
-        setContents(contents.filter((content) => content.id !== id));
-      } else {
-        alert("Failed to approve content");
-      }
     } catch (error) {
-      console.error("Error approving content:", error);
+        console.error("Error approving content:", error);
     }
-  };
+};
 
-  const handleReject = async (id) => {
+
+const handleReject = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:3000/api/content/reject/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: "rejected" }), // Update status to "rejected"
-      });
-
-      if (response.ok) {
-        const historyData = {
-          content_id: Number(id),
-          editor_id: user.id, // ID user yang sedang login
-          action: "Rejected", // Menambahkan tindakan
-          edited_at: new Date().toISOString().replace("T", " ").slice(0, 19), // Waktu saat perubahan dengan format yang sesuai
-        };
-
-        const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(historyData),
+        const response = await fetch(`http://localhost:3000/api/content/reject/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ status: "rejected" }), // Update status to "rejected"
         });
 
-        if (!historyResponse.ok) {
-          console.error("Failed to record edit history");
-        }
+        if (response.ok) {
+            const historyData = {
+                content_id: id, // content_id digunakan di tabel history
+                editor_id: user.id, // ID user yang sedang login
+                action: "Rejected", // Tindakan yang dilakukan
+                edited_at: new Date().toISOString().replace("T", " ").slice(0, 19), // Waktu perubahan dengan format yang sesuai
+            };
 
-        alert("Content rejected successfully");
-        setContents(contents.filter((content) => content.id !== id));
-      } else {
-        alert("Failed to reject content");
-      }
+            const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(historyData),
+            });
+
+            if (!historyResponse.ok) {
+                console.error("Failed to record edit history");
+            }
+
+            alert("Content rejected successfully");
+            setContents(contents.filter((content) => content.id !== id));
+        } else {
+            alert("Failed to reject content");
+        }
     } catch (error) {
-      console.error("Error rejecting content:", error);
+        console.error("Error rejecting content:", error);
     }
-  };
+};
+
   const Breadcrumbs = ({ paths }) => {
     return (
       <nav>

@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const DetailUser = () => {
+  const [mergedData, setMergedData] = useState([]);
   const [user, setUser] = useState(null);
   const [roles, setRoles] = useState([]);
   const [instances, setInstances] = useState([]);
@@ -188,37 +189,62 @@ const DetailUser = () => {
     return `${formattedTime} - ${formattedDate}`;
   };
 
-  const getContentTitle = (contentId) => {
-    const content = contents.find((c) => c.id === contentId);
-    return content ? (
-      <Link to={`/informasi/${content.id}`}>{content.title}</Link>
-    ) : (
-      "Unknown Content"
-    );
-  };
+// Fungsi untuk mendapatkan title konten berdasarkan ID
+const getContentTitle = (contentId) => {
+  // Mencari content berdasarkan contentId yang ada di tabel contents
+  const content = contents.find((content) => content.id === contentId);
+  return content ? content.title : "Unknown Title";  // Jika ditemukan, tampilkan title, jika tidak tampilkan Unknown Title
+};
 
-  const mergedData = [
-    ...contents.map((content) => ({
-      type: "content",
-      id: content.id,
-      title: getContentTitle(content.id), // Menggunakan getContentTitle untuk menampilkan judul konten
-      created_at: content.created_at,
-      action: "Create", // Menandakan ini adalah Create
-    })),
-    ...histories.map((history) => ({
-      type: "history",
-      id: history.id,
-      title: getContentTitle(history.content_id), // Menggunakan getContentTitle untuk menampilkan judul konten
-      created_at: history.edited_at,
-      action: "Edit", // Menandakan ini adalah Edit
-    })),
-  ];
+useEffect(() => {
+  if (contents && histories) {
+    // Buat objek lookup untuk mempercepat pencarian title berdasarkan id
+    const contentMap = contents.reduce((map, content) => {
+      map[content.id] = content.title; // key: content.id, value: content.title
+      return map;
+    }, {});
 
-  mergedData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Urutkan berdasarkan tanggal terbaru
+    const newMergedData = [
+      // Data dari histories
+      ...histories.map((history) => {
+        const title = contentMap[history.content_id] || "Unknown Content"; // Ambil title dari contentMap
+        return {
+          type: "history",
+          id: history.id,
+          title, // Gunakan title dari contentMap
+          created_at: history.edited_at,
+          action: history.action && history.action !== "null"
+            ? history.action === "Approved"
+              ? "Approving"
+              : history.action === "Rejected"
+              ? "Rejecting"
+              : "Editing"
+            : "Edit",
+        };
+      }),
 
-  if (!user || !histories || !contents) {
-    return <div>Loading...</div>;
+      // Data dari contents
+      ...contents.map((content) => ({
+        type: "content",
+        id: content.id,
+        title: content.title,
+        created_at: content.created_at,
+        action: "Create",
+      })),
+    ];
+
+    // Urutkan berdasarkan tanggal terbaru
+    newMergedData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // Update state mergedData
+    setMergedData(newMergedData);
   }
+}, [contents, histories]);
+
+// Menangani loading state
+if (!user || !contents || !histories) {
+  return <div>Loading...</div>;
+}
 
   const Breadcrumbs = ({ paths }) => {
     return (

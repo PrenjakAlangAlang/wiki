@@ -5,4 +5,5 @@ type History struct {
 	Content_Id int64  `json:"content_id"`
 	Editor_Id  int64  `json:"editor_id"`
 	Edited_at  string `json:"edited_at"`
+	Action  string `json:"action"`
 }
