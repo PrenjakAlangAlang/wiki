@@ -47,12 +47,14 @@ func GetByIdUser(w http.ResponseWriter, r *http.Request) {
 
     histories, err := historyModel.GetHistoriesByUserId(userId)
     if err != nil {
+        fmt.Println("Error getting histories:", err)  // Cetak error untuk debugging
         http.Error(w, "Failed to get histories", http.StatusInternalServerError)
         return
     }
 
     json.NewEncoder(w).Encode(histories)
 }
+
 
 func GetLatestEditorNameByContentId(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
