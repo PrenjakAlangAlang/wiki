@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaPlus } from 'react-icons/fa';
 
 function Home() {
   const [contents, setContents] = useState([]);
@@ -62,12 +63,14 @@ function Home() {
         <div className="welcome-box">
           <h2>Wiki Pemda DIY</h2>
           <p>Knowledge Management system Pemda DIY untuk berbagi pengetahuan</p>
+          <hr></hr>
         </div>
-
+        <div className="welcome-side">
         <h1 id="welcome" className="content-title">Selamat datang di Wiki Pemda DIY</h1>
         <p className='content-p'>Selamat datang di wiki Pemda DIY. Disini anda akan menemukan banyak informasi, panduan dan petunjuk terkait SPBE
           (Sistem Pemerintahan Berbasis Elektronik) di lingkungan Pemerintah Daerah DIY.</p>
-
+          <hr></hr>
+        </div>
         <h2 id="organisasi" className='content-h2'>Organisasi Perangkat Daerah Pemda DIY</h2>
         <ul className="numbered">
           {(contents || []).map(content => (
@@ -77,13 +80,13 @@ function Home() {
           ))}
         </ul>
 
-        {user && (user.role_id === 1 || user.role_id === 3) && (
-          <input
-            type="button"
-            value="Create New Content"
-            className="btn btn-blue"
-            onClick={handleAddClick}
-          />
+        {user && (user.role_id === 1 ||  user.role_id === 3) && (
+          <button className="button-create-content" onClick={handleAddClick}>
+          <span className="text">Create</span>
+          <span className="icon">
+            <FaPlus />
+          </span>
+        </button>
         )}
       </div>
     </div>
