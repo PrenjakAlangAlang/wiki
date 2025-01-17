@@ -80,13 +80,13 @@ function Home() {
           ))}
         </ul>
 
-        {user && (user.role_id === 1 ||  user.role_id === 3) && (
-          <button className="button-create-content" onClick={handleAddClick}>
-          <span className="text">Create</span>
-          <span className="icon">
-            <FaPlus />
-          </span>
-        </button>
+        {user && (user.role_id === 1 || user.role_id === 3) && (
+          <input
+            type="button"
+            value="Create New Content"
+            className="btn btn-blue"
+            onClick={handleAddClick}
+          />
         )}
       </div>
     </div>
