@@ -169,6 +169,7 @@ const AddContent = () => {
                             />
                             <div className="underline"></div>
                             <label>Judul</label>
+                            
                         </div>
                     </div>
 

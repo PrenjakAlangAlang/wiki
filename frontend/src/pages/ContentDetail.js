@@ -38,10 +38,40 @@ const ContentDetail = () => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
+  const Breadcrumbs = ({ paths }) => {
+    return (
+      <nav>
+        <ul className="breadcrumbs">
+          {paths.map((path, index) => (
+            <li key={index}>
+              {path.link ? (
+                <Link to={path.link}>{path.label}</Link>
+              ) : (
+                <span>{path.label}</span>
+              )}
+              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  };
+
   return (
     <div className="container-details">
       <div className="content">
-        <h1>{content.content.title}</h1>
+        <Breadcrumbs 
+          paths={[
+            { label: "Home", link: "/" },
+            { label: "Manage Content", link: "/manage-content" }, 
+            { label: "Content Detail" }, // Halaman saat ini tidak memiliki link
+          ]} 
+        />
+        <div className="manage-content">
+                <h1 className="manage-content-h1">Content Detail</h1>
+                <p className='manage-content-p'>pay attention to the content created</p>
+        </div>
+        <h1 className="content-title">{content.content.title}<hr className="gradient-hr"></hr></h1>
         <div
           dangerouslySetInnerHTML={{
             __html: content.content.description.String,
@@ -53,7 +83,7 @@ const ContentDetail = () => {
             content.subheadings.map((subheading) => (
               <div key={subheading.id} id={subheading.subheading}>
                 <h2 style={{ marginBottom: "1rem" }} id="subheading">
-                  {subheading.subheading}
+                  {subheading.subheading}<hr className="gradient-hr-sub"></hr>
                 </h2>
                 {/* Menampilkan deskripsi subheading sebagai HTML */}
                 <div

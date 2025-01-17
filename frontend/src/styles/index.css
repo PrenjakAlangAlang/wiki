@@ -191,7 +191,20 @@ body {
 }
 
 .link-list li {
+    position: relative;
     padding: 8px 0;
+    
+}
+
+.link-list a {
+    
+    text-decoration: none; /* Disable underline */
+    color: #383737; /* Inherit color from parent */
+}
+
+.link-list a:hover {
+    text-decoration: none; /* Ensure underline is disabled on hover as well */
+    color: #000000;
 }
 
 #subheading {
@@ -233,7 +246,7 @@ button {
 }
 
 .welcome-box {
-    margin-bottom: 20px;
+    margin-bottom: 35px;
     animation: fade-in 0.5s ease-in-out; 
 }
 
@@ -365,7 +378,7 @@ ul.numbered {
 }
 
 form .form-row .input-data {
-    margin: 15px 0;
+    margin: 25px 0;
     position: relative;
     width: 100%;
 }
@@ -555,7 +568,7 @@ textarea {
 .input-data label {
     position: absolute;
     pointer-events: none;
-    top: -20px;
+    top: -21px;
     font-size: 14px;
     background: #fff;
     padding: 0 4px;
@@ -594,7 +607,7 @@ select:focus {
     padding: 10px 20px;
     background: #3498db;
     color: #fff;
-    border-radius: 4px;
+    border-radius: 20px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
@@ -1198,8 +1211,10 @@ input {
 .green-button:hover {
     background-color: darkgreen; /* Mengatur warna latar belakang saat hover */
 }
+
 .content-p{
     animation: fade-in 0.5s ease-in-out; 
+    
 }
 .content-h2{
     margin-top: 15px;
@@ -1448,3 +1463,62 @@ input {
     transform: scale(0.8);
   }
 
+  .button-submit {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    bottom: 45px; /* Distance from the bottom of the screen */
+    right: 45px;
+    width: 150px;
+    height: 50px;
+  }
+  
+  .button-combined {
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    overflow: hidden;
+  }
+  
+  .button-left, .button-right {
+    padding: 10px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+  
+  .button-left {
+    background-color: #0066b2;
+    color: white;
+    padding-right: 22px;
+    
+  }
+  
+  .button-right {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .button-left:hover {
+    background-color: #0056b3;
+  }
+  
+  .button-right:hover {
+    background-color: #c82333;
+  }
+
+  .gradient-hr {
+    border: 0;
+    height: 2px;
+    background: linear-gradient(to right, #0066b2, #ffeadb); /* Adjust the colors as needed */
+    margin-top: 10px;
+  }
+  .gradient-hr-sub {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, #020202, #ffeadb); /* Adjust the colors as needed */
+    margin-top: 10px;
+  }

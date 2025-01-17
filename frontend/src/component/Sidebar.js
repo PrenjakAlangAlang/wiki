@@ -35,11 +35,13 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
                                     {isHomePage
                                         ? defaultHomeContents.map((content) => (
                                             <li key={content.id}>
+                                                
                                                 <a href={`#${content.id}`}>{content.title}</a>
                                             </li>
                                         ))
                                         : subheadings.map((subheading) => (
                                             <li key={subheading.id}>
+                                                
                                                 <a href={`#${subheading.subheading}`}>
                                                     {subheading.subheading}
                                                 </a>

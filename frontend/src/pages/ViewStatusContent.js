@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ViewStatusContent = () => {
     const [contents, setContents] = useState([]);
@@ -38,9 +38,33 @@ const ViewStatusContent = () => {
         fetchContents();
     }, [user, navigate]);
 
+    const Breadcrumbs = ({ paths }) => {
+        return (
+          <nav>
+            <ul className="breadcrumbs">
+              {paths.map((path, index) => (
+                <li key={index}>
+                  {path.link ? (
+                    <Link to={path.link}>{path.label}</Link>
+                  ) : (
+                    <span>{path.label}</span>
+                  )}
+                  {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+                </li>
+              ))}
+            </ul>
+          </nav>
+        );
+      };
     return (
         <div className="main-container">
             <div className="table-container">
+            <Breadcrumbs 
+          paths={[
+            { label: "Home", link: "/" },
+            { label: "View Status Content    " }, // Halaman saat ini tidak memiliki link
+          ]} 
+        />
                 <div className="view-status-header">
                 <h1 className="view-status-content-h1">View Status Content</h1>
                 <p className="view-status-content-p">Tracking Progress with View Status Content</p>

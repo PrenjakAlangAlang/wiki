@@ -142,18 +142,18 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         />
         
         <div className='titel'></div>
-        <h1 className="content-title2">{content?.content?.title || "No Title Available"}</h1>
+        <h1 className="content-title2">{content?.content?.title || "No Title Available"}<hr className="gradient-hr"></hr></h1>
         
         {/* Menampilkan deskripsi sebagai HTML */}
         <div
           dangerouslySetInnerHTML={{ __html: content?.content?.description.String || '' }}
         />
-      <hr></hr>
+      
        <div style={{ marginTop: "2rem" }} className="no-number">
           {content?.subheadings?.length > 0 &&
             content.subheadings.map((subheading) => (
               <div key={subheading.id} id={subheading.subheading}>
-                <h2 style={{marginBottom: "1rem"}} id="subheading">{subheading.subheading}<hr></hr></h2>
+                <h2 style={{marginBottom: "1rem"}} id="subheading">{subheading.subheading}<hr className="gradient-hr-sub"></hr></h2>
                 
                 {/* Menampilkan deskripsi subheading sebagai HTML */}
                 <div
@@ -165,21 +165,17 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
             ))}
         </div>
         {user && (user.role_id === 1 || user.role_id === 2 || (user.role_id === 3 && user.id === content?.content?.author_id)) && (
-          <div className="submit-btn">
-            <input
-              type="button"
-              value="Edit Konten"
-              className="btn btn-blue"
-              onClick={handleEditClick}
-            />
-            <input
-              type="button"
-              value="Hapus Konten"
-              className="btn btn-red"
-              onClick={handleDeleteClick}
-            />
-          </div>
-        )}
+  <div className="button-submit">
+    <div className="button-combined">
+      <div className="button-left" onClick={handleEditClick}>
+        Edit
+      </div>
+      <div className="button-right" onClick={handleDeleteClick}>
+        Delete
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );

@@ -214,7 +214,7 @@ const ManageUser = () => {
                             />
                         </div>
                     </div>
-
+                                
                     <div className="form-row">
                         <div className="input-data">
                             <label>NIP</label>
