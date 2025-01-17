@@ -77,7 +77,7 @@ function Home() {
           ))}
         </ul>
 
-        {user && (user.role_id === 1 || user.role_id === 2 || user.role_id === 3) && (
+        {user && (user.role_id === 1 || user.role_id === 3) && (
           <input
             type="button"
             value="Create New Content"

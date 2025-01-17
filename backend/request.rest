@@ -17,8 +17,8 @@ POST http://localhost:3001/api/login
 Content-Type: application/json
 
 {
-  "email": "budi.santoso@jogjaprov.go.id",
-  "password": "123"
+  "email": "ddo@yahoo.com",
+  "password": "12321"
 }
 
 
@@ -44,8 +44,9 @@ Accept: application/json
 
 ### Get content by ID
 # @name GetContentByID
-GET http://localhost:3001/api/content/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwMDA2MjcsImlkIjo5LCJpbnN0YW5jZV9pZCI6MTAsInJvbGUiOjN9.JR0v0zBqzE9QNErwJrFtur38NLD0X0ZO3IQs-XpqAgE
+GET http://localhost:3001/api/content/23
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwNDA0NzYsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.pWDYV6mWRvZL3zZNRUtxObJ_Nj_CQc2j_-2WIud0nxg
+Accept: application/json
 Accept: application/json
 ###
 
@@ -228,21 +229,23 @@ Accept: application/json
 ### Add history
 # @name AddHistory
 POST http://localhost:3001/api/history/add
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwMTgyMTMsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.8wn2drpNvAbQI_VMWE5c7f2AhVvYFi6dx1GXsL_f8Xk
 Content-Type: application/json
 
 {
-  "content_id": 1,
-  "user_id": 1,
-  "action": "Edited content"
+  "content_id": 54,
+  "editor_id": 7,
+  "action": "Approved",
+  "edited_at": "2025-01-16 12:00:00"
 }
+
 
 ###
 
 ### Get user history by ID
 # @name GetUserHistoryByID
-GET http://localhost:3001/api/history/user/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+GET http://localhost:3001/api/history/user/7
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwNDA0NzYsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.pWDYV6mWRvZL3zZNRUtxObJ_Nj_CQc2j_-2WIud0nxg
 Accept: application/json
 
 ###
