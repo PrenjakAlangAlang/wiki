@@ -13,5 +13,8 @@ func DBConnection() (*sql.DB, error) {
 	dbName := "wiki"
 
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
+	db.SetMaxOpenConns(0)
+	db.SetMaxIdleConns(0)
+	db.SetConnMaxLifetime(0)
 	return db, err
 }
