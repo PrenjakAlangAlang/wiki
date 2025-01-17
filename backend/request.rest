@@ -11,7 +11,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY5Mjk1M
   "id": 15
 }
 
-### Login User
+### Login admin
 # @name LoginMAnagerContent
 POST http://localhost:3001/api/login
 Content-Type: application/json
@@ -21,6 +21,15 @@ Content-Type: application/json
   "password": "12321"
 }
 
+### Login User
+# @name LoginMAnagerContent
+POST http://localhost:3001/api/login
+Content-Type: application/json
+
+{
+  "email": "budi.santoso@jogjaprov.go.id",
+  "password": "123"
+}
 
 
 
@@ -261,5 +270,5 @@ Accept: application/json
 ### Get contents by user ID
 # @name GetContentsByUserID
 GET http://localhost:3001/api/contents/user/9
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwMDIyMTksImlkIjo5LCJpbnN0YW5jZV9pZCI6MTAsInJvbGUiOjN9.3grYIheEc4pGH3gQ2UUvmY1lMExgAZpv_S7CVIJwuWE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwNzgzNTYsImlkIjo5LCJpbnN0YW5jZV9pZCI6MTAsInJvbGUiOjN9.BICNUHbBE_aOhI08WtISNmBilqRvi1lxWTwPBRwjjSQ
 Accept: application/json
