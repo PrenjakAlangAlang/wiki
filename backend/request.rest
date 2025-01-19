@@ -27,8 +27,8 @@ POST http://localhost:3001/api/login
 Content-Type: application/json
 
 {
-  "email": "budi.santoso@jogjaprov.go.id",
-  "password": "123"
+  "email": "dewi.lestari@gmail.com",
+  "password": "dewi12345"
 }
 
 
@@ -53,8 +53,8 @@ Accept: application/json
 
 ### Get content by ID
 # @name GetContentByID
-GET http://localhost:3001/api/content/23
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwNDA0NzYsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.pWDYV6mWRvZL3zZNRUtxObJ_Nj_CQc2j_-2WIud0nxg
+GET http://localhost:3001/api/content/43
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcyODY2ODUsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.nSvN12t0X-VQkMUfcVjOG3hXHXBsd-0HzWtSjd9qbnk
 Accept: application/json
 Accept: application/json
 ###
@@ -238,14 +238,13 @@ Accept: application/json
 ### Add history
 # @name AddHistory
 POST http://localhost:3001/api/history/add
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwODM0MDYsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.VIu9Pc-4rddShkz4dTInEReyiLTtb1QOmjHaI_p7QWk
-Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzczMTIyNTcsImlkIjozLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6M30.Pu8uYW7dzEQe48md8JRXVWxG9wowPo6nZz5k7xXfZeA
 
 {
   "content_id": 54,
   "editor_id": 7,
   "edited_at": "2025-01-16 12:00:00",
-  "action": "Approved"
+  "action": "Rejecting"
 }
 
 
@@ -253,8 +252,8 @@ Content-Type: application/json
 
 ### Get user history by ID
 # @name GetUserHistoryByID
-GET http://localhost:3001/api/history/user/7
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcwODYzNDUsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.8kzAhwhJ4K2hOAOaYP3BMifIfa_CDKUJ7CBw0_mKAi8
+GET http://localhost:3001/api/history/user/9
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcyODM2NTQsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.S942emhaR5zxTAVuDgwaZxx9of12qW3ZHNIk-QQdFDM
 Accept: application/json
 
 ###
@@ -262,7 +261,7 @@ Accept: application/json
 ### Get latest editor name by content ID
 # @name GetLatestEditorName
 GET http://localhost:3001/api/latest-editor-name/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzcyODM2NTQsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.S942emhaR5zxTAVuDgwaZxx9of12qW3ZHNIk-QQdFDM
 Accept: application/json
 
 ###

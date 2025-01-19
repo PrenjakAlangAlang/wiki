@@ -50,15 +50,27 @@ const ManageContent = () => {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ status: "approved" }), // Update status to "approved"
+            body: JSON.stringify({ status: "Approving" }), // Update status to "approved"
         });
 
         if (response.ok) {
+            // Mendapatkan waktu lokal dalam zona waktu WIB
+            const currentDate = new Date();
+            const formattedDate = currentDate.toLocaleString("en-US", {
+                timeZone: "Asia/Jakarta",
+                hour12: false,
+            });
+
+            // Mengonversi waktu ke format yang sesuai MySQL (YYYY-MM-DD HH:MM:SS)
+            const [date, time] = formattedDate.split(", ");
+            const [month, day, year] = date.split("/");
+            const formattedMySQLDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time}`;
+
             const historyData = {
                 content_id: id, // content_id digunakan di tabel history
                 editor_id: user.id, // ID user yang sedang login
-                action: "Approved", // Tindakan yang dilakukan
-                edited_at: new Date().toISOString().replace("T", " ").slice(0, 19), // Waktu perubahan dengan format yang sesuai
+                action: "Approving", // Tindakan yang dilakukan
+                edited_at: formattedMySQLDate, // Waktu perubahan dengan format yang sesuai MySQL
             };
 
             const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
@@ -70,63 +82,86 @@ const ManageContent = () => {
                 body: JSON.stringify(historyData),
             });
 
+            const historyResponseText = await historyResponse.text();
             if (!historyResponse.ok) {
-                console.error("Failed to record edit history");
+                console.error("Failed to record edit history:", historyResponseText);
+                alert("Something went wrong while saving history. Please try again."); // Warning alert if history insertion fails
+                return; // Prevent further actions if history is not recorded
             }
 
             alert("Content approved successfully");
-            setContents(contents.filter((content) => content.id !== id));
+            setContents(contents.filter((content) => content.id !== id)); // Remove the content from the list
         } else {
             alert("Failed to approve content");
+            console.error("Failed to approve content:", response.statusText);
         }
     } catch (error) {
         console.error("Error approving content:", error);
+        alert("An error occurred while approving the content. Please check the console for more details.");
     }
 };
 
 
 const handleReject = async (id) => {
-    const token = localStorage.getItem("token");
-    try {
-        const response = await fetch(`http://localhost:3000/api/content/reject/${id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ status: "rejected" }), // Update status to "rejected"
-        });
+  const token = localStorage.getItem("token");
+  try {
+      const response = await fetch(`http://localhost:3000/api/content/approve/${id}`, {
+          method: "PUT",
+          headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: "Rejecting" }), // Update status to "approved"
+      });
 
-        if (response.ok) {
-            const historyData = {
-                content_id: id, // content_id digunakan di tabel history
-                editor_id: user.id, // ID user yang sedang login
-                action: "Rejected", // Tindakan yang dilakukan
-                edited_at: new Date().toISOString().replace("T", " ").slice(0, 19), // Waktu perubahan dengan format yang sesuai
-            };
+      if (response.ok) {
+          // Mendapatkan waktu lokal dalam zona waktu WIB
+          const currentDate = new Date();
+          const formattedDate = currentDate.toLocaleString("en-US", {
+              timeZone: "Asia/Jakarta",
+              hour12: false,
+          });
 
-            const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(historyData),
-            });
+          // Mengonversi waktu ke format yang sesuai MySQL (YYYY-MM-DD HH:MM:SS)
+          const [date, time] = formattedDate.split(", ");
+          const [month, day, year] = date.split("/");
+          const formattedMySQLDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time}`;
 
-            if (!historyResponse.ok) {
-                console.error("Failed to record edit history");
-            }
+          const historyData = {
+              content_id: id, // content_id digunakan di tabel history
+              editor_id: user.id, // ID user yang sedang login
+              action: "Rejecting", // Tindakan yang dilakukan
+              edited_at: formattedMySQLDate, // Waktu perubahan dengan format yang sesuai MySQL
+          };
 
-            alert("Content rejected successfully");
-            setContents(contents.filter((content) => content.id !== id));
-        } else {
-            alert("Failed to reject content");
-        }
-    } catch (error) {
-        console.error("Error rejecting content:", error);
-    }
+          const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(historyData),
+          });
+
+          const historyResponseText = await historyResponse.text();
+          if (!historyResponse.ok) {
+              console.error("Failed to record edit history:", historyResponseText);
+              alert("Something went wrong while saving history. Please try again."); // Warning alert if history insertion fails
+              return; // Prevent further actions if history is not recorded
+          }
+
+          alert("Content approved successfully");
+          setContents(contents.filter((content) => content.id !== id)); // Remove the content from the list
+      } else {
+          alert("Failed to approve content");
+          console.error("Failed to approve content:", response.statusText);
+      }
+  } catch (error) {
+      console.error("Error approving content:", error);
+      alert("An error occurred while approving the content. Please check the console for more details.");
+  }
 };
+
 
   const Breadcrumbs = ({ paths }) => {
     return (
