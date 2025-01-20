@@ -375,6 +375,7 @@ ul.numbered {
     display: flex;
     flex-direction: column;
     margin: 20px 0;
+    
 }
 
 form .form-row .input-data {
@@ -502,11 +503,33 @@ form .form-row .input-data {
 
 
 .history-table {
-    padding-top: 20px;
-    border-collapse: collapse;
-    
-    margin-top: 25px;
-    animation: fade-in 0.5s ease-in-out; 
+    width: 100%;
+    border-collapse: separate; /* Hindari penggabungan border untuk melihat efek border-radius */
+    border-spacing: 0; /* Hilangkan jarak antar sel */
+    border: 1px solid #ddd; /* Border untuk tabel secara keseluruhan */
+    border-radius: 15px; /* Membuat sudut tabel melengkung */
+    overflow: hidden; /* Memastikan konten tidak keluar dari border melengkung */
+    animation: fade-in 0.5s ease-in-out;
+    margin-top: 10px;
+}
+
+.thead-history {
+    background-color: #f8f8f8; /* Warna latar belakang header */
+}
+
+.history-table th, .history-table td {
+    border-top: 1px solid #ddd; /* Border atas untuk setiap sel */
+    border-bottom: 0,5px solid #ddd; /* Border bawah untuk setiap sel */
+    padding: 12px; /* Padding di dalam sel */
+    text-align: left; /* Teks rata kiri */
+}
+
+.history-table th {
+    background-color: #f1f1f1; /* Warna latar belakang untuk header */
+    color: #737577; /* Warna teks hitam */
+}
+.history-table td {
+    font-size: 14px;
 }
 @media (max-width: 1024px) {
     .history-table {
@@ -534,13 +557,7 @@ form .form-row .input-data {
     }
 }
 
-.history-table td {
-    padding: 10px 20px;
-}
 
-.history-table tr:nth-child(even){background-color: #f2f2f2;}
-
-.history-table tr:hover {background-color: #ddd;}
 
 .input-data input,
 select,
@@ -550,7 +567,7 @@ textarea {
     padding: 10px 10px;
     font-size: 16px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 20px;
 }
 
 textarea {
@@ -941,6 +958,7 @@ select:focus {
 
 .form-row {
     margin: 15px 0;
+    
 }
 
 input {
@@ -953,6 +971,7 @@ input {
 
 .password-container {
     position: relative;
+    
 }
 
 .password-container button {

@@ -454,7 +454,7 @@ if (!user || !contents || !histories) {
 
         {showHistory && (
           <table className="history-table">
-            <thead className="thead">
+            <thead className="thead-history">
               <tr>
                 <th>Title</th>
                 <th>Date</th>
