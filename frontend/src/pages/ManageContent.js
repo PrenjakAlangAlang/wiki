@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 const ManageContent = () => {
   const [contents, setContents] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const navigate = useNavigate();
   const [user, setUser] = useState(() => {
     try {
@@ -29,10 +31,7 @@ const ManageContent = () => {
           },
         });
         const data = await response.json();
-        // Filter konten yang berstatus "pending"
-        // const filteredContents = data.filter(content => content.status === "pending");
         setContents(data);
-        console.log(data[0]);
       } catch (error) {
         console.error("Error fetching contents:", error);
       }
@@ -99,69 +98,67 @@ const ManageContent = () => {
         console.error("Error approving content:", error);
         alert("An error occurred while approving the content. Please check the console for more details.");
     }
-};
+  };
 
+  const handleReject = async (id) => {
+    const token = localStorage.getItem("token");
+    try {
+        const response = await fetch(`http://localhost:3000/api/content/approve/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ status: "Rejecting" }), // Update status to "approved"
+        });
 
-const handleReject = async (id) => {
-  const token = localStorage.getItem("token");
-  try {
-      const response = await fetch(`http://localhost:3000/api/content/approve/${id}`, {
-          method: "PUT",
-          headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status: "Rejecting" }), // Update status to "approved"
-      });
+        if (response.ok) {
+            // Mendapatkan waktu lokal dalam zona waktu WIB
+            const currentDate = new Date();
+            const formattedDate = currentDate.toLocaleString("en-US", {
+                timeZone: "Asia/Jakarta",
+                hour12: false,
+            });
 
-      if (response.ok) {
-          // Mendapatkan waktu lokal dalam zona waktu WIB
-          const currentDate = new Date();
-          const formattedDate = currentDate.toLocaleString("en-US", {
-              timeZone: "Asia/Jakarta",
-              hour12: false,
-          });
+            // Mengonversi waktu ke format yang sesuai MySQL (YYYY-MM-DD HH:MM:SS)
+            const [date, time] = formattedDate.split(", ");
+            const [month, day, year] = date.split("/");
+            const formattedMySQLDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time}`;
 
-          // Mengonversi waktu ke format yang sesuai MySQL (YYYY-MM-DD HH:MM:SS)
-          const [date, time] = formattedDate.split(", ");
-          const [month, day, year] = date.split("/");
-          const formattedMySQLDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time}`;
+            const historyData = {
+                content_id: id, // content_id digunakan di tabel history
+                editor_id: user.id, // ID user yang sedang login
+                action: "Rejecting", // Tindakan yang dilakukan
+                edited_at: formattedMySQLDate, // Waktu perubahan dengan format yang sesuai MySQL
+            };
 
-          const historyData = {
-              content_id: id, // content_id digunakan di tabel history
-              editor_id: user.id, // ID user yang sedang login
-              action: "Rejecting", // Tindakan yang dilakukan
-              edited_at: formattedMySQLDate, // Waktu perubahan dengan format yang sesuai MySQL
-          };
+            const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(historyData),
+            });
 
-          const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify(historyData),
-          });
+            const historyResponseText = await historyResponse.text();
+            if (!historyResponse.ok) {
+                console.error("Failed to record edit history:", historyResponseText);
+                alert("Something went wrong while saving history. Please try again."); // Warning alert if history insertion fails
+                return; // Prevent further actions if history is not recorded
+            }
 
-          const historyResponseText = await historyResponse.text();
-          if (!historyResponse.ok) {
-              console.error("Failed to record edit history:", historyResponseText);
-              alert("Something went wrong while saving history. Please try again."); // Warning alert if history insertion fails
-              return; // Prevent further actions if history is not recorded
-          }
-
-          alert("Content approved successfully");
-          setContents(contents.filter((content) => content.id !== id)); // Remove the content from the list
-      } else {
-          alert("Failed to approve content");
-          console.error("Failed to approve content:", response.statusText);
-      }
-  } catch (error) {
-      console.error("Error approving content:", error);
-      alert("An error occurred while approving the content. Please check the console for more details.");
-  }
-};
-
+            alert("Content rejected successfully");
+            setContents(contents.filter((content) => content.id !== id)); // Remove the content from the list
+        } else {
+            alert("Failed to reject content");
+            console.error("Failed to reject content:", response.statusText);
+        }
+    } catch (error) {
+        console.error("Error rejecting content:", error);
+        alert("An error occurred while rejecting the content. Please check the console for more details.");
+    }
+  };
 
   const Breadcrumbs = ({ paths }) => {
     return (
@@ -181,19 +178,33 @@ const handleReject = async (id) => {
       </nav>
     );
   };
+
+  // Calculate the current contents to display based on the current page
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentContents = contents.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(contents.length / itemsPerPage);
+
   return (
     <div className="main-container">
       <div className="table-container">
-      <Breadcrumbs 
+        <Breadcrumbs 
           paths={[
             { label: "Home", link: "/" },
-            { label: "Manage Content    " }, // Halaman saat ini tidak memiliki link
+            { label: "Manage Content" }, // Halaman saat ini tidak memiliki link
           ]} 
         />
         <div className="manage-content">
-                <h1 className="manage-content-h1">Manage Content</h1>
-                <p className='manage-content-p'>Manage, optimize, and distribute your content easily to achieve maximum results.</p>
-                </div>
+          <h1 className="manage-content-h1">Manage Content</h1>
+          <p className='manage-content-p'>Manage, optimize, and distribute your content easily to achieve maximum results.</p>
+        </div>
         <table className="table-manage">
           <thead className="thead-manage">
             <tr>
@@ -203,24 +214,46 @@ const handleReject = async (id) => {
             </tr>
           </thead>
           <tbody>
-            {contents
-              .slice() // Membuat salinan array agar tidak mengubah data asli
+            {currentContents
               .sort((a, b) => b.id - a.id) // Mengurutkan berdasarkan id terbesar ke terkecil
               .map((content) => (
                 <tr key={content.id}>
                   <td>{content.title}</td>
                   <td>{content.author_name}</td>
                   <td>
-                      <Link to={`/content/${content.id}`}>
+                    <Link to={`/content/${content.id}`}>
                       <button className="Detail Button">Detail</button>
-                      </Link>                             
-                    </td>
-                    <td><button className="Detail Approve" onClick={() => handleApprove(content.id)}>Approve</button></td>
-                    <td><button className="Detail Reject" onClick={() => handleReject(content.id)}>Reject</button></td>
+                    </Link>                             
+                  </td>
+                  <td><button className="Detail Approve" onClick={() => handleApprove(content.id)}>Approve</button></td>
+                  <td><button className="Detail Reject" onClick={() => handleReject(content.id)}>Reject</button></td>
                 </tr>
               ))}
           </tbody>
         </table>
+        <div className="pagination">
+          <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
+          &lt;&lt;
+          </button>
+          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+          &lt;
+          </button>
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
+              key={index + 1}
+              onClick={() => handlePageChange(index + 1)}
+              className={currentPage === index + 1 ? "active" : ""}
+            >
+              {index + 1}
+            </button>
+          ))}
+          <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+          &gt;
+          </button>
+          <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}>
+          &gt;&gt;
+          </button>
+        </div>
       </div>
     </div>
   );

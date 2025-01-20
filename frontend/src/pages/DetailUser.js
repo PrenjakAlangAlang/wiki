@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-
 const DetailUser = () => {
+  const [mergedData, setMergedData] = useState([]);
   const [user, setUser] = useState(null);
   const [roles, setRoles] = useState([]);
   const [instances, setInstances] = useState([]);
@@ -23,13 +23,17 @@ const DetailUser = () => {
   const { id } = useParams();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
+  // Retrieve token from localStorage (or sessionStorage)
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser) setCurrentUser(storedUser);
 
+    // Fetch user details with token in Authorization header
     fetch(`http://localhost:3000/api/user/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -50,6 +54,7 @@ const DetailUser = () => {
       })
       .catch((err) => console.error("Failed to fetch user:", err));
 
+    // Fetch roles with token
     fetch("http://localhost:3000/api/roles", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -59,6 +64,7 @@ const DetailUser = () => {
       .then((data) => setRoles(data))
       .catch((err) => console.error("Failed to fetch roles:", err));
 
+    // Fetch instances with token
     fetch("http://localhost:3000/api/instances", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -68,6 +74,7 @@ const DetailUser = () => {
       .then((data) => setInstances(data))
       .catch((err) => console.error("Failed to fetch instances:", err));
 
+    // Fetch contents with token
     fetch("http://localhost:3000/api", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -96,6 +103,7 @@ const DetailUser = () => {
       instance_id: parseInt(formData.instance_id, 10),
     };
 
+    // Submit form with token in Authorization header
     fetch(`http://localhost:3000/api/user/edit/${formData.id}`, {
       method: "PUT",
       headers: {
@@ -125,40 +133,8 @@ const DetailUser = () => {
       .catch((err) => console.error("Failed to update user:", err));
   };
 
-  const saveContentHistory = (content) => {
-    if (content.created_at === content.edited_at) {
-      const historyData = {
-        content_id: content.id,
-        edited_at: content.edited_at,
-        action: "create",
-      };
-
-      fetch(`http://localhost:3000/api/content_edit_history`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(historyData),
-      })
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error("Failed to save content history");
-          }
-          return res.json();
-        })
-        .then(() => {
-          console.log("Content history saved successfully");
-        })
-        .catch((err) => console.error("Failed to save content history:", err));
-    }
-  };
-
-  useEffect(() => {
-    contents.forEach(saveContentHistory);
-  }, [contents]);
-
   const loadHistories = () => {
+    // Fetch history with token
     fetch(`http://localhost:3000/api/history/user/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -167,6 +143,16 @@ const DetailUser = () => {
       .then((res) => res.json())
       .then((data) => setHistories(data || []))
       .catch((err) => console.error("Failed to fetch histories:", err));
+
+    // Fetch contents with token
+    fetch(`http://localhost:3000/api/contents/user/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setContents(data || []))
+      .catch((err) => console.error("Failed to fetch contents:", err));
   };
 
   const handleToggleHistory = () => {
@@ -179,63 +165,114 @@ const DetailUser = () => {
   const formatDateTime = (dateTime) => {
     if (!dateTime) return "Invalid Date";
 
-    const isoDateTime = dateTime.replace(" ", "T");
-    const parsedDate = new Date(isoDateTime);
+    const parsedDate = new Date(dateTime.replace(" ", "T"));
+    if (isNaN(parsedDate)) return "Invalid Date"; // Cek apakah parsing valid
 
-    if (isNaN(parsedDate)) {
-      console.error("Invalid date format:", dateTime);
-      return "Invalid Date";
-    }
-
+    // Format waktu (jam:menit)
     const optionsTime = {
       hour: "2-digit",
       minute: "2-digit",
     };
-    const formattedTime = new Intl.DateTimeFormat("id-ID", optionsTime).format(parsedDate);
+    const formattedTime = new Intl.DateTimeFormat("id-ID", optionsTime).format(
+      parsedDate
+    );
 
+    // Format tanggal (tanggal bulan tahun dalam bahasa Indonesia)
     const optionsDate = {
       day: "numeric",
-      month: "long",
+      month: "long", // Menggunakan bulan lengkap (Desember)
       year: "numeric",
     };
-    const formattedDate = new Intl.DateTimeFormat("id-ID", optionsDate).format(parsedDate);
+    const formattedDate = new Intl.DateTimeFormat("id-ID", optionsDate).format(
+      parsedDate
+    );
 
+    // Gabungkan jam dan tanggal dengan pemisah "-"
     return `${formattedTime} - ${formattedDate}`;
   };
 
+  // Fungsi untuk mendapatkan title konten berdasarkan ID
   const getContentTitle = (contentId) => {
+    // Mencari content berdasarkan contentId yang ada di tabel contents
     const content = contents.find((content) => content.id === contentId);
-    return content ? content.title : "Unknown Title";
+    return content ? content.title : "Unknown Title";  // Jika ditemukan, tampilkan title, jika tidak tampilkan Unknown Title
   };
 
   useEffect(() => {
-    if (histories.length > 0) {
-      const updatedHistories = histories.map((history) => ({
-        ...history,
-        title: getContentTitle(history.content_id),
-      }));
-      setHistories(updatedHistories);
+    if (contents && histories) {
+      // Buat objek lookup untuk mempercepat pencarian title berdasarkan id
+      const contentMap = contents.reduce((map, content) => {
+        map[content.id] = content.title; // key: content.id, value: content.title
+        return map;
+      }, {});
+
+      const newMergedData = [
+        // Data dari histories
+        ...histories.map((history) => {
+          const title = contentMap[history.content_id] || "Unknown Content"; // Ambil title dari contentMap
+          return {
+            type: "history",
+            id: history.id,
+            title, // Gunakan title dari contentMap
+            created_at: history.edited_at,
+            action: history.action && history.action !== "null"
+              ? history.action === "Approved"
+                ? "Approving"
+                : history.action === "Rejected"
+                ? "Rejecting"
+                : "Editing"
+              : "Edit",
+          };
+        }),
+
+        // Data dari contents
+        ...contents.map((content) => ({
+          type: "content",
+          id: content.id,
+          title: content.title,
+          created_at: content.created_at,
+          action: "Create",
+        })),
+      ];
+
+      // Urutkan berdasarkan tanggal terbaru
+      newMergedData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      // Update state mergedData
+      setMergedData(newMergedData);
     }
   }, [contents, histories]);
 
+  // Calculate the current items to display based on the current page
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentMergedData = mergedData.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(mergedData.length / itemsPerPage);
+
+  // Menangani loading state
   if (!user || !contents || !histories) {
     return <div>Loading...</div>;
   }
 
   const Breadcrumbs = ({ paths }) => {
     return (
-      <nav style={{ position: "relative", zIndex: 10 }}>
+      <nav>
         <ul className="breadcrumbs">
           {paths.map((path, index) => (
             <li key={index}>
               {path.link ? (
-                <Link to={path.link} style={{ pointerEvents: "auto" }}>
-                  {path.label}
-                </Link>
+                <Link to={path.link}>{path.label}</Link>
               ) : (
                 <span>{path.label}</span>
               )}
-              {index < paths.length - 1 && <span> / </span>}
+              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
             </li>
           ))}
         </ul>
@@ -340,7 +377,7 @@ const DetailUser = () => {
                 <label>Password</label>
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <input
-                    type={passwordVisible ? "text" : "password"}
+                    type={passwordVisible ? "text" : "password"} // Toggle password visibility
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
@@ -355,7 +392,8 @@ const DetailUser = () => {
                       border: "none",
                     }}
                   >
-                    {passwordVisible ? <FaEyeSlash /> : <FaEye />} {" "}
+                    {passwordVisible ? <FaEyeSlash /> : <FaEye />}{" "}
+                    {/* Icon to toggle visibility */}
                   </button>
                 </div>
               </div>
@@ -404,6 +442,7 @@ const DetailUser = () => {
             <div className="form-row submit-btn">
               <div className="input-data">
                 <div className="inner"></div>
+                {/* <input type="submit" value="Save Changes" /> */}
                 <input
                   type="submit"
                   value="Save Changes"
@@ -428,40 +467,51 @@ const DetailUser = () => {
           onClick={handleToggleHistory}
         />
 
-{showHistory && (
-  <table className="history-table">
-    <thead className="thead">
-      <tr>
-        <th>Title</th>
-        <th>Date</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      {/* Urutkan histories berdasarkan edited_at (tanggal terbaru di atas) */}
-      {histories
-        .sort((a, b) => new Date(b.edited_at) - new Date(a.edited_at)) // Urutkan dari terbaru ke lama
-        .map((item) => (
-          <tr key={item.id}>
-            {/* Jadikan title sebagai link */}
-            <td>
-              <a
-                href={`/content/${item.content_id}`} // Ganti dengan URL yang sesuai
-                target="_blank" // Membuka link di tab baru
-                rel="noopener noreferrer" // Mencegah risiko keamanan
-              >
-                {item.title}
-              </a>
-            </td>
-            <td>{formatDateTime(item.edited_at)}</td>
-            <td>{item.action}</td>
-          </tr>
-        ))}
-    </tbody>
-  </table>
-)}
-
-
+        {showHistory && (
+          <>
+            <table className="history-table">
+              <thead className="thead">
+                <tr>
+                  <th>Title</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentMergedData.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.title}</td>
+                    <td>{formatDateTime(item.created_at)}</td>
+                    <td>{item.action}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="pagination">
+              <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
+              &lt;&lt;
+              </button>
+              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+              &lt;
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={currentPage === index + 1 ? "active" : ""}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+              &gt;
+              </button>
+              <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}>
+              &gt;&gt;
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

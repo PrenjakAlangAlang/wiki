@@ -15,6 +15,8 @@ const ManageUser = () => {
         instance_id: "",
     });
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     const fetchToken = () => {
         // Dapatkan token dari localStorage atau dari state aplikasi Anda
@@ -156,6 +158,19 @@ const ManageUser = () => {
         );
     };
 
+    // Calculate the current users to display based on the current page
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+
+    // Handle page change
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    // Calculate total pages
+    const totalPages = Math.ceil(users.length / itemsPerPage);
+
     return (
         <div className="main-container">
             <div className="table-container">
@@ -174,8 +189,8 @@ const ManageUser = () => {
                         <th colSpan={2}>Actions</th>
                     </thead>
                     <tbody>
-                        {Array.isArray(users) &&
-                            users.map((user) => (
+                        {Array.isArray(currentUsers) &&
+                            currentUsers.map((user) => (
                                 <tr key={user.id}>
                                     <td>{user.name}</td>
                                     <td>{user.role_name}</td>
@@ -197,6 +212,29 @@ const ManageUser = () => {
                             ))}
                     </tbody>
                 </table>
+                <div className="pagination">
+                    <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
+                    &lt;&lt;
+                    </button>
+                    <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                    &lt;
+                    </button>
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                            key={index + 1}
+                            onClick={() => handlePageChange(index + 1)}
+                            className={currentPage === index + 1 ? "active" : ""}
+                        >
+                            {index + 1}
+                        </button>
+                    ))}
+                    <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                    &gt;
+                    </button>
+                    <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}>
+                    &gt;&gt;
+                    </button>
+                </div>
             </div>
 
             <div className="form-container">
