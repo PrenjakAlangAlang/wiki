@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import moment from "moment";
+
 
 const DetailUser = () => {
   const [user, setUser] = useState(null);
