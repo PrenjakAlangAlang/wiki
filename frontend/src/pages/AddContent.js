@@ -66,13 +66,13 @@ const AddContent = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         if (!user) {
             alert("Please log in to create content.");
             navigate("/login");
             return;
         }
-
+    
         // Jika user role 3, tampilkan konfirmasi
         if (user.role_id === 3) {
             const isConfirmed = window.confirm("Konten Anda akan dikirim untuk ditinjau. Apakah Anda yakin ingin melanjutkan?");
@@ -80,7 +80,7 @@ const AddContent = () => {
                 return;
             }
         }
-
+    
         const contentData = {
             title,
             description: {
@@ -90,13 +90,13 @@ const AddContent = () => {
             tag,
             author_id: user?.id,
             instance_id: parseInt(instanceId, 10),
-            status: user.role_id === 3 ? "pending" : "approved", // Tambahkan status "pending" untuk user role 3, "approved" untuk role 1
+            status: user.role_id === 3 ? "pending" : "approved",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         };
-
+    
         console.log("Content Data to Send:", JSON.stringify(contentData, null, 2));
-
+    
         try {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -104,7 +104,8 @@ const AddContent = () => {
                 navigate("/login");
                 return;
             }
-
+    
+            // Buat konten baru
             const response = await fetch(`/api/content/add`, {
                 method: "POST",
                 headers: {
@@ -113,10 +114,48 @@ const AddContent = () => {
                 },
                 body: JSON.stringify(contentData),
             });
-
+    
             if (response.ok) {
                 const result = await response.json();
                 const contentId = result.content_id;
+    
+                // Mendapatkan waktu lokal di zona waktu Asia/Jakarta
+                const currentDate = new Date();
+                const formattedDate = currentDate.toLocaleString("en-US", {
+                    timeZone: "Asia/Jakarta",
+                    hour12: false,
+                });
+    
+                // Format waktu untuk MySQL (YYYY-MM-DD HH:MM:SS)
+                const [date, time] = formattedDate.split(", ");
+                const [month, day, year] = date.split("/");
+                const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+    
+                // Data untuk riwayat
+                const historyData = {
+                    content_id: contentId,
+                    editor_id: user.id,
+                    action: "Createing",
+                    edited_at: formattedMySQLDate,
+                };
+    
+                // Kirim data riwayat
+                const historyResponse = await fetch(`/api/history/add`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(historyData),
+                });
+    
+                if (!historyResponse.ok) {
+                    console.error("Failed to record history.");
+                    const errorMessage = await historyResponse.text();
+                    console.error("History error response:", errorMessage);
+                }
+    
+                // Arahkan pengguna ke halaman detail konten
                 navigate(`/informasi/${contentId}`);
             } else {
                 const errorText = await response.text();
@@ -128,6 +167,7 @@ const AddContent = () => {
             alert("There was an error creating the content.");
         }
     };
+    
 
     const Breadcrumbs = ({ paths }) => {
         return (

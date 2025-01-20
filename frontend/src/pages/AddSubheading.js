@@ -29,7 +29,8 @@ const AddSubheading = () => {
 
     const handleAddSubheading = async (e) => {
         e.preventDefault();
-
+    
+        // Data subheading yang akan dikirim ke backend
         const subheadingData = {
             content_id: parseInt(id, 10),
             subheading,
@@ -37,52 +38,73 @@ const AddSubheading = () => {
             author_id: user?.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            editor_id: user?.id, 
+            editor_id: user?.id,
         };
-
+    
         try {
+            // Mengirim data subheading ke API
             const response = await fetch(`http://localhost:3000/api/subheading/add/${id}`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
                 },
                 body: JSON.stringify(subheadingData),
             });
-
-            if (!response.ok) throw new Error('Failed to add subheading');
+    
+            if (!response.ok) throw new Error("Failed to add subheading");
+    
             const responseData = await response.json();
-            console.log(responseData);
-
+            console.log("Subheading added:", responseData);
+    
+            // Mengambil waktu lokal di zona waktu Asia/Jakarta
+            const currentDate = new Date();
+            const formattedDate = currentDate.toLocaleString("en-US", {
+                timeZone: "Asia/Jakarta",
+                hour12: false,
+            });
+    
+            // Format waktu untuk MySQL (YYYY-MM-DD HH:MM:SS)
+            const [date, time] = formattedDate.split(", ");
+            const [month, day, year] = date.split("/");
+            const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+    
+            // Data untuk riwayat dengan action "Editing"
             const historyData = {
                 content_id: parseInt(id, 10),
-                editor_id: user.id, 
-                edited_at: new Date().toISOString(),
+                editor_id: user.id,
+                action: "Editing", // Action type
+                edited_at: formattedMySQLDate, // Waktu dalam format MySQL
             };
-
+    
+            // Mengirim data riwayat ke API
             const historyResponse = await fetch("http://localhost:3000/api/history/add", {
                 method: "POST",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`,
                 },
                 body: JSON.stringify(historyData),
             });
-
+    
             if (!historyResponse.ok) {
-                console.error("Failed to record add subheading history");
+                console.error("Failed to record history for Editing action");
+            } else {
+                console.log("History recorded successfully");
             }
-
-            // Reset form fields after submission
-            setSubheading('');
-            setDescription('');
-            
+    
+            // Reset form fields setelah pengiriman berhasil
+            setSubheading("");
+            setDescription("");
+    
+            // Arahkan pengguna ke halaman detail konten
             navigate(`/informasi/${id}`);
         } catch (error) {
-            console.error(error);
-            alert('Error adding subheading');
+            console.error("Error adding subheading:", error);
+            alert("Error adding subheading");
         }
     };
+    
 
     // Breadcrumbs component
     const Breadcrumbs = ({ paths }) => {
