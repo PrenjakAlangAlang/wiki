@@ -84,30 +84,69 @@ const Edit = () => {
     const isConfirmed = window.confirm("Are you sure you want to delete this subheading?");
 
     if (!isConfirmed) {
-      return;
+        return;
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:3000/api/subheading/delete/${subheadingId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+            `http://localhost:3000/api/subheading/delete/${subheadingId}`,
+            {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            }
+        );
 
-      if (response.ok) {
-        alert("Subheading deleted successfully");
-        setSubheadings((prev) => prev.filter((sub) => sub.id !== subheadingId));
-      } else {
-        alert("Failed to delete subheading");
-      }
+        if (response.ok) {
+            alert("Subheading deleted successfully");
+
+            // Menghapus subheading dari state lokal
+            setSubheadings((prev) => prev.filter((sub) => sub.id !== subheadingId));
+
+            // Mendapatkan waktu lokal di zona waktu Asia/Jakarta
+            const currentDate = new Date();
+            const formattedDate = currentDate.toLocaleString("en-US", {
+                timeZone: "Asia/Jakarta",
+                hour12: false,
+            });
+
+            // Format waktu untuk MySQL (YYYY-MM-DD HH:MM:SS)
+            const [date, time] = formattedDate.split(", ");
+            const [month, day, year] = date.split("/");
+            const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+
+            // Data untuk riwayat dengan action "Editing"
+            const historyData = {
+                content_id: parseInt(id, 10), // Pastikan id konten sudah tersedia dalam cakupan
+                editor_id: user?.id,
+                action: "Editing", // Tipe aksi
+                edited_at: formattedMySQLDate, // Waktu dalam format MySQL
+            };
+
+            // Mengirim data riwayat ke API
+            const historyResponse = await fetch("http://localhost:3000/api/history/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(historyData),
+            });
+
+            if (!historyResponse.ok) {
+                console.error("Failed to record history for Editing action");
+            } else {
+                console.log("History recorded successfully");
+            }
+        } else {
+            alert("Failed to delete subheading");
+        }
     } catch (error) {
-      console.error(error);
-      alert("An error occurred while deleting subheading");
+        console.error("Error deleting subheading:", error);
+        alert("An error occurred while deleting subheading");
     }
-  };
+};
+
 
   const handleAddSubheadingClick = async () => {
     navigate(`/addsubheading/${id}`);
@@ -122,76 +161,103 @@ const Edit = () => {
         updatedSubheadings[subheading.id]?.subheading_description ||
         subheading.subheading_description,
     }));
-
+  
     const requestBody = {
       title: updatedContentTitle,
       description: updatedContentDescription,
       instance_id: parseInt(updatedInstanceID, 10),
       tag: updatedContentTag,
       subheadings: updatedSubheadingsArray,
-      editor_id: user.id, 
+      editor_id: user.id,
     };
-
+  
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Authorization token is missing. Please log in again.");
+        navigate("/login");
+        return;
+      }
+  
+      // Kirim permintaan untuk memperbarui konten
       const response = await fetch(`http://localhost:3000/api/content/edit/${id}`, {
         method: "PUT",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(requestBody),
       });
-
+  
       if (response.ok) {
+        // Mendapatkan waktu lokal di zona waktu Asia/Jakarta
+        const currentDate = new Date();
+        const formattedDate = currentDate.toLocaleString("en-US", {
+          timeZone: "Asia/Jakarta",
+          hour12: false,
+        });
+  
+        // Mengonversi waktu ke format yang sesuai dengan MySQL (YYYY-MM-DD HH:MM:SS)
+        const [date, time] = formattedDate.split(", ");
+        const [month, day, year] = date.split("/");
+        const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+  
         const historyData = {
-          content_id: Number(id),
-          editor_id: user.id, 
-          edited_at: new Date().toISOString(),
+          content_id: parseInt(id, 10),
+          editor_id: user.id,
+          action: "Editing",
+          edited_at: formattedMySQLDate,
         };
-
+  
+        // Kirim permintaan untuk menyimpan riwayat edit
         const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(historyData),
         });
-
+  
         if (!historyResponse.ok) {
           console.error("Failed to record edit history");
+          const errorMessage = await historyResponse.text();
+          console.error("History error response:", errorMessage);
         }
-
+  
+        // Arahkan pengguna ke halaman informasi
         navigate(`/informasi/${id}`);
       } else {
-        alert("Failed to update content");
+        const errorMessage = await response.text();
+        console.error("Failed to update content. Response:", errorMessage);
+        alert("Failed to update content.");
       }
     } catch (error) {
-      console.error(error);
-      alert("An error occurred while saving updates");
+      console.error("An error occurred while saving updates:", error);
+      alert("An error occurred while saving updates.");
     }
   };
+  
+  
 
-  // Breadcrumbs component
-  const Breadcrumbs = ({ paths }) => {
-    return (
-      <nav>
-        <ul className="breadcrumbs">
-          {paths.map((path, index) => (
-            <li key={index}>
-              {path.link ? (
-                <Link to={path.link}>{path.label}</Link>
-              ) : (
-                <span>{path.label}</span>
-              )}
-              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
-            </li>
-          ))}
-        </ul>
-      </nav>
-    );
-  };
+    const Breadcrumbs = ({ paths }) => {
+        return (
+            <nav>
+                <ul className="breadcrumbs">
+                    {paths.map((path, index) => (
+                        <li key={index}>
+                            {path.link ? (
+                                <Link to={path.link}>{path.label}</Link>
+                            ) : (
+                                <span>{path.label}</span>
+                            )}
+                            {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        );
+    };
 
   return (
     <div className="container-wrapper">
