@@ -157,7 +157,7 @@ Content-Type: application/json
 
 ### Delete content by ID
 # @name DeleteContent
-DELETE http://localhost:3001/api/content/delete/65
+PUT http://localhost:3001/api/content/delete/65
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
 Accept: application/json
 
@@ -189,7 +189,7 @@ Accept: application/json
 ### Get roles
 # @name GetRoles
 GET http://localhost:3001/api/roles
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzc0MzcwNjMsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.xAdAtnfw-kgJMIC7Y6pBncVVy_2D8x_8o87Q3PDd70c
 Accept: application/json
 
 ###
@@ -238,7 +238,7 @@ Accept: application/json
 ### Add history
 # @name AddHistory
 POST http://localhost:3001/api/history/add
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzczMTIyNTcsImlkIjozLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6M30.Pu8uYW7dzEQe48md8JRXVWxG9wowPo6nZz5k7xXfZeA
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzc0Mzc4NTAsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.nEXltufrVBlY2gozJrVV5KdclZfQ8ZuUlvIzHoDIlAo
 
 {
   "content_id": 54,
