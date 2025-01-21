@@ -5,6 +5,7 @@ import (
 	contentcontroller "backend/controllers"
 	historycontroller "backend/controllers"
 	instancecontroller "backend/controllers"
+	permissioncontroller "backend/controllers"
 	rolecontroller "backend/controllers"
 	subheadingcontroller "backend/controllers"
 	usercontroller "backend/controllers"
@@ -18,14 +19,14 @@ import (
 
 func main() {
 
-// Inisialisasi koneksi database
-db, err := config.DBConnection()
-if err != nil {
-	log.Fatalf("Error initializing database: %v", err)
-}
+	// Inisialisasi koneksi database
+	db, err := config.DBConnection()
+	if err != nil {
+		log.Fatalf("Error initializing database: %v", err)
+	}
 
-// Set DB global untuk middleware
-middleware.DB = db
+	// Set DB global untuk middleware
+	middleware.DB = db
 
 	// Inisialisasi router
 	r := mux.NewRouter()
@@ -61,7 +62,7 @@ middleware.DB = db
 	r.Handle("/api/latest-editor-name/{contentId}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_latest_editor", http.HandlerFunc(historycontroller.GetLatestEditorNameByContentId)))).Methods("GET")
 	r.Handle("/api/content/approve/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("approve_content", http.HandlerFunc(contentcontroller.ApproveContent)))).Methods("PUT")
 	r.Handle("/api/content/reject/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("reject_content", http.HandlerFunc(contentcontroller.RejectContent)))).Methods("PUT")
-	
+	r.Handle("/api/permissions", middleware.JWTAuth(middleware.RoleAuthMiddleware("manage_role", http.HandlerFunc(permissioncontroller.GetPermissionList)))).Methods("GET")
 
 	// Endpoint tanpa middleware untuk login
 	r.HandleFunc("/api/login", usercontroller.Login).Methods("POST")

@@ -32,7 +32,7 @@ const Profile = () => {
                 }
             } catch (error) {
                 console.error(error);
-                navigate('/login');
+                // navigate('/login');
             }
         };
 
