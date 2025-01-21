@@ -7,7 +7,9 @@ const Footer = () => {
             <div className="footer-content">
                 <p className="footer-logo">
                     <img src={logo} alt="Logo Pemda DIY" className="logo" />
+                    <div className="logo-text">
                     &copy; 2024 Pemda DIY. All rights reserved.
+                    </div>
                 </p>
             </div>
         </footer>

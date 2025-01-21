@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { FaInfoCircle, FaCheck, FaTimes } from 'react-icons/fa';
 
 const ManageContent = () => {
   const [contents, setContents] = useState([]);
@@ -89,7 +90,8 @@ const ManageContent = () => {
             }
 
             alert("Content approved successfully");
-            setContents(contents.filter((content) => content.id !== id)); // Remove the content from the list
+            setContents((prevContents) => prevContents.filter((content) => content.id !== id)); // Remove the content from the list
+            setCurrentPage(1); // Reset to the first page
         } else {
             alert("Failed to approve content");
             console.error("Failed to approve content:", response.statusText);
@@ -149,7 +151,8 @@ const ManageContent = () => {
             }
 
             alert("Content rejected successfully");
-            setContents(contents.filter((content) => content.id !== id)); // Remove the content from the list
+            setContents((prevContents) => prevContents.filter((content) => content.id !== id)); // Remove the content from the list
+            setCurrentPage(1); // Reset to the first page
         } else {
             alert("Failed to reject content");
             console.error("Failed to reject content:", response.statusText);
@@ -208,9 +211,9 @@ const ManageContent = () => {
         <table className="table-manage">
           <thead className="thead-manage">
             <tr>
-              <th>Title</th>
-              <th>Author</th>
-              <th colSpan={3}>Actions</th>
+              <th style={{ width: '40%' }}>Title</th>
+              <th style={{ width: '20%' }}>Author</th>
+              <th style={{ width: '40%' }} colSpan={3}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -221,22 +224,32 @@ const ManageContent = () => {
                   <td>{content.title}</td>
                   <td>{content.author_name}</td>
                   <td>
-                    <Link to={`/content/${content.id}`}>
-                      <button className="Detail Button">Detail</button>
-                    </Link>                             
+                    <Link to={`/content/${content.id}`} className="no-underline">
+                      <button className="Detail Button" style={{ display: 'flex', alignItems: 'center' }}>
+                        <FaInfoCircle style={{ marginRight: '5px' }} /> Detail
+                      </button>
+                    </Link>
                   </td>
-                  <td><button className="Detail Approve" onClick={() => handleApprove(content.id)}>Approve</button></td>
-                  <td><button className="Detail Reject" onClick={() => handleReject(content.id)}>Reject</button></td>
+                  <td>
+                    <button className="Detail Approve" onClick={() => handleApprove(content.id)} style={{ display: 'flex', alignItems: 'center' }}>
+                      <FaCheck style={{ marginRight: '5px' }} /> Approve
+                    </button>
+                  </td>
+                  <td>
+                    <button className="Detail Reject" onClick={() => handleReject(content.id)} style={{ display: 'flex', alignItems: 'center' }}>
+                      <FaTimes style={{ marginRight: '5px' }} /> Reject
+                    </button>
+                  </td>
                 </tr>
               ))}
           </tbody>
         </table>
         <div className="pagination">
           <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
-          &lt;&lt;
+            &lt;&lt;
           </button>
           <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-          &lt;
+            &lt;
           </button>
           {Array.from({ length: totalPages }, (_, index) => (
             <button
@@ -248,10 +261,10 @@ const ManageContent = () => {
             </button>
           ))}
           <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-          &gt;
+            &gt;
           </button>
           <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}>
-          &gt;&gt;
+            &gt;&gt;
           </button>
         </div>
       </div>
