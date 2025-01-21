@@ -11,7 +11,7 @@ function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         try {
             const response = await fetch('http://localhost:3000/api/login', {
                 method: 'POST',
@@ -20,29 +20,42 @@ function Login() {
                 },
                 body: JSON.stringify({ email, password }),
             });
-
+    
+            if (!response.ok) {
+                // Cek status code jika tidak ok
+                alert(`Login failed: ${response.status}`);
+                return;
+            }
+    
             const data = await response.json();
-
-            if (response.ok && data.token) {  // Pastikan token ada dalam respons
-                // Simpan token JWT di localStorage
-                localStorage.setItem('token', data.token);  // Menyimpan token
-
-                // Ambil roles menggunakan token setelah login berhasil
+            console.log(data); // Debug log
+    
+            if (data.token) {
+                localStorage.setItem('token', data.token);  // Simpan token
+    
+                // Mendapatkan roles menggunakan token
                 const getRoles = await fetch('http://localhost:3000/api/roles', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${data.token}`,
                     },
                 });
+    
+                if (!getRoles.ok) {
+                    alert('Failed to fetch roles');
+                    return;
+                }
+    
                 const roles = await getRoles.json();
-
+                console.log(roles); // Debug log roles
+    
                 if (roles && data) {
                     const userRole = roles.find(role => role.id === data.role_id);
                     if (!userRole) {
                         alert("Invalid role assignment");
                         return;
                     }
-
+    
                     const user = {
                         id: data.id,
                         name: data.name,
@@ -53,8 +66,7 @@ function Login() {
                     };
                     localStorage.setItem('user', JSON.stringify(user));
                     window.dispatchEvent(new Event('storage'));
-
-                    // Redirect ke halaman utama setelah login berhasil
+    
                     navigate('/');
                 } else {
                     alert(data.error || 'Invalid login credentials');
@@ -67,6 +79,7 @@ function Login() {
             alert('Failed to connect to server');
         }
     };
+    
 
     return (
         <div className="login-page">
