@@ -31,6 +31,18 @@ func GetIdTitleAllContents(response http.ResponseWriter, request *http.Request) 
     json.NewEncoder(response).Encode(contents)
 }
 
+func GetIdTitleAllContentsNotDeleted(response http.ResponseWriter, request *http.Request) {
+    response.Header().Set("Content-Type", "application/json")
+
+    contents, err := contentModel.FindAll()
+    if err != nil {
+        http.Error(response, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    json.NewEncoder(response).Encode(contents)
+}
+
 func GetIdTitleAllDrafts(response http.ResponseWriter, request *http.Request) {
     response.Header().Set("Content-Type", "application/json")
 
@@ -249,6 +261,7 @@ func CreateContent(w http.ResponseWriter, r *http.Request) {
 func DeleteContent(response http.ResponseWriter, request *http.Request) {
     response.Header().Set("Content-Type", "application/json")
 
+    // Parse content ID from URL
     vars := mux.Vars(request)
     idStr := vars["id"]
 
@@ -258,17 +271,26 @@ func DeleteContent(response http.ResponseWriter, request *http.Request) {
         return
     }
 
+    // Log content ID for debugging
+    fmt.Printf("Attempting to delete content with ID: %d\n", id)
+
+    // Soft delete content by ID
     err = contentModel.DeleteByID(id)
     if err != nil {
+        // Log the error and send an error response
+        fmt.Printf("Error deleting content with ID %d: %v\n", id, err)
         http.Error(response, fmt.Sprintf("Failed to delete content: %v", err), http.StatusInternalServerError)
         return
     }
 
+    // Log success and send a success response
+    fmt.Printf("Content with ID %d soft deleted successfully\n", id)
     response.WriteHeader(http.StatusOK)
     json.NewEncoder(response).Encode(map[string]string{
         "message": "Content soft deleted successfully",
     })
 }
+
 
 
 func GetUserContents(w http.ResponseWriter, r *http.Request) {

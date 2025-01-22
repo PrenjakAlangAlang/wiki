@@ -24,7 +24,7 @@ function Home() {
         // }
 
         // Fetch data dengan menambahkan Authorization header
-        const response = await fetch('/api', {
+        const response = await fetch('/api/nondeleted', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

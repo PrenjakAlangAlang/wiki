@@ -218,15 +218,6 @@ const DetailUser = () => {
             action: history.action || "Edit", // Use the action directly from the database
           };
         }),
-
-        // Data dari contents
-        ...contents.map((content) => ({
-          type: "content",
-          id: content.id,
-          title: content.title,
-          created_at: content.created_at,
-          action: "Create",
-        })),
       ];
 
       // Urutkan berdasarkan tanggal terbaru

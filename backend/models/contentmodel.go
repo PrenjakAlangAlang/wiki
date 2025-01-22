@@ -23,6 +23,26 @@ func NewContentModel() *ContentModel {
 }
 
 func (p *ContentModel) FindAll() ([]entities.Content, error) {
+    query := "SELECT id, title FROM content WHERE status = 'approved'"
+    rows, err := p.conn.Query(query)
+    if err != nil {
+        return []entities.Content{}, err
+    }
+    defer rows.Close()
+
+    var dataContent []entities.Content
+    for rows.Next() {
+        var content entities.Content
+        err := rows.Scan(&content.Id, &content.Title)
+        if err != nil {
+            return []entities.Content{}, err
+        }
+        dataContent = append(dataContent, content)
+    }
+    return dataContent, nil
+}
+
+func (p *ContentModel) FindNotDelete() ([]entities.Content, error) {
     query := "SELECT id, title FROM content WHERE status = 'approved' AND deleted_at IS NULL"
     rows, err := p.conn.Query(query)
     if err != nil {
@@ -127,13 +147,37 @@ func (p *ContentModel) CreateContent(content entities.Content) (int64, error) {
 }
 
 func (p *ContentModel) DeleteByID(contentID int64) error {
-    query := "UPDATE content SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL"
-    _, err := p.conn.Exec(query, time.Now(), contentID)
+    // Load WIB timezone
+    loc, err := time.LoadLocation("Asia/Jakarta")
     if err != nil {
-        return fmt.Errorf("error soft deleting content: %v", err)
+        return fmt.Errorf("error loading Asia/Jakarta timezone: %w", err)
     }
+
+    // Get current time in WIB and format as string
+    nowWIB := time.Now().In(loc).Format("2006-01-02 15:04:05")
+
+    // Debug: Log the WIB time
+    fmt.Printf("Waktu WIB yang dikirim: %v\n", nowWIB)
+
+    // Prepare the query to update the deleted_at column
+    query := "UPDATE content SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL"
+    result, err := p.conn.Exec(query, nowWIB, contentID)
+    if err != nil {
+        return fmt.Errorf("error soft deleting content: %w", err)
+    }
+
+    // Check rows affected
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("error retrieving rows affected: %w", err)
+    }
+    if rowsAffected == 0 {
+        return fmt.Errorf("no rows were updated, possibly contentID does not exist or already deleted")
+    }
+
     return nil
 }
+
 
 func (p *ContentModel) FindByIDWithAuthorName(id int64) (*entities.Content, string, error) {
 	query := `
