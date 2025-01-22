@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
+import { FaInfoCircle, FaTrash } from 'react-icons/fa';
 const ManageUser = () => {
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -197,17 +197,20 @@ const ManageUser = () => {
                                     <td>{user.instance}</td>
                                     <td>
                                         <Link to={`/detail/${user.id}`}>
-                                            <button className="green-button">Detail</button>
+                                            <button className="green-button" style={{ display: 'flex', alignItems: 'center' }}>
+                                            <FaInfoCircle style={{ marginRight: '5px',paddingBottom:'3px' }} /> Detail
+                                            </button>
                                         </Link>
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="button"
-                                            value="Delete"
+                                        </td>
+                                        <td>
+                                        <button
                                             className="btn btn-red"
                                             onClick={() => handleDelete(user.id)}
-                                        />
-                                    </td>
+                                            style={{ display: 'flex', alignItems: 'center' }}
+                                        >
+                                            <FaTrash style={{ marginRight: '5px',paddingBottom:'3px' }} /> Delete
+                                        </button>
+                                        </td>
                                 </tr>
                             ))}
                     </tbody>

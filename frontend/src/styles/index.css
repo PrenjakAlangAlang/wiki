@@ -72,17 +72,18 @@ body {
     width: 500px;         /* Added width */
     max-width: 100%; 
 }
-@media (max-width: 600px) {
+@media (max-width: 800px) {
     .navbar-center .search-bar {
-        width: 90%;       /* Mengurangi lebar untuk layar kecil */
+        width: 100%;       /* Mengurangi lebar untuk layar kecil */
     }
 }
 
 /* Media query untuk layar yang sangat kecil */
-@media (max-width: 400px) {
+@media (max-width: 500px) {
     .navbar-center .search-bar {
         width: 80%;       /* Mengurangi lebar lebih lanjut untuk layar yang lebih kecil */
         padding: 6px;     /* Mengurangi padding untuk layar kecil */
+        margin-left: 10px;
     }
 }
 
@@ -106,7 +107,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 20px;
+    
 }
 
 .navbar-right .profile img {
@@ -234,14 +235,14 @@ button {
 /* Media query untuk layar kecil */
 @media (max-width: 768px) {
     .main {
-        margin-left: 15px; /* Mengurangi margin left lebih lanjut pada layar kecil */
+        margin-left: 0px; /* Mengurangi margin left lebih lanjut pada layar kecil */
     }
 }
 
 /* Media query untuk layar sangat kecil */
 @media (max-width: 480px) {
     .main {
-        margin-left: 20px; /* Menghilangkan margin left pada layar sangat kecil */
+        margin-left: 0px; /* Menghilangkan margin left pada layar sangat kecil */
     }
 }
 
@@ -434,8 +435,9 @@ form .form-row .input-data {
 
     .table-container {
         flex: 0.6; /* Mengurangi flex untuk mengecilkan table container */
-        margin-left: 0; /* Menghapus margin kiri pada layar kecil */
+        margin-left: -50px; /* Menghapus margin kiri pada layar kecil */
         margin-bottom: 15px; /* Menambahkan margin bawah untuk memberi jarak dengan form */
+        margin-right: -70px;
     }
 
     .form-container {
@@ -444,7 +446,7 @@ form .form-row .input-data {
     }
 }
 /* Media query khusus untuk layar iPhone XR (max-width: 414px) */
-@media (max-width: 414px) {
+@media (max-width: 500px) {
     .main-container {
         flex-direction: column; /* Mengubah arah flex menjadi kolom pada layar kecil */
         margin: 10px; /* Mengurangi margin pada layar sangat kecil */
@@ -455,33 +457,18 @@ form .form-row .input-data {
         flex: 0.8; /* Mengurangi flex untuk mengecilkan table container */
         margin-left: 0; /* Menghapus margin kiri pada layar kecil */
         margin-bottom: 10px; /* Mengurangi margin bawah untuk menyesuaikan */
+        margin-top: 25px;
     }
 
     .form-container {
         flex: 1.2; /* Menambah flex untuk membesarkan form container */
-        margin-left: 0; /* Menghapus margin kiri pada layar kecil */
+         /* Menghapus margin kiri pada layar kecil */
+        margin-right: -165px;
     }
 }
 
 /* Media query untuk layar sangat kecil (max-width: 300px) */
-@media (max-width: 300px) {
-    .main-container {
-        flex-direction: column; /* Mengubah arah flex menjadi kolom pada layar sangat kecil */
-        margin: 5px; /* Mengurangi margin pada layar sangat kecil */
-        padding-top: 20px; /* Mengurangi padding atas untuk menyesuaikan */
-    }
 
-    .table-container {
-        flex: 0.5; /* Mengurangi flex lebih lanjut untuk mengecilkan table container */
-        margin-left: 0; /* Menghapus margin kiri pada layar sangat kecil */
-        margin-bottom: 5px; /* Mengurangi margin bawah untuk menyesuaikan */
-    }
-
-    .form-container {
-        flex: 1.5; /* Menambah flex lebih lanjut untuk membesarkan form container */
-        margin-left: 0; /* Menghapus margin kiri pada layar sangat kecil */
-    }
-}
 .manage {
     border-collapse: collapse;
     padding: 10px;
@@ -955,6 +942,17 @@ select:focus {
     margin-bottom: 10px;
     text-align: center;
 }
+@media (max-width: 768px) {
+    .login-right {
+        display: none;
+    }
+
+    .login-left {
+        flex: 1;
+        padding: 20px;
+        
+    }
+}
 
 .form-row {
     margin: 15px 0;
@@ -1076,6 +1074,26 @@ input {
     display: block; /* Pastikan ini juga tampil di baris baru */
     font-size: 0.9em; /* Opsional, buat teks lebih kecil */
     color: rgb(255, 253, 253); /* Opsional, tambahkan warna untuk membedakan */
+}
+
+@media (max-width: 768px) {
+    .user-name {
+        font-size: 14px; /* Sesuaikan ukuran font untuk layar kecil */
+    }
+
+    .user-role {
+        font-size: 0.8em; /* Sesuaikan ukuran font untuk layar kecil */
+    }
+}
+
+@media (max-width: 480px) {
+    .user-name {
+        font-size: 12px; /* Sesuaikan ukuran font untuk layar sangat kecil */
+    }
+
+    .user-role {
+        font-size: 0.7em; /* Sesuaikan ukuran font untuk layar sangat kecil */
+    }
 }
 .user-info {
     display: flex;
@@ -1223,7 +1241,7 @@ input {
     padding: 8px 15px; /* Menambahkan padding untuk menjaga ukuran tombol */
     cursor: pointer; /* Mengubah kursor menjadi pointer saat hover */
     border-radius: 20px; /* Mengatur border radius untuk efek bulat */
-    font-size: 16px; /* Mengatur ukuran font */
+    font-size: 14px; /* Mengatur ukuran font */
     font-weight: bold;
 }
 
@@ -1287,6 +1305,7 @@ input {
     margin: 4px 2px; /* Margin disekitar tombol */
     cursor: pointer; /* Kursor berupa pointer saat hover */
     border-radius: 20px; /* Membuat sudut tombol melengkung */
+    
 }
 
 .Detail.Button:hover {
@@ -1311,7 +1330,10 @@ input {
 .Detail.Approve:hover {
     background-color: #218838; /* Warna latar belakang hijau gelap saat hover */
 }
-
+.no-underline {
+    text-decoration: none;
+  }
+  
 /* CSS untuk tombol Reject */
 .Detail.Reject {
     background-color: #dc3545; /* Warna latar belakang merah */
@@ -1564,3 +1586,24 @@ input {
     cursor: not-allowed;
     opacity: 0.5;
   }
+
+  .Logout-button {
+    display: block;
+    margin: 20px auto; /* Center the button horizontally */
+    background-color: #dc3545;
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    text-align: center; /* Ensure the text is centered */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+.Logout-button:hover {
+    background-color: #c82333; /* Darker shade of red for hover effect */
+}
+
+.logo-text{
+    margin-bottom: 10px;
+}

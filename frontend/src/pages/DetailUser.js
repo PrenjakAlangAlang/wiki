@@ -215,13 +215,7 @@ const DetailUser = () => {
             id: history.id,
             title, // Gunakan title dari contentMap
             created_at: history.edited_at,
-            action: history.action && history.action !== "null"
-              ? history.action === "Approved"
-                ? "Approving"
-                : history.action === "Rejected"
-                ? "Rejecting"
-                : "Editing"
-              : "Edit",
+            action: history.action || "Edit", // Use the action directly from the database
           };
         }),
 
@@ -489,10 +483,10 @@ const DetailUser = () => {
             </table>
             <div className="pagination">
               <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
-              &lt;&lt;
+                ««
               </button>
               <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-              &lt;
+                «
               </button>
               {Array.from({ length: totalPages }, (_, index) => (
                 <button
@@ -504,10 +498,10 @@ const DetailUser = () => {
                 </button>
               ))}
               <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-              &gt;
+                »
               </button>
               <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}>
-              &gt;&gt;
+                »»
               </button>
             </div>
           </>
