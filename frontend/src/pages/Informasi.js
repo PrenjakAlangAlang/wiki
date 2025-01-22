@@ -75,38 +75,83 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
   const handleDeleteClick = async () => {
     if (!user) {
       alert("Please log in to delete content.");
-    } else if (user.role_id === 1 || user.role_id === 2 || (user.role_id === 3 && user.user_instance_id === content?.content?.instance_id)) {
+      return;
+    }
+  
+    if (user.role_id === 1 || user.role_id === 2 || (user.role_id === 3 && user.user_instance_id === content?.content?.instance_id)) {
       const confirmDelete = window.confirm("Are you sure you want to delete this content?");
-      if (confirmDelete) {
-        const token = localStorage.getItem('token'); // Retrieve token for deletion request
-        if (!token) {
-          alert("Authorization token is missing for deletion.");
-          return;
-        }
-
-        try {
-          const response = await fetch(`http://localhost:3000/api/content/delete/${id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`, // Add token to Authorization header for delete request
-            },
+      if (!confirmDelete) {
+        return;
+      }
+  
+      const token = localStorage.getItem("token"); // Retrieve token for deletion request
+      if (!token) {
+        alert("Authorization token is missing for deletion.");
+        return;
+      }
+  
+      try {
+        const response = await fetch(`http://localhost:3000/api/content/delete/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Add token to Authorization header for delete request
+          },
+        });
+  
+        if (response.ok) {
+          alert("Content deleted successfully");
+          
+          // Mendapatkan waktu lokal di zona waktu Asia/Jakarta
+          const currentDate = new Date();
+          const formattedDate = currentDate.toLocaleString("en-US", {
+            timeZone: "Asia/Jakarta",
+            hour12: false,
           });
-
-          if (response.ok) {
-            alert("Content deleted successfully");
-            navigate('/');
+  
+          // Format waktu untuk MySQL (YYYY-MM-DD HH:MM:SS)
+          const [date, time] = formattedDate.split(", ");
+          const [month, day, year] = date.split("/");
+          const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+  
+          // Data untuk riwayat dengan action "Deleting"
+          const historyData = {
+            content_id: parseInt(id, 10), // ID konten yang dihapus
+            editor_id: user?.id,         // ID pengguna yang menghapus
+            action: "Deleting",          // Tipe aksi
+            edited_at: formattedMySQLDate, // Waktu dalam format MySQL
+          };
+  
+          // Mengirim data riwayat ke API
+          const historyResponse = await fetch("http://localhost:3000/api/history/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(historyData),
+          });
+  
+          if (!historyResponse.ok) {
+            console.error("Failed to record history for Deleting action");
           } else {
-            alert("Failed to delete content");
+            console.log("History recorded successfully");
           }
-        } catch (err) {
-          alert("An error occurred while deleting the content");
+  
+          // Arahkan kembali ke halaman utama
+          navigate("/");
+        } else {
+          alert("Failed to delete content");
         }
+      } catch (err) {
+        console.error("Error deleting content:", err);
+        alert("An error occurred while deleting the content");
       }
     } else {
       alert("You are not authorized to delete this content.");
     }
   };
+  
 
   // Breadcrumbs component
   const Breadcrumbs = ({ paths }) => {

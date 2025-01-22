@@ -218,6 +218,7 @@ func (s *ContentModel) GetContentsByAuthorId(authorId int64) ([]entities.Content
 	return contents, nil
 }
 
+
 func (m *ContentModel) UpdateStatus(contentID int, status string) error {
 	query := "UPDATE content SET status = ? WHERE id = ?"
 	_, err := m.conn.Exec(query, status, contentID)
