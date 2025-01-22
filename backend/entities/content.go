@@ -16,4 +16,5 @@ type Content struct {
 	Tag         string         `json:"tag"`
 	Author_name string         `json:"author_name"`
 	Status      string         `json:"status"`
+	Deleted_at  sql.NullTime   `json:"deleted_at"`
 }

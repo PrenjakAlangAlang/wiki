@@ -5,6 +5,7 @@ import (
 	"backend/entities"
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 type ContentModel struct {
@@ -22,23 +23,23 @@ func NewContentModel() *ContentModel {
 }
 
 func (p *ContentModel) FindAll() ([]entities.Content, error) {
-	query := "SELECT id, title FROM content WHERE status = 'approved'"
-	rows, err := p.conn.Query(query)
-	if err != nil {
-		return []entities.Content{}, err
-	}
-	defer rows.Close()
+    query := "SELECT id, title FROM content WHERE status = 'approved' AND deleted_at IS NULL"
+    rows, err := p.conn.Query(query)
+    if err != nil {
+        return []entities.Content{}, err
+    }
+    defer rows.Close()
 
-	var dataContent []entities.Content
-	for rows.Next() {
-		var content entities.Content
-		err := rows.Scan(&content.Id, &content.Title)
-		if err != nil {
-			return []entities.Content{}, err
-		}
-		dataContent = append(dataContent, content)
-	}
-	return dataContent, nil
+    var dataContent []entities.Content
+    for rows.Next() {
+        var content entities.Content
+        err := rows.Scan(&content.Id, &content.Title)
+        if err != nil {
+            return []entities.Content{}, err
+        }
+        dataContent = append(dataContent, content)
+    }
+    return dataContent, nil
 }
 
 func (p *ContentModel) FindDrafts() ([]entities.Content, error) {
@@ -126,13 +127,12 @@ func (p *ContentModel) CreateContent(content entities.Content) (int64, error) {
 }
 
 func (p *ContentModel) DeleteByID(contentID int64) error {
-	query := "DELETE FROM content WHERE id = ?"
-	fmt.Println("Executing query:", query, " with ID:", contentID)
-	_, err := p.conn.Exec(query, contentID)
-	if err != nil {
-		return fmt.Errorf("error deleting content: %v", err)
-	}
-	return nil
+    query := "UPDATE content SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL"
+    _, err := p.conn.Exec(query, time.Now(), contentID)
+    if err != nil {
+        return fmt.Errorf("error soft deleting content: %v", err)
+    }
+    return nil
 }
 
 func (p *ContentModel) FindByIDWithAuthorName(id int64) (*entities.Content, string, error) {

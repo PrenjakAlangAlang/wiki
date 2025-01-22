@@ -86,7 +86,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
 
         try {
           const response = await fetch(`http://localhost:3000/api/content/delete/${id}`, {
-            method: 'DELETE',
+            method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`, // Add token to Authorization header for delete request

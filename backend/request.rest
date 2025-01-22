@@ -158,7 +158,7 @@ Content-Type: application/json
 ### Delete content by ID
 # @name DeleteContent
 PUT http://localhost:3001/api/content/delete/65
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY3MDEwNTcsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.npTfzNFvSQ0plNMmWF3Nezv-KkK92ymzt_r7igtY9mU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mzc1MTc1NTIsImlkIjo3LCJpbnN0YW5jZV9pZCI6MTksInJvbGUiOjF9.JoG81Jbfl75JazPNGV8dRyf9uWCXH52CRaY1irklRyM
 Accept: application/json
 
 ###

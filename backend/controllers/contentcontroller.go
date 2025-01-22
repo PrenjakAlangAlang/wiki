@@ -246,26 +246,30 @@ func CreateContent(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(response)
 }
 
-func DeleteContent(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    contentIDStr := vars["id"]
-    contentID, err := strconv.ParseInt(contentIDStr, 10, 64)
+func DeleteContent(response http.ResponseWriter, request *http.Request) {
+    response.Header().Set("Content-Type", "application/json")
+
+    vars := mux.Vars(request)
+    idStr := vars["id"]
+
+    id, err := strconv.ParseInt(idStr, 10, 64)
     if err != nil {
-        http.Error(w, fmt.Sprintf("Invalid content ID: %v", err), http.StatusBadRequest)
+        http.Error(response, "Invalid content ID", http.StatusBadRequest)
         return
     }
 
-    fmt.Println("Received DELETE request for content ID:", contentID)
-
-    err = contentModel.DeleteByID(contentID)
+    err = contentModel.DeleteByID(id)
     if err != nil {
-        http.Error(w, fmt.Sprintf("Failed to delete content: %v", err), http.StatusInternalServerError)
+        http.Error(response, fmt.Sprintf("Failed to delete content: %v", err), http.StatusInternalServerError)
         return
     }
 
-    w.WriteHeader(http.StatusOK)
-    w.Write([]byte("Content deleted successfully"))
+    response.WriteHeader(http.StatusOK)
+    json.NewEncoder(response).Encode(map[string]string{
+        "message": "Content soft deleted successfully",
+    })
 }
+
 
 func GetUserContents(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
