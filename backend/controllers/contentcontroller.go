@@ -34,7 +34,7 @@ func GetIdTitleAllContents(response http.ResponseWriter, request *http.Request) 
 func GetIdTitleAllContentsNotDeleted(response http.ResponseWriter, request *http.Request) {
     response.Header().Set("Content-Type", "application/json")
 
-    contents, err := contentModel.FindAll()
+    contents, err := contentModel.FindNotDelete()
     if err != nil {
         http.Error(response, err.Error(), http.StatusInternalServerError)
         return
@@ -303,6 +303,9 @@ func GetUserContents(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Log the authorId for debugging purposes
+    log.Printf("Fetching contents for authorId: %d", id)
+
     // Fetch contents for the given userId
     contents, err := contentModel.GetContentsByAuthorId(id)
     if err != nil {
@@ -311,9 +314,19 @@ func GetUserContents(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // If no contents are found, return a 404
+    if len(contents) == 0 {
+        http.Error(w, "No contents found for the user", http.StatusNotFound)
+        return
+    }
+
+    // Set the response content type to JSON
+    w.Header().Set("Content-Type", "application/json")
+
     // Return the fetched contents as JSON
     json.NewEncoder(w).Encode(contents)
 }
+
 
 func ApproveContent(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
