@@ -84,6 +84,7 @@ function Login() {
     return (
         <div className="login-page">
             <div className="login-left">
+                
                 {/* Menambahkan logo di sini */}
                 <img src={logo} alt="Logo Pemda DIY" className="logo" />
                 <h2>Login Account</h2>
@@ -125,6 +126,10 @@ function Login() {
                             Cancel
                         </button>
                     </div>
+                    <div className="help-links">
+                    <a href="https://api.whatsapp.com/send/?phone=6282133576291&text=Hello&type=phone_number&app_absent=0">FAQ</a>
+                    <a href="https://api.whatsapp.com/send/?phone=6282133576291&text=Hello&type=phone_number&app_absent=0">Helpdesk</a>
+                </div>
                 </form>
             </div>
             <div className="login-right">

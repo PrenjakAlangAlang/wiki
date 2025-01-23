@@ -11,6 +11,7 @@ body {
     scroll-behavior: smooth;
     scroll-padding-top: 100px;
     line-height: 1.5;
+    
 }
 
 .preserve-format {
@@ -349,6 +350,8 @@ ul.numbered {
     padding-top: 20px;
     height: auto;
     margin-top: 5%;
+    margin-left: 300px;
+    margin-right: 300px;
     animation: fade-in 0.5s ease-in-out; 
 }
 
@@ -356,6 +359,8 @@ ul.numbered {
 @media (max-width: 1024px) {
     .profile-container-wrapper {
         margin-top: 8%; /* Menambah margin top untuk layar sedang */
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 
@@ -363,6 +368,8 @@ ul.numbered {
 @media (max-width: 768px) {
     .profile-container-wrapper {
         margin-top: 10%; /* Menambah margin top lebih lanjut untuk layar kecil */
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 
@@ -370,6 +377,8 @@ ul.numbered {
 @media (max-width: 480px) {
     .profile-container-wrapper {
         margin-top: 12%; /* Menambah margin top lebih lanjut untuk layar sangat kecil */
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 .container form .form-row {
@@ -702,14 +711,7 @@ select:focus {
     text-align: left;
 }
 
-.login-container {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    background-color: #fff;
-    border-radius: 8px;
-    margin-top: 50px;
-}
+
 
 
 .search-content-page {
@@ -942,6 +944,44 @@ select:focus {
     margin-bottom: 10px;
     text-align: center;
 }
+
+.login-right h2 {
+    margin-top: 0;
+    font-size: 48px; /* Ganti ukuran sesuai keinginan */
+    font-weight: bold; /* Pastikan teksnya tebal */
+    color: white; 
+    animation: fade-in 0.5s ease-in-out;
+}
+
+.login-right p {
+    margin-bottom: 15px;
+    animation: fade-in 0.5s ease-in-out;
+    text-align: left; /* Penyesuaian jika diperlukan */
+}
+
+.login-right ul {
+    list-style: disc;
+    animation: fade-in 0.5s ease-in-out;
+    margin-left: 20px;
+}
+
+.help-links {
+    display: flex;               /* Menggunakan flexbox */
+    justify-content: center;     /* Center the links horizontally */
+    margin-top: 25px;
+    
+}
+
+.help-links a {
+    color: white;
+    text-decoration: underline;
+    margin-right: 20px;         /* Memberikan ruang di antara link */
+}
+
+/* Jika Anda juga ingin menghilangkan margin pada link terakhir */
+.help-links a:last-child {
+    margin-right: 0;
+}
 @media (max-width: 768px) {
     .login-right {
         display: none;
@@ -952,6 +992,22 @@ select:focus {
         padding: 20px;
         
     }
+    .help-links {
+        justify-content: center; /* Tetap meratakan link secara horizontal */
+        margin-top: 20px; /* Spasi atas untuk lebih baik */
+    }
+    
+    .help-links a {
+        color: rgb(0, 0, 0);
+        text-decoration: underline;
+        margin-right: 10px; /* Mengurangi ruang di antara link */
+    }
+  
+    /* Menghilangkan margin pada link terakhir */
+    .help-links a:last-child {
+        margin-right: 0; /* Menghilangkan margin di link terakhir */
+    }
+    
 }
 
 .form-row {
@@ -1009,43 +1065,6 @@ input {
     background-color: #bbb;
 }
 
-.login-right h2 {
-    margin-top: 0;
-    font-size: 48px; /* Ganti ukuran sesuai keinginan */
-    font-weight: bold; /* Pastikan teksnya tebal */
-    color: white; 
-    animation: fade-in 0.5s ease-in-out;
-}
-
-.login-right p {
-    margin-bottom: 15px;
-    animation: fade-in 0.5s ease-in-out;
-    text-align: left; /* Penyesuaian jika diperlukan */
-}
-
-.login-right ul {
-    list-style: disc;
-    animation: fade-in 0.5s ease-in-out;
-    margin-left: 20px;
-}
-
-.help-links {
-    display: flex;               /* Menggunakan flexbox */
-    justify-content: center;     /* Center the links horizontally */
-    margin-top: 25px;
-    
-}
-
-.help-links a {
-    color: white;
-    text-decoration: underline;
-    margin-right: 20px;         /* Memberikan ruang di antara link */
-}
-
-/* Jika Anda juga ingin menghilangkan margin pada link terakhir */
-.help-links a:last-child {
-    margin-right: 0;
-}
 .logo {
     width: 100px; /* Atur sesuai ukuran yang diinginkan */
     margin-bottom: 20px; /* Memberi ruang di bawah logo */

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaInfoCircle, FaCheck, FaTimes } from 'react-icons/fa';
+import ApprovalCard from '../component/ApprovalCard'; // Import ApprovalCard
 
 const ManageContent = () => {
   const [contents, setContents] = useState([]);
@@ -14,6 +15,10 @@ const ManageContent = () => {
       return null;
     }
   });
+
+  const [isApprovalOpen, setIsApprovalOpen] = useState(false);
+  const [approvalMessage, setApprovalMessage] = useState("");
+  const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
     if (!user || (user.role_id !== 1 && user.role_id !== 2 && user.role_id !== 5)) {
@@ -32,7 +37,9 @@ const ManageContent = () => {
           },
         });
         const data = await response.json();
-        setContents(data);
+        // Sort contents by ID in descending order
+        const sortedData = data.sort((a, b) => b.id - a.id);
+        setContents(sortedData);
       } catch (error) {
         console.error("Error fetching contents:", error);
       }
@@ -42,6 +49,18 @@ const ManageContent = () => {
   }, [user, navigate]);
 
   const handleApprove = async (id) => {
+    setApprovalMessage("Apakah Anda yakin ingin menyetujui konten ini?");
+    setPendingAction(() => () => approveContent(id));
+    setIsApprovalOpen(true);
+  };
+
+  const handleReject = async (id) => {
+    setApprovalMessage("Apakah Anda yakin ingin menolak konten ini?");
+    setPendingAction(() => () => rejectContent(id));
+    setIsApprovalOpen(true);
+  };
+
+  const approveContent = async (id) => {
     const token = localStorage.getItem("token");
     try {
         const response = await fetch(`http://localhost:3000/api/content/approve/${id}`, {
@@ -89,7 +108,7 @@ const ManageContent = () => {
                 return; // Prevent further actions if history is not recorded
             }
 
-            alert("Content approved successfully");
+            //alert("Content approved successfully");//
             setContents((prevContents) => prevContents.filter((content) => content.id !== id)); // Remove the content from the list
             setCurrentPage(1); // Reset to the first page
         } else {
@@ -102,10 +121,10 @@ const ManageContent = () => {
     }
   };
 
-  const handleReject = async (id) => {
+  const rejectContent = async (id) => {
     const token = localStorage.getItem("token");
     try {
-        const response = await fetch(`http://localhost:3000/api/content/approve/${id}`, {
+        const response = await fetch(`http://localhost:3000/api/content/reject/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -150,7 +169,7 @@ const ManageContent = () => {
                 return; // Prevent further actions if history is not recorded
             }
 
-            alert("Content rejected successfully");
+            //alert("Content rejected successfully");//
             setContents((prevContents) => prevContents.filter((content) => content.id !== id)); // Remove the content from the list
             setCurrentPage(1); // Reset to the first page
         } else {
@@ -217,9 +236,7 @@ const ManageContent = () => {
             </tr>
           </thead>
           <tbody>
-            {currentContents
-              .sort((a, b) => b.id - a.id) // Mengurutkan berdasarkan id terbesar ke terkecil
-              .map((content) => (
+            {currentContents.map((content) => (
                 <tr key={content.id}>
                   <td>{content.title}</td>
                   <td>{content.author_name}</td>
@@ -268,6 +285,15 @@ const ManageContent = () => {
           </button>
         </div>
       </div>
+      <ApprovalCard
+        isOpen={isApprovalOpen}
+        message={approvalMessage}
+        onConfirm={() => {
+          if (pendingAction) pendingAction();
+          setIsApprovalOpen(false);
+        }}
+        onCancel={() => setIsApprovalOpen(false)}
+      />
     </div>
   );
 };

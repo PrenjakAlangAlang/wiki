@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import ReactQuill from "react-quill"; // Import ReactQuill
 import "react-quill/dist/quill.snow.css"; // Import stylesheet
+import ConfirmationCard from "../component/ConfirmationCard"; // Import ConfirmationCard
 
 const AddContent = () => {
     const [title, setTitle] = useState("");
@@ -10,6 +11,8 @@ const AddContent = () => {
     const [instanceId, setInstanceId] = useState("");
     const [instances, setInstances] = useState([]);
     const [user, setUser] = useState(null);
+    const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+    const [pendingSubmit, setPendingSubmit] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -75,12 +78,15 @@ const AddContent = () => {
     
         // Jika user role 3, tampilkan konfirmasi
         if (user.role_id === 3) {
-            const isConfirmed = window.confirm("Konten Anda akan dikirim untuk ditinjau. Apakah Anda yakin ingin melanjutkan?");
-            if (!isConfirmed) {
-                return;
-            }
+            setPendingSubmit(() => () => submitContent());
+            setIsConfirmationOpen(true);
+            return;
         }
     
+        submitContent();
+    };
+
+    const submitContent = async () => {
         const contentData = {
             title,
             description: {
@@ -135,7 +141,7 @@ const AddContent = () => {
                 const historyData = {
                     content_id: contentId,
                     editor_id: user.id,
-                    action: "Createing",
+                    action: "Creating",
                     edited_at: formattedMySQLDate,
                 };
     
@@ -155,8 +161,13 @@ const AddContent = () => {
                     console.error("History error response:", errorMessage);
                 }
     
-                // Arahkan pengguna ke halaman detail konten
-                navigate(`/informasi/${contentId}`);
+                // Jika user role 3, arahkan ke halaman home
+                if (user.role_id === 3) {
+                    navigate("/");
+                } else {
+                    // Arahkan pengguna ke halaman detail konten
+                    navigate(`/informasi/${contentId}`);
+                }
             } else {
                 const errorText = await response.text();
                 alert("Can't access the backend: " + errorText);
@@ -167,7 +178,18 @@ const AddContent = () => {
             alert("There was an error creating the content.");
         }
     };
-    
+
+    const handleConfirm = () => {
+        setIsConfirmationOpen(false);
+        if (pendingSubmit) {
+            pendingSubmit();
+        }
+    };
+
+    const handleCancel = () => {
+        setIsConfirmationOpen(false);
+        setPendingSubmit(null);
+    };
 
     const Breadcrumbs = ({ paths }) => {
         return (
@@ -265,6 +287,11 @@ const AddContent = () => {
                         </div>
                     </div>
                 </form>
+                <ConfirmationCard
+                    isOpen={isConfirmationOpen}
+                    onConfirm={handleConfirm}
+                    onCancel={handleCancel}
+                />
             </div>
         </div>
     );
