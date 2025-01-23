@@ -1387,6 +1387,8 @@ input {
     border: 1px solid #ddd; /* Border untuk tabel secara keseluruhan */
     border-radius: 15px; /* Membuat sudut tabel melengkung */
     overflow: hidden; /* Memastikan konten tidak keluar dari border melengkung */
+    animation: fade-in 0.5s ease-out; 
+    
 }
 
 .theaduser {
@@ -1607,3 +1609,98 @@ input {
 .logo-text{
     margin-bottom: 10px;
 }
+
+.text-gradient {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+  }
+  
+  /* Gaya Tabel */
+  .managerole {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    animation: fade-in 0.5s ease-out; 
+    color: #333;
+  }
+  
+  .managerole th, .managerole td {
+    border-bottom: 1px solid #ddd; /* Garis batas */
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .managerole th {
+    background-color: #f2f2f2; /* Warna latar belakang header */
+    font-weight: bold;
+  }
+  
+  /* Gaya untuk Header Role */
+  .role-header {
+    cursor: pointer;
+    color: #333; /* Warna teks */
+    font-size: 16px;
+    animation: fade-in 0.5s ease-in-out; 
+  }
+  
+  /* Gaya untuk Kategori */
+  h4 {
+    margin: 10px 0;
+    
+  }
+  
+  
+  
+  /* Gaya Checkbox */
+  .custom-checkbox {
+    display: inline-block;
+  }
+  
+  .custom-checkbox input[type="checkbox"] {
+    margin-right: 10px;
+  }
+  
+  /* Ikon Dropdown */
+  .fa {
+    color: #555; /* Warna ikon */
+  }
+  .fa:hover {
+    color: #007bff; /* Ganti warna ikon saat hover */
+  }
+
+ 
+.icon-animate {
+  transition: transform 0.3s ease;
+}
+
+.icon-animate.fa-chevron-up {
+  transform: rotate(360deg);
+}
+
+
+.card {
+    background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  
+  padding: 20px;
+  margin: 20px 0;
+}
+.rolem{
+    margin-bottom: 20px;
+    
+}
+.rolem h3{
+    color: #333;
+}
+.rolem span {
+    color: #5a5050; /* Change this to your desired color */
+  }
+  
+  .rolem .hrrole {
+    margin-top: 10px;
+    border: 1px solid #ddd; /* Change this to your desired color */
+  }
+

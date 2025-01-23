@@ -50,7 +50,7 @@ func main() {
 	r.Handle("/api/subheading/add/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("create_subheading", http.HandlerFunc(subheadingcontroller.CreateSubheading)))).Methods("POST")
 	r.Handle("/api/subheading/delete/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("delete_subheading", http.HandlerFunc(contentcontroller.DeleteSubheadingByID)))).Methods("DELETE")
 	r.Handle("/api/content/delete/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("delete_content", http.HandlerFunc(contentcontroller.DeleteContent)))).Methods("PUT")
-	r.Handle("/api/contents/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_user_contents", http.HandlerFunc(contentcontroller.GetUserContents)))).Methods("PUT")
+	r.Handle("/api/contents/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_user_contents", http.HandlerFunc(contentcontroller.GetUserContents)))).Methods("GET")
 	r.Handle("/api/instances", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_instances", http.HandlerFunc(instancecontroller.GetInstances)))).Methods("GET")
 	r.Handle("/api/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_user", http.HandlerFunc(usercontroller.GetUserByID)))).Methods("GET")
 	r.Handle("/api/users", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_all_users", http.HandlerFunc(usercontroller.GetAllUsers)))).Methods("GET")

@@ -16,7 +16,7 @@ const ManageContent = () => {
   });
 
   useEffect(() => {
-    if (!user || (user.role_id !== 1 && user.role_id !== 2)) {
+    if (!user || (user.role_id !== 1 && user.role_id !== 2 && user.role_id !== 5)) {
       navigate("/"); // Redirect jika bukan user dengan role 1 atau 2
       return;
     }

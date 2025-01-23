@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-// import { FaInfoCircle, FaTrash } from "react-icons/fa";
+import 'font-awesome/css/font-awesome.min.css'; // Pastikan Font Awesome diimpor
+
 const ManageRole = () => {
   const [permission, setPermission] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [openedRoleId, setOpenedRoleId] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState({});
 
   const fetchToken = () => {
-    // Dapatkan token dari localStorage atau dari state aplikasi Anda
-    return localStorage.getItem("token"); // Sesuaikan sesuai kebutuhan
+    return localStorage.getItem("token");
   };
 
   const fetchPermissions = useCallback(() => {
@@ -50,7 +51,7 @@ const ManageRole = () => {
     const method = checked ? "POST" : "DELETE";
 
     fetch(url, {
-      method: method,
+      method,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -59,9 +60,20 @@ const ManageRole = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("Permission updated:", data);
-        fetchPermissions(); // Refresh permissions
+        fetchPermissions();
       })
       .catch((err) => console.error("Failed to update permission:", err));
+  };
+
+  const toggleDropdown = (roleId) => {
+    setOpenedRoleId((prev) => (prev === roleId ? null : roleId));
+  };
+
+  const toggleCategoryDropdown = (category) => {
+    setDropdownOpen((prev) => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
   };
 
   const Breadcrumbs = ({ paths }) => {
@@ -75,7 +87,7 @@ const ManageRole = () => {
               ) : (
                 <span>{path.label}</span>
               )}
-              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+              {index < paths.length - 1 && " / "}
             </li>
           ))}
         </ul>
@@ -83,13 +95,36 @@ const ManageRole = () => {
     );
   };
 
-  // Handle page change
-  //   const handlePageChange = (pageNumber) => {
-  //     setCurrentPage(pageNumber);
-  //   };
+  const categorizePermissions = (permissions) => {
+    const categories = {
+      'View Management': [],
+      'Content Management': [],
+      'Search Management': [],
+      'Role Management': [],
+      'History Management': [],
+      'Approval Management': [],
+    };
 
-  // Calculate total pages
-  //   const totalPages = Math.ceil(users.length / itemsPerPage);
+    permissions.forEach((perm) => {
+      if (perm.name.startsWith("view_")) {
+        categories['View Management'].push(perm);
+      } else if (perm.name.startsWith("create_") || perm.name.startsWith("edit_") || perm.name.startsWith("delete_")) {
+        categories['Content Management'].push(perm);
+      } else if (perm.name.startsWith("search_") || perm.name.startsWith("view_user_contents")) {
+        categories['Search Management'].push(perm);
+      } else if (perm.name.startsWith("view_roles") || perm.name.startsWith("manage_role")) {
+        categories['Role Management'].push(perm);
+      } else if (perm.name.startsWith("add_history") || perm.name.startsWith("view_history_user") || perm.name.startsWith("view_latest_editor")) {
+        categories['History Management'].push(perm);
+      } else if (perm.name.startsWith("approve_") || perm.name.startsWith("reject_")) {
+        categories['Approval Management'].push(perm);
+      }
+    });
+
+    return categories;
+  };
+
+  const categorizedPermissions = categorizePermissions(permission);
 
   return (
     <div className="main-container">
@@ -97,83 +132,105 @@ const ManageRole = () => {
         <Breadcrumbs
           paths={[
             { label: "Home", link: "/" },
-            { label: "Manage Role" }, // Halaman saat ini tidak memiliki link
+            { label: "Manage Role" },
           ]}
         />
-        <div className="text text-gradient">Manage Role</div>
-        <table className="manageuser">
-          <thead className="theaduser">
-            <th>Permissions</th>
-            {Array.isArray(roles) &&
-              roles.map((role) => <th key={role.id}>{role.name}</th>)}
-          </thead>
-          <tbody>
-            {Array.isArray(permission) &&
-              permission.map((permission) => (
-                <tr key={permission.id}>
-                  <td>{permission.name}</td>
-                  {roles.map((role) => (
-                    <td key={role.id}>
-                      <label className="custom-checkbox">
-                        <input
-                          type="checkbox"
-                          disabled={role.id === 5}
-                          checked={role.id === 5 ? true : Math.random() < 0.5}
-
-                          onChange={(e) =>
-                            handleCheckboxChange(
-                              role.id,
-                              permission.id,
-                              e.target.checked
-                            )
-                          }
-                        />
-                        <span className="checkmark"></span>
-                      </label>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-          </tbody>
-        </table>
-        {/* <div className="pagination"> */}
-        {/*   <button
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-          >
-            &lt;&lt;
-          </button>
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            &lt;
-          </button> */}
-        {/*  {Array.from({ length: totalPages }, (_, index) => (
-            <button
-              key={index + 1}
-              onClick={() => handlePageChange(index + 1)}
-              className={currentPage === index + 1 ? "active" : ""}
-            >
-              {index + 1}
-            </button>
-          ))}
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            &gt;
-          </button>zx
-          <button
-            onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages}
-          >
-            &gt;&gt;
-          </button> */}
-        {/* </div> */}
+        <div className="manage-content">
+          <h1 className="manage-content-h1">Manage Role</h1>
+          <p className='manage-content-p'>Manage, optimize, and distribute your content easily to achieve maximum results.</p>
+        </div>
+        {Array.isArray(roles) && (
+          <div className="card">
+            <div className="rolem">
+            <h3>Select role</h3>
+            <span>Please select a role:</span>
+           
+            <hr className="hrrole"></hr>
+            </div>
+            <table className="managerole">
+              <tbody>
+                {roles.map((role) => (
+                  <React.Fragment key={role.id}>
+                    <tr>
+                      <td>
+                        <div
+                          className="role-header"
+                          onClick={() => toggleDropdown(role.id)}
+                          style={{ cursor: 'pointer', fontWeight:'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                        >
+                          <span>{role.name}</span>
+                          <span style={{ display: 'flex', alignItems: 'center' }}>
+                            <span style={{ marginRight: '10px' }}></span>
+                            <i className={`fa ${openedRoleId === role.id ? 'fa-chevron-up' : 'fa-chevron-down'} icon-animate`} style={{ marginLeft: '10px' }}></i>
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                    {openedRoleId === role.id && (
+                      <tr>
+                        <td>
+                          <table className="managerole" style={{ width: '100%', marginTop: '10px' }}>
+                            <tbody>
+                              {Object.keys(categorizedPermissions).map((category) => (
+                                <React.Fragment key={category}>
+                                  <tr>
+                                    <td>
+                                      <span onClick={() => toggleCategoryDropdown(category)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span>{category}</span>
+                                        <i className={`fa ${dropdownOpen[category] ? 'fa-chevron-up' : 'fa-chevron-down'} icon-animate`} style={{ marginLeft: '10px' }}></i>
+                                      </span>
+                                    </td>
+                                  </tr>
+                                  {dropdownOpen[category] && (
+                                    <tr>
+                                      <td>
+                                        <table className="manageuser" style={{ width: '100%', marginTop: '5px' }}>
+                                          <thead>
+                                            <tr>
+                                              <th>Permission Name</th>
+                                              <th>Action</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {categorizedPermissions[category].map((perm) => (
+                                              <tr key={perm.id}>
+                                                <td>{perm.name}</td>
+                                                <td>
+                                                  <label className="custom-checkbox">
+                                                    <input
+                                                      type="checkbox"
+                                                      disabled={role.id === 5}
+                                                      checked={role.id === 5 ? true : Math.random() < 0.5} // Ganti logika bila diperlukan
+                                                      onChange={(e) =>
+                                                        handleCheckboxChange(role.id, perm.id, e.target.checked)
+                                                      }
+                                                    />
+                                                  </label>
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default ManageRole;
+
