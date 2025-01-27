@@ -16,100 +16,118 @@ import (
 var userModel = models.NewUserModel()
 var jwtKey = []byte("wiki") 
 
-// Login adalah fungsi handler untuk login dan menghasilkan token JWT
 func Login(response http.ResponseWriter, request *http.Request) {
-	var user entities.User
+    var user entities.User
 
-	// Decode request body untuk mendapatkan data user
-	err := json.NewDecoder(request.Body).Decode(&user)
-	if err != nil {
-		response.WriteHeader(http.StatusBadRequest)
-		response.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(response).Encode(map[string]string{
-			"error": "Invalid request format",
-		})
-		return
-	}
+    // Decode request body untuk mendapatkan data user
+    err := json.NewDecoder(request.Body).Decode(&user)
+    if err != nil || user.Email == "" || user.Password == "" {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusBadRequest)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Invalid request format or missing fields",
+        })
+        return
+    }
 
-	// Verifikasi kredensial pengguna
-	userModel := models.NewUserModel()
-	authenticatedUser, err := userModel.Authenticate(user.Email, user.Password)
-	if err != nil {
-		response.WriteHeader(http.StatusUnauthorized)
-		response.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(response).Encode(map[string]string{
-			"error": "Invalid email or password",
-		})
-		return
-	}
+    // Verifikasi kredensial pengguna
+    userModel := models.NewUserModel()
+    authenticatedUser, err := userModel.Authenticate(user.Email, user.Password)
+    if err != nil {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusUnauthorized)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Invalid email or password",
+        })
+        return
+    }
 
-	// Ambil data role dan instance berdasarkan user
-	roleModel := models.NewRoleModel()
-	role, err := roleModel.FindRoleById(authenticatedUser.Role_Id)
-	if err != nil {
-		response.WriteHeader(http.StatusNotFound)
-		response.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(response).Encode(map[string]string{
-			"error": "Role not found",
-		})
-		return
-	}
+    // Ambil data role berdasarkan user
+    roleModel := models.NewRoleModel()
+    role, err := roleModel.FindRoleById(authenticatedUser.Role_Id)
+    if err != nil {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusNotFound)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Role not found",
+        })
+        return
+    }
 
-	instanceModel := models.NewInstanceModel()
-	instance, err := instanceModel.FindInstanceById(authenticatedUser.Instance_Id)
-	if err != nil {
-		response.WriteHeader(http.StatusNotFound)
-		response.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(response).Encode(map[string]string{
-			"error": "Instance not found",
-		})
-		return
-	}
+    // Ambil permissions terkait role melalui tabel role_permission
+    permissionModel := models.NewPermissionModel()
+    permissions, err := permissionModel.GetPermissionsByRole(role.Id)
+    if err != nil {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusNotFound)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Permissions not found for this role",
+        })
+        return
+    }
 
-	// Membuat JWT token
-	expirationTime := time.Now().Add(1 * time.Hour) // Token berakhir dalam 1 jam
-	claims := jwt.MapClaims{
-		"id":          authenticatedUser.Id,
-		"role":        authenticatedUser.Role_Id,  // Role pengguna
-		"instance_id": authenticatedUser.Instance_Id,
-		"exp":         expirationTime.Unix(),
-	}
+    // Membuat JWT token dengan permission terkait role
+    expirationTime := time.Now().Add(1 * time.Hour) // Token berakhir dalam 1 jam
+    permissionsList := []string{}
+    for _, permission := range permissions {
+        permissionsList = append(permissionsList, permission.Name)
+    }
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
-	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		response.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(response).Encode(map[string]string{
-			"error": "Could not generate token: " + err.Error(),
-		})
-		return
-	}
+    claims := jwt.MapClaims{
+        "id":           authenticatedUser.Id,
+        "role":         role.Name,
+        "role_id":      authenticatedUser.Role_Id,
+        "permissions":  permissionsList,
+        "instance_id":  authenticatedUser.Instance_Id,
+        "exp":          expirationTime.Unix(),
+    }
 
-	// Return token as response (you can return it in headers or body)
-	// response.Header().Set("Authorization", "Bearer "+tokenString)
-	// response.WriteHeader(http.StatusOK)
-	// json.NewEncoder(response).Encode(map[string]string{
-	// 	"token": tokenString,
-	// })
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    tokenString, err := token.SignedString(jwtKey)
+    if err != nil {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusInternalServerError)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Could not generate token",
+        })
+        return
+    }
 
-	// Membuat response JSON dengan token dan data pengguna
-	jsonResponse := map[string]interface{}{
-		"id":          authenticatedUser.Id,
-		"name":        authenticatedUser.Name,
-		"email":       authenticatedUser.Email,
-		"instance":    instance.Name,
-		"instance_id": authenticatedUser.Instance_Id,
-		"role":        role.Name,
-		"role_id":     authenticatedUser.Role_Id,
-		"nip":         authenticatedUser.NIP,
-		"token":       tokenString,  // Menambahkan token ke response
-	}
+    // Kirimkan token dan data pengguna dalam response
+    instanceModel := models.NewInstanceModel()
+    instance, err := instanceModel.FindInstanceById(authenticatedUser.Instance_Id)
+    if err != nil {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusNotFound)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Instance not found",
+        })
+        return
+    }
 
-	// Kirim response dengan data pengguna dan token
-	response.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(response).Encode(jsonResponse)
+    // Menyusun response JSON dengan token, role, permissions, dan data pengguna
+    jsonResponse := map[string]interface{}{
+        "id":          authenticatedUser.Id,
+        "name":        authenticatedUser.Name,
+        "email":       authenticatedUser.Email,
+        "instance":    instance.Name,
+        "instance_id": authenticatedUser.Instance_Id,
+        "role":        role.Name,
+        "role_id":     authenticatedUser.Role_Id,
+        "nip":         authenticatedUser.NIP,
+        "permissions": permissionsList,
+        "token":       tokenString,
+    }
+
+    // Kirim response dengan data pengguna dan token
+    response.Header().Set("Content-Type", "application/json")
+    response.WriteHeader(http.StatusOK)
+    json.NewEncoder(response).Encode(jsonResponse)
 }
+
+
+
+
 
 func GetUserByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

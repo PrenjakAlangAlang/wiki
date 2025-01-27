@@ -10,27 +10,27 @@ import (
 // DB adalah objek koneksi ke database
 var DB *sql.DB
 
+// RoleAuthMiddleware adalah middleware untuk memeriksa apakah user memiliki permission yang diperlukan
 func RoleAuthMiddleware(requiredPermission string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Ambil klaim pengguna dari context
 		userClaims, ok := r.Context().Value(UserContextKey).(*Claims)
 		if !ok {
 			http.Error(w, "User claims not found", http.StatusUnauthorized)
 			return
 		}
 
-		// Log the role to ensure correct role is being used
-		log.Printf("Fetching permissions for role: %v", userClaims.Role)
+		// Log untuk memeriksa role_id
+		log.Printf("Fetching permissions for role_id: %d", userClaims.RoleID)
 
-		// Ambil permissions untuk role yang sesuai dari database
-		permissions, err := getPermissionsForRole(userClaims.Role)
+		// Ambil permissions berdasarkan role_id dari database
+		// Konversikan RoleID dari int64 ke int
+		permissions, err := getPermissionsForRole(int(userClaims.RoleID)) // konversi ke int
 		if err != nil {
-			log.Printf("Failed to get permissions: %v", err) // Log error lebih detail
+			log.Printf("Failed to get permissions: %v", err)
 			http.Error(w, "Failed to get permissions", http.StatusInternalServerError)
 			return
 		}
-
-		// Log permissions untuk memastikan kita mendapatkannya dengan benar
-		log.Printf("Permissions for role %v: %v", userClaims.Role, permissions)
 
 		// Periksa apakah user memiliki permission yang dibutuhkan
 		hasPermission := false
@@ -46,16 +46,18 @@ func RoleAuthMiddleware(requiredPermission string, next http.Handler) http.Handl
 			return
 		}
 
+		// Jika user memiliki permission yang diperlukan, lanjutkan ke handler berikutnya
 		next.ServeHTTP(w, r)
 	})
 }
 
+// getPermissionsForRole mengambil permissions berdasarkan role_id dari database
 func getPermissionsForRole(roleID int) ([]string, error) {
 	if DB == nil {
 		return nil, fmt.Errorf("database connection is not initialized")
 	}
 
-	log.Printf("Executing query for role ID %d", roleID) // Log query execution
+	log.Printf("Executing query for role ID %d", roleID)
 
 	// Query untuk mengambil permissions berdasarkan role_id
 	query := `

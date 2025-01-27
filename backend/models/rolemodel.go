@@ -5,6 +5,7 @@ import (
 	"backend/entities"
 	"database/sql"
 	"fmt"
+	"log"
 )
 
 type RoleModel struct {
@@ -41,8 +42,19 @@ func (p *RoleModel) GetAllRoles() ([]entities.Role, error) {
 func (r *RoleModel) FindRoleById(id int64) (entities.Role, error) {
     var role entities.Role
     query := "SELECT id, name FROM role WHERE id = ?"
-    err := r.conn.QueryRow(query, id).Scan(
-        &role.Id, 
-        &role.Name)
-    return role, err
+    err := r.conn.QueryRow(query, id).Scan(&role.Id, &role.Name)
+
+    if err == sql.ErrNoRows {
+        // Jika tidak ada data yang ditemukan
+        log.Printf("Role with ID %d not found", id)
+        return role, fmt.Errorf("role with ID %d not found", id)
+    } else if err != nil {
+        // Jika ada error lain
+        log.Printf("Error querying role with ID %d: %v", id, err)
+        return role, err
+    }
+
+    // Jika role ditemukan
+    return role, nil
 }
+

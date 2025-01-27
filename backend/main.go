@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/config"
+	
 	contentcontroller "backend/controllers"
 	historycontroller "backend/controllers"
 	instancecontroller "backend/controllers"
@@ -64,6 +65,7 @@ func main() {
 	r.Handle("/api/content/approve/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("approve_content", http.HandlerFunc(contentcontroller.ApproveContent)))).Methods("PUT")
 	r.Handle("/api/content/reject/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("reject_content", http.HandlerFunc(contentcontroller.RejectContent)))).Methods("PUT")
 	r.Handle("/api/permissions", middleware.JWTAuth(middleware.RoleAuthMiddleware("manage_role", http.HandlerFunc(permissioncontroller.GetPermissionList)))).Methods("GET")
+	r.Handle("/api/role_permissions", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_permission", http.HandlerFunc(permissioncontroller.GetPermissionsByRole)))).Methods("GET")
 
 	// Endpoint tanpa middleware untuk login
 	r.HandleFunc("/api/login", usercontroller.Login).Methods("POST")

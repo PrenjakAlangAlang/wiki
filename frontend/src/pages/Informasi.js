@@ -15,18 +15,39 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
   };
 
   useEffect(() => {
+    // Load both user data and token
     const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (storedUser) setUser(storedUser);
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      try {
+        // Parse the JWT token to get permissions
+        const tokenData = JSON.parse(atob(token.split('.')[1]));
+        // Merge token permissions with stored user data
+        const userWithPermissions = {
+          ...storedUser,
+          permissions: tokenData.permissions || []
+        };
+        setUser(userWithPermissions);
+        console.log("User loaded with permissions:", userWithPermissions);
+      } catch (e) {
+        console.error("Error parsing token:", e);
+        setUser(storedUser);
+      }
+    } else {
+      console.warn("No token found!");
+      setUser(storedUser);
+    }
 
     const fetchData = async () => {
-      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+      const token = localStorage.getItem('token');
 
       try {
         const response = await fetch(`http://localhost:3000/api/content/${id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`, // Properly format the Authorization header
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -36,7 +57,6 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         }
 
         const data = await response.json();
-        console.log("Fetched content data:", data); // Tambahkan log ini untuk debugging
         setContent(data);
         setSubheadings(data?.subheadings || []);
         setTags(data.content.tag ? data.content.tag.split(',') : []);
@@ -53,6 +73,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
 
     if (id) fetchData();
   }, [id, setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName]);
+  
 
   useEffect(() => {
     return () => {
@@ -65,7 +86,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
   const handleEditClick = () => {
     if (!user) {
       alert("Please log in to edit content.");
-    } else if (user.role_id === 1 || user.role_id === 2 || (user.role_id === 3 && user.user_instance_id === content?.content?.instance_id)) {
+    } else if (user.permissions.includes("edit_content")) {
       navigate(`/edit/${id}`);
     } else {
       alert("You are not authorized to edit this content.");
@@ -77,19 +98,19 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
       alert("Please log in to delete content.");
       return;
     }
-  
-    if (user.role_id === 1 || user.role_id === 2 || (user.role_id === 3 && user.user_instance_id === content?.content?.instance_id)) {
+
+    if (user.permissions.includes("delete_content")) {
       const confirmDelete = window.confirm("Are you sure you want to delete this content?");
       if (!confirmDelete) {
         return;
       }
-  
+
       const token = localStorage.getItem("token"); // Retrieve token for deletion request
       if (!token) {
         alert("Authorization token is missing for deletion.");
         return;
       }
-  
+
       try {
         const response = await fetch(`http://localhost:3000/api/content/delete/${id}`, {
           method: "PUT",
@@ -98,22 +119,22 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
             Authorization: `Bearer ${token}`, // Add token to Authorization header for delete request
           },
         });
-  
+
         if (response.ok) {
           alert("Content deleted successfully");
-          
+
           // Mendapatkan waktu lokal di zona waktu Asia/Jakarta
           const currentDate = new Date();
           const formattedDate = currentDate.toLocaleString("en-US", {
             timeZone: "Asia/Jakarta",
             hour12: false,
           });
-  
+
           // Format waktu untuk MySQL (YYYY-MM-DD HH:MM:SS)
           const [date, time] = formattedDate.split(", ");
           const [month, day, year] = date.split("/");
           const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
-  
+
           // Data untuk riwayat dengan action "Deleting"
           const historyData = {
             content_id: parseInt(id, 10), // ID konten yang dihapus
@@ -121,7 +142,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
             action: "Deleting",          // Tipe aksi
             edited_at: formattedMySQLDate, // Waktu dalam format MySQL
           };
-  
+
           // Mengirim data riwayat ke API
           const historyResponse = await fetch("http://localhost:3000/api/history/add", {
             method: "POST",
@@ -131,13 +152,13 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
             },
             body: JSON.stringify(historyData),
           });
-  
+
           if (!historyResponse.ok) {
             console.error("Failed to record history for Deleting action");
           } else {
             console.log("History recorded successfully");
           }
-  
+
           // Arahkan kembali ke halaman utama
           navigate("/");
         } else {
@@ -151,7 +172,6 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
       alert("You are not authorized to delete this content.");
     }
   };
-  
 
   // Breadcrumbs component
   const Breadcrumbs = ({ paths }) => {
@@ -179,27 +199,33 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
   return (
     <div className="main">
       <div className="content">
-        <Breadcrumbs 
+        <Breadcrumbs
           paths={[
             { label: "Home", link: "/" },
             { label: "Informasi" }, // Halaman saat ini tidak memiliki link
-          ]} 
+          ]}
         />
-        
-        <div className='titel'></div>
-        <h1 className="content-title2">{content?.content?.title || "No Title Available"}<hr className="gradient-hr"></hr></h1>
-        
+
+        <div className="titel"></div>
+        <h1 className="content-title2">
+          {content?.content?.title || "No Title Available"}
+          <hr className="gradient-hr"></hr>
+        </h1>
+
         {/* Menampilkan deskripsi sebagai HTML */}
         <div
           dangerouslySetInnerHTML={{ __html: content?.content?.description.String || '' }}
         />
-      
-       <div style={{ marginTop: "2rem" }} className="no-number">
+
+        <div style={{ marginTop: "2rem" }} className="no-number">
           {content?.subheadings?.length > 0 &&
             content.subheadings.map((subheading) => (
               <div key={subheading.id} id={subheading.subheading}>
-                <h2 style={{marginBottom: "1rem"}} id="subheading">{subheading.subheading}<hr className="gradient-hr-sub"></hr></h2>
-                
+                <h2 style={{ marginBottom: "1rem" }} id="subheading">
+                  {subheading.subheading}
+                  <hr className="gradient-hr-sub"></hr>
+                </h2>
+
                 {/* Menampilkan deskripsi subheading sebagai HTML */}
                 <div
                   dangerouslySetInnerHTML={{
@@ -209,18 +235,25 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
               </div>
             ))}
         </div>
-        {user && (user.role_id === 1 || user.role_id === 2 || (user.role_id === 3 && user.id === content?.content?.author_id)) && (
-  <div className="button-submit">
-    <div className="button-combined">
-      <div className="button-left" onClick={handleEditClick}>
-        Edit
-      </div>
-      <div className="button-right" onClick={handleDeleteClick}>
-        Delete
-      </div>
-    </div>
-  </div>
-)}
+
+        {user && user.permissions ? (
+          <div className="button-submit">
+            <div className="button-combined">
+              {user.permissions.includes("edit_content") && (
+                <button className="button-left" onClick={handleEditClick}>
+                  Edit
+                </button>
+              )}
+              {user.permissions.includes("delete_content") && (
+                <button className="button-right" onClick={handleDeleteClick}>
+                  Delete
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div>Loading permissions...</div>
+        )}
       </div>
     </div>
   );
