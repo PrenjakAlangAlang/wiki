@@ -18,15 +18,12 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
   };
 
   useEffect(() => {
-    // Load both user data and token
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
     
     if (token) {
       try {
-        // Parse the JWT token to get permissions
         const tokenData = JSON.parse(atob(token.split('.')[1]));
-        // Merge token permissions with stored user data
         const userWithPermissions = {
           ...storedUser,
           permissions: tokenData.permissions || []
@@ -76,7 +73,6 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
 
     if (id) fetchData();
   }, [id, setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName]);
-  
 
   useEffect(() => {
     return () => {
@@ -96,7 +92,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     }
   };
 
-  const handleDeleteClick = async () => {
+  const handleDeleteClick = () => {
     if (!user) {
       alert("Please log in to delete content.");
       return;
@@ -108,71 +104,71 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         return;
       }
 
-      const token = localStorage.getItem("token"); // Retrieve token for deletion request
-      if (!token) {
-        alert("Authorization token is missing for deletion.");
-        return;
-      }
-
-      try {
-        const response = await fetch(`http://localhost:3000/api/content/delete/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Add token to Authorization header for delete request
-          },
-        });
-
-        if (response.ok) {
-          alert("Content deleted successfully");
-
-          // Mendapatkan waktu lokal di zona waktu Asia/Jakarta
-          const currentDate = new Date();
-          const formattedDate = currentDate.toLocaleString("en-US", {
-            timeZone: "Asia/Jakarta",
-            hour12: false,
-          });
-
-          // Format waktu untuk MySQL (YYYY-MM-DD HH:MM:SS)
-          const [date, time] = formattedDate.split(", ");
-          const [month, day, year] = date.split("/");
-          const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
-
-          // Data untuk riwayat dengan action "Deleting"
-          const historyData = {
-            content_id: parseInt(id, 10), // ID konten yang dihapus
-            editor_id: user?.id,         // ID pengguna yang menghapus
-            action: "Deleting",          // Tipe aksi
-            edited_at: formattedMySQLDate, // Waktu dalam format MySQL
-          };
-
-          // Mengirim data riwayat ke API
-          const historyResponse = await fetch("http://localhost:3000/api/history/add", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(historyData),
-          });
-
-          if (!historyResponse.ok) {
-            console.error("Failed to record history for Deleting action");
-          } else {
-            console.log("History recorded successfully");
-          }
-
-          // Arahkan kembali ke halaman utama
-          navigate("/");
-        } else {
-          alert("Failed to delete content");
-        }
-      } catch (err) {
-        console.error("Error deleting content:", err);
-        alert("An error occurred while deleting the content");
-      }
+      setDeleteMessage('Are you sure you want to delete this content?');
+      setIsDeleteCardOpen(true); // Open the DeleteCard for confirmation
     } else {
       alert("You are not authorized to delete this content.");
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Authorization token is missing for deletion.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/content/delete/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        alert("Content deleted successfully");
+
+        const currentDate = new Date();
+        const formattedDate = currentDate.toLocaleString("en-US", {
+          timeZone: "Asia/Jakarta",
+          hour12: false,
+        });
+
+        const [date, time] = formattedDate.split(", ");
+        const [month, day, year] = date.split("/");
+        const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+
+        const historyData = {
+          content_id: parseInt(id, 10),
+          editor_id: user?.id,
+          action: "Deleting",
+          edited_at: formattedMySQLDate,
+        };
+
+        const historyResponse = await fetch("http://localhost:3000/api/history/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(historyData),
+        });
+
+        if (!historyResponse.ok) {
+          console.error("Failed to record history for Deleting action");
+        } else {
+          console.log("History recorded successfully");
+        }
+
+        navigate("/");
+      } else {
+        alert("Failed to delete content");
+      }
+    } catch (err) {
+      console.error("Error deleting content:", err);
+      alert("An error occurred while deleting the content");
     }
   };
 
@@ -180,7 +176,6 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     setIsDeleteCardOpen(false);
   };
 
-  // Breadcrumbs component
   const Breadcrumbs = ({ paths }) => {
     return (
       <nav>
@@ -192,7 +187,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
               ) : (
                 <span>{path.label}</span>
               )}
-              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+              {index < paths.length - 1 && " / "}
             </li>
           ))}
         </ul>
@@ -209,7 +204,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         <Breadcrumbs
           paths={[
             { label: "Home", link: "/" },
-            { label: "Informasi" }, // Halaman saat ini tidak memiliki link
+            { label: "Informasi" },
           ]}
         />
 
@@ -219,10 +214,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
           <hr className="gradient-hr"></hr>
         </h1>
 
-        {/* Menampilkan deskripsi sebagai HTML */}
-        <div
-          dangerouslySetInnerHTML={{ __html: content?.content?.description.String || '' }}
-        />
+        <div dangerouslySetInnerHTML={{ __html: content?.content?.description.String || '' }} />
 
         <div style={{ marginTop: "2rem" }} className="no-number">
           {content?.subheadings?.length > 0 &&
@@ -233,12 +225,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
                   <hr className="gradient-hr-sub"></hr>
                 </h2>
 
-                {/* Menampilkan deskripsi subheading sebagai HTML */}
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: subheading.subheading_description || "",
-                  }}
-                />
+                <div dangerouslySetInnerHTML={{ __html: subheading.subheading_description || "" }} />
               </div>
             ))}
         </div>
