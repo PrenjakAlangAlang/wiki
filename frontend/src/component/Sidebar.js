@@ -28,29 +28,29 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
             <aside className="sidebar">
                 <div className="sidebar-box">
                     <ul>
-                        {(isHomePage || subheadings.length > 0) && (
-                            <div className="small-box">
-                                <h5 className="tags-title">PAGE CONTENTS</h5>
-                                <ul className="link-list">
-                                    {isHomePage
-                                        ? defaultHomeContents.map((content) => (
-                                            <li key={content.id}>
-                                                
-                                                <a href={`#${content.id}`}>{content.title}</a>
-                                            </li>
-                                        ))
-                                        : subheadings.map((subheading) => (
-                                            <li key={subheading.id}>
-                                                
-                                                <a href={`#${subheading.subheading}`}>
-                                                    {subheading.subheading}
-                                                </a>
-                                            </li>
-                                        ))}
-                                </ul>
-                            </div>
-                        )}
-                        <br />
+                    {(isHomePage || subheadings.length > 0) && (
+                        <div className="small-box">
+                            <h5 className="tags-title">PAGE CONTENTS</h5>
+                            <ul className="link-list">
+                                {isHomePage
+                                    ? defaultHomeContents.map((content) => (
+                                        <li key={content.id}>
+                                            <i className="fa fa-angle-right"></i>
+                                            <a href={`#${content.id}`}>{content.title}</a>
+                                        </li>
+                                    ))
+                                    : subheadings.map((subheading) => (
+                                        <li key={subheading.id}>
+                                            <i className="fa fa-angle-right"></i> 
+                                            <a href={`#${subheading.subheading}`}>
+                                                {subheading.subheading}
+                                            </a>
+                                        </li>
+                                    ))}
+                            </ul>
+                        </div>
+                    )}
+                                            
                         <div className="small-box">
                             <h5 className="tags-title">TAGS</h5>
                             <ul className="link-list">
@@ -85,7 +85,7 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
                                     ))}
                             </ul>
                         </div>
-                        <br />
+                        
                         {!isHomePage && (
                             <div className="small-box">
                                 <h5 className="tags-title">LAST EDITED BY</h5>

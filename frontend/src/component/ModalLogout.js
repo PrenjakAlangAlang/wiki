@@ -21,12 +21,11 @@ const ModalLogout = ({ isOpen, onClose }) => {
                     <button className="btn btn-confirm" onClick={handleConfirmLogout}>
                         Logout
                     </button>
-                </div>
-                <div className="modal-actions">
                     <button className="btn btn-cancel" onClick={onClose}>
                         Batal
                     </button>
                 </div>
+                
             </div>
         </div>
     );

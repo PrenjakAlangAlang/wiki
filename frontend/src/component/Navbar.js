@@ -5,6 +5,7 @@ import profile from "../assets/user.png";
 import search from "../assets/search.png";
 import ModalLogout from "./ModalLogout";
 import Sidebar2 from "./Sidebar2";
+import 'font-awesome/css/font-awesome.min.css';
 
 const Navbar = ({ searchTerm, setSearchTerm }) => {
   const location = useLocation();
@@ -148,7 +149,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                         setShowDropdown(false);
                       }}
                     >
-                      Profile
+                      <i className="fa fa-user" style={{ marginRight: '11px' }}></i> Profile
                     </Link>
 
                     {(user.role_id === 1 || user.role_id === 5) && (
@@ -159,7 +160,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                           setShowDropdown(false);
                         }}
                       >
-                        Manage User
+                        <i className="fa fa-users" style={{ marginRight: '5px' }}></i> Manage User
                       </Link>
                     )}
                     {(user.role_id === 1 ||
@@ -172,7 +173,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                           setShowDropdown(false);
                         }}
                       >
-                        Manage Konten
+                        <i className="fa fa-folder" style={{ marginRight: '8px' }}></i> Manage Content
                       </Link>
                     )}
                     {user.role_id === 3 && (
@@ -183,7 +184,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                           setShowDropdown(false);
                         }}
                       >
-                        View Status Content
+                        <i className="fa fa-check-circle" style={{ marginRight: '5px' }}></i> View Status Content
                       </Link>
                     )}
 
@@ -195,7 +196,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                           setShowDropdown(false);
                         }}
                       >
-                        Manage Role
+                        <i className="fa fa-clipboard" style={{ marginRight: '6px' }}></i> Manage Role
                       </Link>
                     )}
 
@@ -205,7 +206,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                         handleLogoutConfirmation(); // Panggil konfirmasi logout
                       }}
                     >
-                      Logout
+                      <i className="fa fa-sign-out" style={{ marginRight: '11px', color:'red' }}></i> Logout
                     </button>
                   </div>
                 </div>

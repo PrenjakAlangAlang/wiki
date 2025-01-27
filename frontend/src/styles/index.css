@@ -190,18 +190,24 @@ body {
 .link-list {
     list-style-type: none;
     padding-top: 5px;
+    
 }
 
 .link-list li {
     position: relative;
     padding: 8px 0;
-    
+    display: flex;   /* Mengatur untuk membuat elemen dalam satu baris */
+    align-items: baseline; /* Menjaga elemen sejajar secara vertikal */
+}
+.link-list li i {
+    margin-right: 8px; /* Jarak antara ikon dan teks */
+    color: #474444; /* Warna bisa disesuaikan */
 }
 
 .link-list a {
     
     text-decoration: none; /* Disable underline */
-    color: #383737; /* Inherit color from parent */
+    color: #161515; /* Inherit color from parent */
 }
 
 .link-list a:hover {
@@ -729,7 +735,7 @@ select:focus {
 
 .wiki-pemda-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(1, 1fr);
     grid-gap: 30px;
     margin: 50px 40px;
     animation: fade-in 0.5s ease-in-out; 
@@ -860,13 +866,14 @@ select:focus {
     right: 0;
     background-color: white;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    min-width: 150px;
+    min-width: 210px;
     z-index: 1000;
     opacity: 0; /* Awalnya, dropdown tidak terlihat */
     transform: translateY(-10px); /* Sedikit mengangkat dropdown */
     transition: opacity 0.3s ease, transform 0.3s ease; /* Transisi untuk opacity dan transform */
+    
 }
 
 .profile-dropdown.show {
@@ -1140,6 +1147,7 @@ input {
     padding: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     text-align: center; /* Mengatur teks menjadi ratakan di tengah */
+    
 }
 
 .modal-actions {
@@ -1206,6 +1214,11 @@ input {
 .sidebar2 ul li a {
     text-decoration: none;
     color: black;
+    display: flex;
+    align-items: center;
+}
+.sidebar2 ul li a i {
+    margin-right: 8px; /* Jarak antara ikon dan teks */
 }
 .hamburger-menu {
     background: none;
@@ -1576,13 +1589,13 @@ input {
     border: 0;
     height: 2px;
     background: linear-gradient(to right, #0066b2, #ffeadb); /* Adjust the colors as needed */
-    margin-top: 10px;
+    
   }
   .gradient-hr-sub {
     border: 0;
     height: 1px;
     background: linear-gradient(to right, #020202, #ffeadb); /* Adjust the colors as needed */
-    margin-top: 10px;
+    
   }
   .pagination {
     margin-top: 20px;
@@ -1722,4 +1735,6 @@ input {
     margin-top: 10px;
     border: 1px solid #ddd; /* Change this to your desired color */
   }
+
+  
 

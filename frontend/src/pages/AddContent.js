@@ -20,7 +20,7 @@ const AddContent = () => {
         if (storedUser && storedUser.id) {
             setUser(storedUser);
             console.log("User Instance ID:", storedUser.user_instance_id);
-            if (storedUser.role_id === 3 && storedUser.user_instance_id) {
+            if ((storedUser.role_id === 3 || storedUser.role_id === 1 || storedUser.role_id === 2) && storedUser.user_instance_id) {
                 const selectedInstance = instances.find(
                     (instance) => instance.id === parseInt(storedUser.user_instance_id, 10)
                 );
@@ -266,7 +266,7 @@ const AddContent = () => {
                                 value={instanceId}
                                 onChange={(e) => setInstanceId(e.target.value)}
                                 required
-                                disabled={user?.role_id === 3}
+                                disabled={user?.role_id === 3 || user?.role_id === 1 || user?.role_id === 2}
                             >
                                 <option value="">Pilih Instansi</option>
                                 {instances.map((instance) => (
