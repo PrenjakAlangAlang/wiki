@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import DeleteCard from '../component/DeleteCard';
 
 const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName }) => {
   const [user, setUser] = useState(null);
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDeleteCardOpen, setIsDeleteCardOpen] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState('');
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -173,6 +176,10 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     }
   };
 
+  const handleCancelDelete = () => {
+    setIsDeleteCardOpen(false);
+  };
+
   // Breadcrumbs component
   const Breadcrumbs = ({ paths }) => {
     return (
@@ -255,6 +262,12 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
           <div>Loading permissions...</div>
         )}
       </div>
+      <DeleteCard
+        isOpen={isDeleteCardOpen}
+        message={deleteMessage}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 };
