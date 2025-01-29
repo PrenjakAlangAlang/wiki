@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import DeleteSubheadingCard from '../component/DeleteSubheadingCard'; // Import komponen DeleteSubheadingCard
 
 const Edit = () => {
   const { id } = useParams();
@@ -14,6 +15,8 @@ const Edit = () => {
   const [updatedSubheadings, setUpdatedSubheadings] = useState({});
   const navigate = useNavigate();
   const [instances, setInstances] = useState([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State modal hapus
+  const [subheadingToDelete, setSubheadingToDelete] = useState(null); // State untuk ID subheading yang dihapus
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -21,8 +24,7 @@ const Edit = () => {
     
     if (token) {
       try {
-        // Decode token to extract permissions
-        const tokenData = JSON.parse(atob(token.split('.')[1])); // Decode JWT payload
+        const tokenData = JSON.parse(atob(token.split('.')[1]));
         const userWithPermissions = {
           ...storedUser,
           permissions: tokenData.permissions || []
@@ -99,92 +101,53 @@ const Edit = () => {
     }));
   };
 
-  const handleDeleteSubheading = async (subheadingId) => {
-    // Check for delete permission
+  const deleteSubheading = async (subheadingId) => {
     if (!user?.permissions?.includes("delete_subheading")) {
-      alert("You don't have permission to delete subheadings.");
+      alert("Anda tidak memiliki izin untuk menghapus subheading.");
       return;
     }
 
-    const isConfirmed = window.confirm("Are you sure you want to delete this subheading?");
-    if (!isConfirmed) return;
-
     try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(
-            `http://localhost:3000/api/subheading/delete/${subheadingId}`,
-            {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-            }
-        );
-
-        if (response.ok) {
-            alert("Subheading deleted successfully");
-
-            // Menghapus subheading dari state lokal
-            setSubheadings((prev) => prev.filter((sub) => sub.id !== subheadingId));
-
-            // Mendapatkan waktu lokal di zona waktu Asia/Jakarta
-            const currentDate = new Date();
-            const formattedDate = currentDate.toLocaleString("en-US", {
-                timeZone: "Asia/Jakarta",
-                hour12: false,
-            });
-
-            // Format waktu untuk MySQL (YYYY-MM-DD HH:MM:SS)
-            const [date, time] = formattedDate.split(", ");
-            const [month, day, year] = date.split("/");
-            const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
-
-            // Data untuk riwayat dengan action "Editing"
-            const historyData = {
-                content_id: parseInt(id, 10), // Pastikan id konten sudah tersedia dalam cakupan
-                editor_id: user?.id,
-                action: "Editing", // Tipe aksi
-                edited_at: formattedMySQLDate, // Waktu dalam format MySQL
-            };
-
-            // Mengirim data riwayat ke API
-            const historyResponse = await fetch("http://localhost:3000/api/history/add", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(historyData),
-            });
-
-            if (!historyResponse.ok) {
-                console.error("Failed to record history for Editing action");
-            } else {
-                console.log("History recorded successfully");
-            }
-        } else {
-            alert("Failed to delete subheading");
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3000/api/subheading/delete/${subheadingId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
         }
+      );
+
+      if (response.ok) {
+        //alert("Subheading berhasil dihapus");
+        setSubheadings((prev) => prev.filter((sub) => sub.id !== subheadingId));
+      } else {
+        alert("Gagal menghapus subheading");
+      }
     } catch (error) {
-        console.error("Error deleting subheading:", error);
-        alert("An error occurred while deleting subheading");
+      console.error("Error deleting subheading:", error);
+      alert("Terjadi kesalahan saat menghapus subheading");
     }
-};
+  };
 
+  const handleDeleteSubheading = (subheadingId) => {
+    setSubheadingToDelete(subheadingId);
+    setIsDeleteModalOpen(true);
+  };
 
-const handleAddSubheadingClick = async () => {
-  // Check for create permission
-  if (!user?.permissions?.includes("create_subheading")) {
-    alert("You don't have permission to add subheadings.");
-    return;
-  }
-  navigate(`/addsubheading/${id}`);
-};
+  const handleAddSubheadingClick = async () => {
+    if (!user?.permissions?.includes("create_subheading")) {
+      alert("Anda tidak memiliki izin untuk menambah subjudul.");
+      return;
+    }
+    navigate(`/addsubheading/${id}`);
+  };
 
-const handleSave = async () => {
-  // Check for edit permission
-  if (!user?.permissions?.includes("edit_content")) {
-    alert("You don't have permission to edit content.");
-    return;
-  }
+  const handleSave = async () => {
+    if (!user?.permissions?.includes("edit_content")) {
+      alert("Anda tidak memiliki izin untuk mengedit konten.");
+      return;
+    }
+    
     const updatedSubheadingsArray = subheadings.map((subheading) => ({
       id: subheading.id,
       subheading:
@@ -193,7 +156,7 @@ const handleSave = async () => {
         updatedSubheadings[subheading.id]?.subheading_description ||
         subheading.subheading_description,
     }));
-  
+    
     const requestBody = {
       title: updatedContentTitle,
       description: updatedContentDescription,
@@ -202,7 +165,7 @@ const handleSave = async () => {
       subheadings: updatedSubheadingsArray,
       editor_id: user.id,
     };
-  
+    
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -210,8 +173,7 @@ const handleSave = async () => {
         navigate("/login");
         return;
       }
-  
-      // Kirim permintaan untuk memperbarui konten
+
       const response = await fetch(`http://localhost:3000/api/content/edit/${id}`, {
         method: "PUT",
         headers: {
@@ -220,90 +182,50 @@ const handleSave = async () => {
         },
         body: JSON.stringify(requestBody),
       });
-  
+
       if (response.ok) {
-        // Mendapatkan waktu lokal di zona waktu Asia/Jakarta
-        const currentDate = new Date();
-        const formattedDate = currentDate.toLocaleString("en-US", {
-          timeZone: "Asia/Jakarta",
-          hour12: false,
-        });
-  
-        // Mengonversi waktu ke format yang sesuai dengan MySQL (YYYY-MM-DD HH:MM:SS)
-        const [date, time] = formattedDate.split(", ");
-        const [month, day, year] = date.split("/");
-        const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
-  
-        const historyData = {
-          content_id: parseInt(id, 10),
-          editor_id: user.id,
-          action: "Editing",
-          edited_at: formattedMySQLDate,
-        };
-  
-        // Kirim permintaan untuk menyimpan riwayat edit
-        const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(historyData),
-        });
-  
-        if (!historyResponse.ok) {
-          console.error("Failed to record edit history");
-          const errorMessage = await historyResponse.text();
-          console.error("History error response:", errorMessage);
-        }
-  
-        // Arahkan pengguna ke halaman informasi
         navigate(`/informasi/${id}`);
       } else {
-        const errorMessage = await response.text();
-        console.error("Failed to update content. Response:", errorMessage);
-        alert("Failed to update content.");
+        alert("Gagal mengupdate konten.");
       }
     } catch (error) {
       console.error("An error occurred while saving updates:", error);
-      alert("An error occurred while saving updates.");
+      alert("Terjadi kesalahan saat menyimpan pembaruan.");
     }
   };
   
-  
-
-    const Breadcrumbs = ({ paths }) => {
-        return (
-            <nav>
-                <ul className="breadcrumbs">
-                    {paths.map((path, index) => (
-                        <li key={index}>
-                            {path.link ? (
-                                <Link to={path.link}>{path.label}</Link>
-                            ) : (
-                                <span>{path.label}</span>
-                            )}
-                            {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
-                        </li>
-                    ))}
-                </ul>
-            </nav>
-        );
-    };
-
+  const Breadcrumbs = ({ paths }) => {
     return (
-      <div className="container-wrapper">
-        <div className="container">
-          <Breadcrumbs 
-            paths={[
-              { label: "Home", link: "/" },
-              { label: "Informasi", link: `/informasi/${id}` },
-              { label: "Edit Content" }
-            ]} 
-          />
-          
-          <div className="text">Edit Content</div>
-          <form>
+      <nav>
+        <ul className="breadcrumbs">
+          {paths.map((path, index) => (
+            <li key={index}>
+              {path.link ? (
+                <Link to={path.link}>{path.label}</Link>
+              ) : (
+                <span>{path.label}</span>
+              )}
+              {index < paths.length - 1 && " / "}
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  };
+
+  return (
+    <div className="container-wrapper">
+      <div className="container">
+        <Breadcrumbs 
+          paths={[
+            { label: "Home", link: "/" },
+            { label: "Informasi", link: `/informasi/${id}` },
+            { label: "Edit Content" }
+          ]} 
+        />
+        
+        <div className="text">Edit Content</div>
+        <form>
           <div className="form-row">
             <div className="input-data">
               <label>Judul</label>
@@ -319,8 +241,8 @@ const handleSave = async () => {
               <ReactQuill
                 value={updatedContentDescription}
                 onChange={setUpdatedContentDescription}
-                theme="snow" // Tema untuk ReactQuill
-                style={{ height: '150px' }} // Mengatur tinggi editor
+                theme="snow"
+                style={{ height: '150px' }}
               />
             </div>
             <div className="input-data">
@@ -340,7 +262,7 @@ const handleSave = async () => {
               </select>
             </div>
             <div className="input-data">
-              <label>Tag (Berikan tanda koma sebagai pemisah antar tag, apabila tag lebih dari satu)</label>
+              <label>Tag (Berikan tanda koma sebagai pemisah antar tag)</label>
               <input
                 type="text"
                 value={updatedContentTag}
@@ -351,7 +273,7 @@ const handleSave = async () => {
           </div>
 
           <div className="form-row">
-            {subheadings.map((subheading, index) => (
+            {subheadings.map((subheading) => (
               <div className="form-row" key={subheading.id}>
                 <div className="input-data">
                   <label>Sub Judul</label>
@@ -378,7 +300,7 @@ const handleSave = async () => {
                       handleSubheadingChange(subheading.id, "subheading_description", value)
                     }
                     theme="snow"
-                    style={{ height: '100px' }} // Mengatur tinggi editor
+                    style={{ height: '100px' }}
                   />
                 </div>
                 <br></br>
@@ -415,6 +337,17 @@ const handleSave = async () => {
             )}
           </div>
         </form>
+
+        {/* Modal Konfirmasi Penghapusan Sub Judul */}
+        <DeleteSubheadingCard
+          isOpen={isDeleteModalOpen}
+          onDelete={async () => {
+            await deleteSubheading(subheadingToDelete);
+            setIsDeleteModalOpen(false);
+          }}
+          onCancel={() => setIsDeleteModalOpen(false)}
+          subheadingName={updatedSubheadings[subheadingToDelete]?.subheading || ''}
+        />
       </div>
     </div>
   );

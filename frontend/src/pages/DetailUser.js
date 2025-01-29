@@ -136,7 +136,7 @@ const DetailUser = () => {
         return res.json();
       })
       .then(() => {
-        alert("User updated successfully!");
+        //alert("User updated successfully!");
         setIsEditing(false);
         fetch(`http://localhost:3000/api/user/${id}`, {
           headers: {

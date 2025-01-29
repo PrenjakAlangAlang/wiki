@@ -1154,7 +1154,10 @@ input {
     margin-top: 10px; /* Ruang antara teks dan tombol */
 }
 
-
+.user-details-list li {
+    
+    text-align: left; /* Ensure text is aligned to the left */
+}
 
 .btn-confirm {
     background-color: #0056b3; /* Warna untuk tombol logout */
