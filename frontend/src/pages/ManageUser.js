@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { FaInfoCircle, FaTrash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaInfoCircle, FaTrash } from "react-icons/fa";
+import DeleteUserCard from "../component/DeleteUserCard"; // Import DeleteUserCard component
+import AddUserCard from "../component/AddUserCard"; // Import AddUserCard component
+
 const ManageUser = () => {
   const [user, setUser] = useState(null);
   const [users, setUsers] = useState([]);
@@ -17,11 +19,12 @@ const ManageUser = () => {
   });
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteUserModal, setDeleteUserModal] = useState({ isOpen: false, userId: null, userName: "" });
+  const [addUserModal, setAddUserModal] = useState({ isOpen: false, userData: {} });
   const itemsPerPage = 10;
 
   const fetchToken = () => {
-    // Dapatkan token dari localStorage atau dari state aplikasi Anda
-    return localStorage.getItem("token"); // Sesuaikan sesuai kebutuhan
+    return localStorage.getItem("token");
   };
 
   const fetchUsers = useCallback(() => {
@@ -107,47 +110,34 @@ const ManageUser = () => {
       return;
     }
 
-    const token = fetchToken();
-
-  // Konversi role_id dan instance_id ke number sebelum dikirim
-  const payload = {
-    ...formData,
-    nip: Number(formData.nip),
-    role_id: Number(formData.role_id),       // Konversi ke number
-    instance_id: Number(formData.instance_id), // Konversi ke number
+    // Open the add user confirmation modal
+    const role = roles.find((role) => role.id === Number(formData.role_id));
+    const instance = instances.find((instance) => instance.id === Number(formData.instance_id));
+    setAddUserModal({
+      isOpen: true,
+      userData: {
+        ...formData,
+        role_name: role ? role.name : "",
+        instance_name: instance ? instance.name : "",
+      },
+    });
   };
 
-  fetch("http://localhost:3000/api/createuser", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  })
-    .then((res) => res.json())
-    .then(() => {
-      alert("User added successfully!");
-      setFormData({
-        name: "",
-        nip: "",
-        email: "",
-        password: "",
-        role_id: "",
-        instance_id: "",
-      });
-      fetchUsers(); // Refresh user list
-    })
-    .catch((err) => console.error("Failed to add user:", err));
-};
+  const openDeleteModal = (id, name) => {
+    setDeleteUserModal({ isOpen: true, userId: id, userName: name });
+  };
 
-  const handleDelete = async (id) => {
-    const isConfirmed = window.confirm("Are you sure you want to delete this user?");
-    if (!isConfirmed) return;
+  const closeDeleteModal = () => {
+    setDeleteUserModal({ isOpen: false, userId: null, userName: "" });
+  };
+
+  const handleDelete = async () => {
+    const { userId } = deleteUserModal;
+    if (!userId) return;
 
     try {
       const token = fetchToken();
-      const response = await fetch(`http://localhost:3000/api/user/${id}`, {
+      const response = await fetch(`http://localhost:3000/api/user/${userId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -156,14 +146,53 @@ const ManageUser = () => {
       });
 
       if (response.ok) {
-        alert("User deleted successfully!");
-        fetchUsers(); // Refresh user list
+        //alert("User deleted successfully!");
+        fetchUsers();
+        closeDeleteModal();
       } else {
         alert("Failed to delete user.");
       }
     } catch (error) {
       console.error("Error deleting user:", error);
     }
+  };
+
+  const handleAddUser = async () => {
+    const token = fetchToken();
+    const payload = {
+      ...formData,
+      nip: Number(formData.nip),
+      role_id: Number(formData.role_id),
+      instance_id: Number(formData.instance_id),
+    };
+
+    fetch("http://localhost:3000/api/createuser", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        //alert("User added successfully!");
+        setFormData({
+          name: "",
+          nip: "",
+          email: "",
+          password: "",
+          role_id: "",
+          instance_id: "",
+        });
+        fetchUsers();
+        closeAddUserModal();
+      })
+      .catch((err) => console.error("Failed to add user:", err));
+  };
+
+  const closeAddUserModal = () => {
+    setAddUserModal({ isOpen: false, userData: {} });
   };
 
   const Breadcrumbs = ({ paths }) => {
@@ -173,7 +202,7 @@ const ManageUser = () => {
           {paths.map((path, index) => (
             <li key={index}>
               {path.link ? <Link to={path.link}>{path.label}</Link> : <span>{path.label}</span>}
-              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+              {index < paths.length - 1 && " / "}
             </li>
           ))}
         </ul>
@@ -181,17 +210,14 @@ const ManageUser = () => {
     );
   };
 
-  // Calculate the current users to display based on the current page
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Handle page change
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
-  // Calculate total pages
   const totalPages = Math.ceil(users.length / itemsPerPage);
 
   return (
@@ -200,16 +226,18 @@ const ManageUser = () => {
         <Breadcrumbs
           paths={[
             { label: "Home", link: "/" },
-            { label: "Manage User" }, // Halaman saat ini tidak memiliki link
+            { label: "Manage User" },
           ]}
         />
         <div className="text text-gradient">Manage User</div>
         <table className="manageuser">
           <thead className="theaduser">
-            <th>Name</th>
-            <th>Role</th>
-            <th>Instance</th>
-            <th colSpan={2}>Actions</th>
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Instance</th>
+              <th colSpan={2}>Actions</th>
+            </tr>
           </thead>
           <tbody>
             {Array.isArray(currentUsers) &&
@@ -225,10 +253,13 @@ const ManageUser = () => {
                       </button>
                     </Link>
                   </td>
-                  {/* Validasi tombol delete berdasarkan izin pengguna yang sedang login */}
                   {user?.permissions?.includes("delete_user") && (
                     <td>
-                      <button className="btn btn-red" onClick={() => handleDelete(userItem.id)} style={{ display: "flex", alignItems: "center" }}>
+                      <button
+                        className="btn btn-red"
+                        onClick={() => openDeleteModal(userItem.id, userItem.name)}
+                        style={{ display: "flex", alignItems: "center" }}
+                      >
                         <FaTrash style={{ marginRight: "5px", paddingBottom: "3px" }} /> Delete
                       </button>
                     </td>
@@ -268,18 +299,21 @@ const ManageUser = () => {
                 <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
               </div>
             </div>
-
-            <input
-              type="text"
-              name="nip"
-              value={formData.nip}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, ""); // Hanya angka
-                setFormData({ ...formData, nip: value });
-              }}
-              required
-            />
-
+            <div className="form-row">
+              <div className="input-data">
+                <label>NIP</label>
+                <input
+                  type="text"
+                  name="nip"
+                  value={formData.nip}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    setFormData({ ...formData, nip: value });
+                  }}
+                  required
+                />
+              </div>
+            </div>
             <div className="form-row">
               <div className="input-data">
                 <label>Email</label>
@@ -331,6 +365,20 @@ const ManageUser = () => {
           </form>
         </div>
       )}
+
+      <DeleteUserCard
+        isOpen={deleteUserModal.isOpen}
+        onDelete={handleDelete}
+        onCancel={closeDeleteModal}
+        userName={deleteUserModal.userName}
+      />
+
+      <AddUserCard
+        isOpen={addUserModal.isOpen}
+        onAdd={handleAddUser}
+        onCancel={closeAddUserModal}
+        userData={addUserModal.userData}
+      />
     </div>
   );
 };
