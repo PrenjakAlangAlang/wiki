@@ -275,20 +275,22 @@ func EditUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+    vars := mux.Vars(r)
+    id, err := strconv.Atoi(vars["id"])
+    if err != nil {
+        http.Error(w, "Invalid user ID", http.StatusBadRequest)
+        return
+    }
 
-	err = userModel.DeleteUserById(id)
-	if err != nil {
-		http.Error(w, "Error deleting user: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+    // Update deleted_at pada user yang dimaksud
+    err = userModel.SoftDeleteUserById(id)
+    if err != nil {
+        http.Error(w, "Error deleting user: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
 
-	response := map[string]string{"message": "User deleted successfully"}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+    response := map[string]string{"message": "User deleted successfully"}
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(response)
 }
+

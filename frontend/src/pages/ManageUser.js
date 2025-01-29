@@ -96,10 +96,7 @@ const ManageUser = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleFormSubmit = (e) => {
@@ -111,29 +108,38 @@ const ManageUser = () => {
     }
 
     const token = fetchToken();
-    fetch("http://localhost:3000/api/createuser", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        alert("User added successfully!");
-        setFormData({
-          name: "",
-          nip: "",
-          email: "",
-          password: "",
-          role_id: "",
-          instance_id: "",
-        });
-        fetchUsers(); // Refresh user list
-      })
-      .catch((err) => console.error("Failed to add user:", err));
+
+  // Konversi role_id dan instance_id ke number sebelum dikirim
+  const payload = {
+    ...formData,
+    nip: Number(formData.nip),
+    role_id: Number(formData.role_id),       // Konversi ke number
+    instance_id: Number(formData.instance_id), // Konversi ke number
   };
+
+  fetch("http://localhost:3000/api/createuser", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  })
+    .then((res) => res.json())
+    .then(() => {
+      alert("User added successfully!");
+      setFormData({
+        name: "",
+        nip: "",
+        email: "",
+        password: "",
+        role_id: "",
+        instance_id: "",
+      });
+      fetchUsers(); // Refresh user list
+    })
+    .catch((err) => console.error("Failed to add user:", err));
+};
 
   const handleDelete = async (id) => {
     const isConfirmed = window.confirm("Are you sure you want to delete this user?");
@@ -263,12 +269,16 @@ const ManageUser = () => {
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="input-data">
-                <label>NIP</label>
-                <input type="text" name="nip" value={formData.nip} onChange={handleInputChange} required />
-              </div>
-            </div>
+            <input
+              type="text"
+              name="nip"
+              value={formData.nip}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ""); // Hanya angka
+                setFormData({ ...formData, nip: value });
+              }}
+              required
+            />
 
             <div className="form-row">
               <div className="input-data">

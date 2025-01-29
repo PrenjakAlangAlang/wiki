@@ -5,7 +5,9 @@ import (
 	"backend/entities"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
+	"time"
 )
 
 type UserModel struct {
@@ -27,7 +29,8 @@ func NewUserModel() *UserModel {
 func (p *UserModel) Authenticate(email, password string) (*entities.User, error) {
 	user := &entities.User{}
 	// query := "SELECT id, name, email, password, role_id, instance_id FROM user WHERE email = ? AND password = ?"
-	query := "SELECT * FROM user WHERE email = ? AND password = ?"
+	query := "SELECT * FROM user WHERE email = ? AND password = ? AND deleted_at IS NULL"
+
 
 	log.Printf("Querying with email: %s and password: %s", email, password)
 
@@ -39,6 +42,7 @@ func (p *UserModel) Authenticate(email, password string) (*entities.User, error)
 		&user.Password, 
 		&user.Role_Id, 
 		&user.Instance_Id,
+		&user.Deleted_at,
 	)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("invalid email or password")
@@ -52,32 +56,28 @@ func (p *UserModel) Authenticate(email, password string) (*entities.User, error)
 }
 
 func (p *UserModel) FindUserByID(id int64) (*entities.User, error) {
-	var user entities.User
-	query := `
-        SELECT id, name, nip, email, password, role_id, instance_id 
-        FROM user 
-        WHERE id = ?
-    `
-	err := p.conn.QueryRow(query, id).Scan(
-		&user.Id,
-		&user.Name,
-		&user.NIP,
-		&user.Email,
-		&user.Password,
-		&user.Role_Id,
-		&user.Instance_Id,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
+    var user entities.User
+    query := `SELECT id, name, nip, email, password, role_id, instance_id 
+              FROM user WHERE id = ? AND deleted_at IS NULL`
+    err := p.conn.QueryRow(query, id).Scan(
+        &user.Id,
+        &user.Name,
+        &user.NIP,
+        &user.Email,
+        &user.Password,
+        &user.Role_Id,
+        &user.Instance_Id,
+    )
+    if err != nil {
+        return nil, err
+    }
+    return &user, nil
 }
 
+
 func (p *UserModel) FindAllUsers() ([]entities.User, error) {
-    query := `
-        SELECT id, name, nip, email, password, role_id, instance_id
-        FROM user
-    `
+    query := `SELECT id, name, nip, email, password, role_id, instance_id 
+              FROM user WHERE deleted_at IS NULL`
     rows, err := p.conn.Query(query)
     if err != nil {
         return nil, err
@@ -92,7 +92,7 @@ func (p *UserModel) FindAllUsers() ([]entities.User, error) {
             &user.Name,
             &user.NIP,
             &user.Email,
-			&user.Password,
+            &user.Password,
             &user.Role_Id,
             &user.Instance_Id,
         )
@@ -104,6 +104,7 @@ func (p *UserModel) FindAllUsers() ([]entities.User, error) {
 
     return users, nil
 }
+
 
 func (u *UserModel) AddUser(user entities.User) (entities.User, error) {
     query := `
@@ -154,6 +155,24 @@ func (u *UserModel) DeleteUserById(id int) error {
 	}
 	return err
 }
+
+func (m *UserModel) SoftDeleteUserById(id int) error {
+    // Load lokasi waktu Asia/Jakarta
+    loc, err := time.LoadLocation("Asia/Jakarta")
+    if err != nil {
+        return fmt.Errorf("error loading Asia/Jakarta timezone: %w", err)
+    }
+
+    // Ambil waktu sekarang dalam zona waktu Asia/Jakarta
+    nowWIB := time.Now().In(loc).Format("2006-01-02 15:04:05")
+
+    // Jalankan query untuk soft delete dengan waktu yang sudah dikonversi
+    query := "UPDATE user SET deleted_at = ? WHERE id = ?"
+    _, err = m.conn.Exec(query, nowWIB, id)
+    return err
+}
+
+
 
 
 
