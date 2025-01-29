@@ -2,7 +2,9 @@ package main
 
 import (
 	"backend/config"
-	
+	"backend/controllers"
+	"backend/models"
+
 	contentcontroller "backend/controllers"
 	historycontroller "backend/controllers"
 	instancecontroller "backend/controllers"
@@ -20,6 +22,11 @@ import (
 
 func main() {
 
+	    // Buat instance dari RolePermissionController
+		rolePermissionModel := models.NewRolePermissionModel()
+		contentModel := models.NewContentModel()
+		rolePermissionController := controllers.NewRolePermissionController(rolePermissionModel, contentModel)
+
 	// Inisialisasi koneksi database
 	db, err := config.DBConnection()
 	if err != nil {
@@ -31,6 +38,8 @@ func main() {
 
 	// Inisialisasi router
 	r := mux.NewRouter()
+
+	
 
 	// Konfigurasi CORS
 	cors := handlers.CORS(
@@ -66,7 +75,19 @@ func main() {
 	r.Handle("/api/content/reject/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("reject_content", http.HandlerFunc(contentcontroller.RejectContent)))).Methods("PUT")
 	r.Handle("/api/permissions", middleware.JWTAuth(middleware.RoleAuthMiddleware("manage_role", http.HandlerFunc(permissioncontroller.GetPermissionList)))).Methods("GET")
 	r.Handle("/api/role_permissions", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_permission", http.HandlerFunc(permissioncontroller.GetPermissionsByRole)))).Methods("GET")
+	
+	r.Handle("/api/roles/{role_id}/permissions",
+    middleware.JWTAuth(middleware.RoleAuthMiddleware("view_role_permission",
+    http.HandlerFunc(rolePermissionController.GetPermissionsByRole)))).Methods("GET")
 
+r.Handle("/api/roles/{role_id}/permissions/add/{permission_id}",
+    middleware.JWTAuth(middleware.RoleAuthMiddleware("add_permission",
+    http.HandlerFunc(rolePermissionController.AddPermissionToRole)))).Methods("POST") // 
+
+r.Handle("/api/roles/{role_id}/permissions/delete/{permission_id}",
+    middleware.JWTAuth(middleware.RoleAuthMiddleware("remove_permission",
+    http.HandlerFunc(rolePermissionController.RemovePermissionFromRole)))).Methods("DELETE") //
+		
 	// Endpoint tanpa middleware untuk login
 	r.HandleFunc("/api/login", usercontroller.Login).Methods("POST")
 
