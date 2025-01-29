@@ -26,12 +26,24 @@ const DetailUser = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Retrieve token from localStorage (or sessionStorage)
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) setCurrentUser(storedUser);
+    if (storedUser) {
+      try {
+        // Decode token to extract permissions
+        const tokenData = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
+        const userWithPermissions = {
+          ...storedUser,
+          permissions: tokenData.permissions || [],
+        };
+        setCurrentUser(userWithPermissions);
+      } catch (e) {
+        console.error("Error parsing token:", e);
+        setCurrentUser(storedUser);
+      }
+    }
 
     // Fetch user details with token in Authorization header
     fetch(`http://localhost:3000/api/user/${id}`, {
@@ -96,6 +108,11 @@ const DetailUser = () => {
   const handleFormSubmit = (e) => {
     e.preventDefault();
 
+    if (!currentUser?.permissions?.includes("edit_user")) {
+      alert("You don't have permission to save user changes.");
+      return;
+    }
+
     const formattedData = {
       ...formData,
       nip: parseInt(formData.nip, 10),
@@ -145,21 +162,34 @@ const DetailUser = () => {
       .catch((err) => console.error("Failed to fetch histories:", err));
 
     // Fetch contents with token
-    fetch(`http://localhost:3000/api/contents/user/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setContents(data || []))
-      .catch((err) => console.error("Failed to fetch contents:", err));
+    // fetch(`http://localhost:3000/api/contents/user/${id}`, {
+    //   headers: {
+    //     Authorization: `Bearer ${token}`,
+    //   },
+    // })
+    //   .then((res) => res.json())
+    //   .then((data) => setContents(data || []))
+    //   .catch((err) => console.error("Failed to fetch contents:", err));
   };
 
   const handleToggleHistory = () => {
+    if (!currentUser?.permissions?.includes("view_history_user")) {
+      alert("You don't have permission to view user history.");
+      return;
+    }
+
     if (!showHistory) {
       loadHistories();
     }
     setShowHistory(!showHistory);
+  };
+
+  const handleEditClick = () => {
+    if (!currentUser?.permissions?.includes("edit_user")) {
+      alert("You don't have permission to edit user details.");
+      return;
+    }
+    setIsEditing(true);
   };
 
   const formatDateTime = (dateTime) => {
@@ -281,43 +311,35 @@ const DetailUser = () => {
             <table className="profile-table">
               <tbody>
                 <tr>
-                  <td>
-                    <strong>Name</strong>
-                  </td>
+                  <td><strong>Name</strong></td>
                   <td>{user.name}</td>
                 </tr>
                 <tr>
-                  <td>
-                    <strong>NIP</strong>
-                  </td>
+                  <td><strong>NIP</strong></td>
                   <td>{user.nip}</td>
                 </tr>
                 <tr>
-                  <td>
-                    <strong>Email</strong>
-                  </td>
+                  <td><strong>Email</strong></td>
                   <td>{user.email}</td>
                 </tr>
                 <tr>
-                  <td>
-                    <strong>Role</strong>
-                  </td>
+                  <td><strong>Role</strong></td>
                   <td>{user.role_name}</td>
                 </tr>
                 <tr>
-                  <td>
-                    <strong>Instance</strong>
-                  </td>
+                  <td><strong>Instance</strong></td>
                   <td>{user.instance}</td>
                 </tr>
               </tbody>
             </table>
-            <input
-              type="button"
-              value="Edit"
-              className="btn btn-blue"
-              onClick={() => setIsEditing(true)}
-            />
+            {currentUser?.permissions?.includes("edit_user") && (
+              <input
+                type="button"
+                value="Edit"
+                className="btn btn-blue"
+                onClick={handleEditClick}
+              />
+            )}
           </>
         ) : (
           <form onSubmit={handleFormSubmit}>
@@ -427,12 +449,13 @@ const DetailUser = () => {
             <div className="form-row submit-btn">
               <div className="input-data">
                 <div className="inner"></div>
-                {/* <input type="submit" value="Save Changes" /> */}
-                <input
-                  type="submit"
-                  value="Save Changes"
-                  className="btn btn-blue"
-                />
+                {currentUser?.permissions?.includes("edit_user") && (
+                  <input
+                    type="submit"
+                    value="Save Changes"
+                    className="btn btn-blue"
+                  />
+                )}
               </div>
             </div>
 
@@ -445,12 +468,14 @@ const DetailUser = () => {
           </form>
         )}
 
-        <input
-          type="button"
-          value={showHistory ? "Hide History" : "Show History"}
-          className="btn btn-gray"
-          onClick={handleToggleHistory}
-        />
+        {currentUser?.permissions?.includes("view_history_user") && (
+          <input
+            type="button"
+            value={showHistory ? "Hide History" : "Show History"}
+            className="btn btn-gray"
+            onClick={handleToggleHistory}
+          />
+        )}
 
         {showHistory && (
           <>

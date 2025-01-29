@@ -15,10 +15,10 @@ const ViewStatusContent = () => {
     });
 
     useEffect(() => {
-        if (!user || user.role_id !== 3) {
-            navigate('/'); // Redirect jika bukan user dengan role 3
-            return;
-        }
+        // if (!user || user.role_id !== 3) {
+        //     navigate('/'); // Redirect jika bukan user dengan role 3
+        //     return;
+        // }
 
         const fetchContents = async () => {
             const token = localStorage.getItem('token');

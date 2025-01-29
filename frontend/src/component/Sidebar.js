@@ -5,6 +5,7 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
     const location = useLocation();
     const [editorName, setEditorName] = useState("Loading...");
     const isHomePage = location.pathname === "/";
+    const [currentUser, setCurrentUser] = useState(null);
 
     const defaultHomeContents = [
         { id: "welcome", title: "Selamat datang di Wiki Pemda" },
@@ -12,8 +13,31 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
     ];
 
     useEffect(() => {
-        if (contentId) {
-            // Pastikan contentId ada sebelum melakukan fetch
+        // Get user and token from localStorage
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+
+        if (token) {
+            try {
+                // Decode token to extract permissions
+                const tokenData = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
+                const userWithPermissions = {
+                    ...storedUser,
+                    permissions: tokenData.permissions || [],
+                };
+                setCurrentUser(userWithPermissions);
+            } catch (e) {
+                console.error("Error parsing token:", e);
+                setCurrentUser(storedUser);
+            }
+        } else {
+            setCurrentUser(storedUser);
+        }
+    }, []); // Run once on component mount
+
+    useEffect(() => {
+        if (contentId && currentUser?.permissions?.includes("view_latest_editor")) {
+            // Only fetch editor name if user has permission
             fetch(`http://localhost:3000/api/latest-editor-name/${contentId}`)
                 .then((res) => res.json())
                 .then((data) => {
@@ -21,7 +45,7 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
                 })
                 .catch(() => setEditorName("Unknown Editor"));
         }
-    }, [contentId]); // Hanya akan dijalankan saat contentId berubah
+    }, [contentId, currentUser]); // Dependencies include currentUser now
 
     return (
         <main className="main">
@@ -86,12 +110,10 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
                             </ul>
                         </div>
                         
-                        {!isHomePage && (
+                        {!isHomePage && currentUser?.permissions?.includes("view_latest_editor") && (
                             <div className="small-box">
                                 <h5 className="tags-title">LAST EDITED BY</h5>
                                 <ul className="link-list">
-                                    {/* <li>{editorName}</li>
-                                    {updatedAt && <li>at {updatedAt}</li>} */}
                                     <li>{editorName === "Unknown Editor" ? authorName : editorName}</li>
                                     {updatedAt && <li>at {updatedAt}</li>}
                                 </ul>

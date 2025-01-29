@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css"; // Import stylesheet ReactQuill
+import "react-quill/dist/quill.snow.css";
 
 const Edit = () => {
   const { id } = useParams();
@@ -17,7 +17,26 @@ const Edit = () => {
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) setUser(storedUser);
+    const token = localStorage.getItem("token");
+    
+    if (token) {
+      try {
+        // Decode token to extract permissions
+        const tokenData = JSON.parse(atob(token.split('.')[1])); // Decode JWT payload
+        const userWithPermissions = {
+          ...storedUser,
+          permissions: tokenData.permissions || []
+        };
+        setUser(userWithPermissions);
+        console.log("User loaded with permissions:", userWithPermissions);
+      } catch (e) {
+        console.error("Error parsing token:", e);
+        setUser(storedUser);
+      }
+    } else {
+      console.warn("No token found!");
+      setUser(storedUser);
+    }
 
     fetchContent(id);
     fetchInstances();
@@ -81,11 +100,14 @@ const Edit = () => {
   };
 
   const handleDeleteSubheading = async (subheadingId) => {
-    const isConfirmed = window.confirm("Are you sure you want to delete this subheading?");
-
-    if (!isConfirmed) {
-        return;
+    // Check for delete permission
+    if (!user?.permissions?.includes("delete_subheading")) {
+      alert("You don't have permission to delete subheadings.");
+      return;
     }
+
+    const isConfirmed = window.confirm("Are you sure you want to delete this subheading?");
+    if (!isConfirmed) return;
 
     try {
         const token = localStorage.getItem("token");
@@ -148,11 +170,21 @@ const Edit = () => {
 };
 
 
-  const handleAddSubheadingClick = async () => {
-    navigate(`/addsubheading/${id}`);
-  };
+const handleAddSubheadingClick = async () => {
+  // Check for create permission
+  if (!user?.permissions?.includes("create_subheading")) {
+    alert("You don't have permission to add subheadings.");
+    return;
+  }
+  navigate(`/addsubheading/${id}`);
+};
 
-  const handleSave = async () => {
+const handleSave = async () => {
+  // Check for edit permission
+  if (!user?.permissions?.includes("edit_content")) {
+    alert("You don't have permission to edit content.");
+    return;
+  }
     const updatedSubheadingsArray = subheadings.map((subheading) => ({
       id: subheading.id,
       subheading:
@@ -259,19 +291,19 @@ const Edit = () => {
         );
     };
 
-  return (
-    <div className="container-wrapper">
-      <div className="container">
-        <Breadcrumbs 
-          paths={[
-            { label: "Home", link: "/" },
-            { label: "Informasi", link: `/informasi/${id}` }, // Link ke halaman informasi sebelum edit
-            { label: "Edit Content" } // Halaman saat ini tidak memiliki link
-          ]} 
-        />
-        
-        <div className="text">Edit Content</div>
-        <form>
+    return (
+      <div className="container-wrapper">
+        <div className="container">
+          <Breadcrumbs 
+            paths={[
+              { label: "Home", link: "/" },
+              { label: "Informasi", link: `/informasi/${id}` },
+              { label: "Edit Content" }
+            ]} 
+          />
+          
+          <div className="text">Edit Content</div>
+          <form>
           <div className="form-row">
             <div className="input-data">
               <label>Judul</label>
@@ -351,30 +383,36 @@ const Edit = () => {
                 </div>
                 <br></br>
                 <br></br>
-                <div className="submit-btn">
-                  <input
-                    type="button"
-                    value={`Hapus Sub Judul ${subheading.subheading}`}
-                    className="btn btn-red"
-                    onClick={() => handleDeleteSubheading(subheading.id)}
-                  />
-                </div>
+                {user?.permissions?.includes("delete_subheading") && (
+                  <div className="submit-btn">
+                    <input
+                      type="button"
+                      value={`Hapus Sub Judul ${subheading.subheading}`}
+                      className="btn btn-red"
+                      onClick={() => handleDeleteSubheading(subheading.id)}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
           <div className="submit-btn">
-            <input
-              type="button"
-              value="Tambah Sub Judul"
-              className="btn btn-blue"
-              onClick={handleAddSubheadingClick}
-            />
-            <input
-              type="button"
-              value="Simpan"
-              className="btn btn-green"
-              onClick={handleSave}
-            />
+            {user?.permissions?.includes("create_subheading") && (
+              <input
+                type="button"
+                value="Tambah Sub Judul"
+                className="btn btn-blue"
+                onClick={handleAddSubheadingClick}
+              />
+            )}
+            {user?.permissions?.includes("edit_content") && (
+              <input
+                type="button"
+                value="Simpan"
+                className="btn btn-green"
+                onClick={handleSave}
+              />
+            )}
           </div>
         </form>
       </div>
