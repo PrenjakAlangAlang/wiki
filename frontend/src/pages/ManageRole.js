@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import 'font-awesome/css/font-awesome.min.css';
+import SavePermissionsCard from '../component/SavePermissionsCard'; // Import the new component
 
 const ManageRole = () => {
   const [permissions, setPermissions] = useState([]);
@@ -9,6 +10,7 @@ const ManageRole = () => {
   const [pendingChanges, setPendingChanges] = useState({});
   const [openedRoleId, setOpenedRoleId] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState({});
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false); // State for modal visibility
 
   const fetchToken = () => localStorage.getItem("token");
 
@@ -163,7 +165,7 @@ const ManageRole = () => {
 
       // Clear pending changes and show success message
       setPendingChanges({});
-      alert("Permissions saved successfully!");
+      //alert("Permissions saved successfully!");
     } catch (error) {
       console.error("Error saving permissions:", error);
       alert("Error saving permissions. Please try again.");
@@ -213,6 +215,38 @@ const ManageRole = () => {
     setDropdownOpen((prevState) => ({ ...prevState, [category]: !prevState[category] }));
   };
 
+  const Breadcrumbs = ({ paths }) => {
+    return (
+      <nav>
+        <ul className="breadcrumbs">
+          {paths.map((path, index) => (
+            <li key={index}>
+              {path.link ? (
+                <Link to={path.link}>{path.label}</Link>
+              ) : (
+                <span>{path.label}</span>
+              )}
+              {index < paths.length - 1 && " / "}
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  };
+
+  const openSaveModal = () => {
+    setIsSaveModalOpen(true);
+  };
+
+  const closeSaveModal = () => {
+    setIsSaveModalOpen(false);
+  };
+
+  const confirmSavePermissions = async () => {
+    closeSaveModal();
+    await savePermissions();
+  };
+
   return (
     <div className="main-container">
       <div className="table-container">
@@ -228,12 +262,24 @@ const ManageRole = () => {
             Manage, optimize, and distribute your content easily to achieve maximum results.
           </p>
         </div>
+        
         {Array.isArray(roles) && (
           <div className="card">
             <div className="rolem">
               <h3>Select role</h3>
               <span>Please select a role:</span>
-              <hr className="hrrole" />
+              <div className="btn-container">
+              <div className="btn-apply-container">
+          <button
+            className={`btn-apply ${hasUnsavedChanges ? '' : 'disabled'}`}
+            disabled={!hasUnsavedChanges}
+            onClick={openSaveModal} // Open modal on click
+          >
+            Save Permissions
+          </button>
+        </div>
+        </div>
+        <hr className="hrrole" /> 
             </div>
             <table className="managerole">
               <tbody>
@@ -269,49 +315,63 @@ const ManageRole = () => {
                             className="managerole"
                             style={{ width: '100%', marginTop: '10px' }}
                           >
-                            <thead>
-                              <tr>
-                                <th>Category</th>
-                                <th>Permission</th>
-                                <th>Action</th>
-                              </tr>
-                            </thead>
                             <tbody>
                               {Object.keys(categorizedPermissions).map((category) => (
                                 <React.Fragment key={category}>
                                   <tr>
-                                    <td colSpan="3">
-                                      <div
-                                        style={{ cursor: 'pointer', marginBottom: '10px' }}
+                                    <td>
+                                      <span
                                         onClick={() => toggleCategoryDropdown(category)}
+                                        style={{
+                                          cursor: 'pointer',
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          alignItems: 'center',
+                                        }}
                                       >
-                                        <b>{category}</b>
+                                        <span>{category}</span>
                                         <i
                                           className={`fa ${dropdownOpen[category] ? 'fa-chevron-up' : 'fa-chevron-down'} icon-animate`}
                                           style={{ marginLeft: '10px' }}
                                         />
-                                      </div>
+                                      </span>
                                     </td>
                                   </tr>
-                                  {dropdownOpen[category] && categorizedPermissions[category].map((permission) => (
-                                    <tr key={permission.id}>
-                                      <td></td>
-                                      <td>{permission.name}</td>
+                                  {dropdownOpen[category] && (
+                                    <tr>
                                       <td>
-                                        <input
-                                          type="checkbox"
-                                          checked={isPermissionChecked(role.id, permission.id)}
-                                          onChange={(e) =>
-                                            handleCheckboxChange(
-                                              role.id,
-                                              permission.id,
-                                              e.target.checked
-                                            )
-                                          }
-                                        />
+                                        <table
+                                          className="manageuser"
+                                          style={{ width: '100%', marginTop: '5px' }}
+                                        >
+                                          <thead>
+                                            <tr>
+                                              <th>Permission Name</th>
+                                              <th>Action</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {categorizedPermissions[category].map((perm) => (
+                                              <tr key={perm.id}>
+                                                <td>{perm.name}</td>
+                                                <td>
+                                                  <label className="custom-checkbox">
+                                                    <input
+                                                      type="checkbox"
+                                                      checked={isPermissionChecked(role.id, perm.id)}
+                                                      onChange={(e) =>
+                                                        handleCheckboxChange(role.id, perm.id, e.target.checked)
+                                                      }
+                                                    />
+                                                  </label>
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
                                       </td>
                                     </tr>
-                                  ))}
+                                  )}
                                 </React.Fragment>
                               ))}
                             </tbody>
@@ -325,38 +385,14 @@ const ManageRole = () => {
             </table>
           </div>
         )}
-        <div className="btn-apply-container">
-          <button
-            className={`btn-apply ${hasUnsavedChanges ? '' : 'disabled'}`}
-            disabled={!hasUnsavedChanges}
-            onClick={savePermissions}
-          >
-            Save Permissions
-          </button>
-        </div>
+        
       </div>
+      <SavePermissionsCard
+        isOpen={isSaveModalOpen}
+        onConfirm={confirmSavePermissions}
+        onCancel={closeSaveModal}
+      />
     </div>
-  );
-};
-
-
-
-const Breadcrumbs = ({ paths }) => {
-  return (
-    <nav>
-      <ul className="breadcrumbs">
-        {paths.map((path, index) => (
-          <li key={index}>
-            {path.link ? (
-              <Link to={path.link}>{path.label}</Link>
-            ) : (
-              <span>{path.label}</span>
-            )}
-            {index < paths.length - 1 && " / "}
-          </li>
-        ))}
-      </ul>
-    </nav>
   );
 };
 

@@ -1726,6 +1726,7 @@ input {
 .rolem{
     margin-bottom: 20px;
     
+    
 }
 .rolem h3{
     color: #333;
@@ -1739,5 +1740,38 @@ input {
     border: 1px solid #ddd; /* Change this to your desired color */
   }
 
+  .btn-container {
+    display: flex;
+    justify-content: space-between; /* Memastikan ruang antara elemen */
+    align-items: center; /* Untuk menjaga tombol dan teks sejajar secara vertikal */
+  }
   
+  .btn-apply-container {
+    margin-left: auto; /* Mengambil ruang kiri dan menempatkan tombol di sebelah kanan */
+    margin-top: -60px; /* Menambahkan jarak atas agar terlihat lebih baik */
+  }
+  
+  .btn-apply {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 13px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 15px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 25px;
+  }
+  
+  .btn-apply.disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .btn-apply:not(.disabled):hover {
+    background-color: #218838;;
+  }
 
