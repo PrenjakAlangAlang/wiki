@@ -99,12 +99,12 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     }
 
     if (user.permissions.includes("delete_content")) {
-      const confirmDelete = window.confirm("Are you sure you want to delete this content?");
-      if (!confirmDelete) {
-        return;
-      }
+      //const confirmDelete = window.confirm("Are you sure you want to delete this content?");
+      //if (!confirmDelete) {
+      //  return;
+      //}
 
-      setDeleteMessage('Are you sure you want to delete this content?');
+      setDeleteMessage('Apakah Anda yakin ingin menghapus konten ini?');
       setIsDeleteCardOpen(true); // Open the DeleteCard for confirmation
     } else {
       alert("You are not authorized to delete this content.");
@@ -128,7 +128,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
       });
 
       if (response.ok) {
-        alert("Content deleted successfully");
+        //alert("Content deleted successfully");//
 
         const currentDate = new Date();
         const formattedDate = currentDate.toLocaleString("en-US", {
@@ -229,25 +229,24 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
               </div>
             ))}
         </div>
-
         {user && user.permissions ? (
-          <div className="button-submit">
-            <div className="button-combined">
-              {user.permissions.includes("edit_content") && (
-                <button className="button-left" onClick={handleEditClick}>
-                  Edit
-                </button>
-              )}
-              {user.permissions.includes("delete_content") && (
-                <button className="button-right" onClick={handleDeleteClick}>
-                  Delete
-                </button>
-              )}
+        <div className="button-submit">
+          <div className="button-combined">
+          {user.permissions.includes("edit_content") && (
+            <div className="button-left" onClick={handleEditClick}>
+              Edit
             </div>
+            )}
+          {user.permissions.includes("delete_content") && (
+            <div className="button-right" onClick={handleDeleteClick}>
+              Delete
+            </div>
+            )}
           </div>
-        ) : (
-          <div>Loading permissions...</div>
-        )}
+        </div>
+      ) : (
+        <div>Loading permissions...</div>
+      )}
       </div>
       <DeleteCard
         isOpen={isDeleteCardOpen}
