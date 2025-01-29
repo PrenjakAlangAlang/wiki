@@ -1,57 +1,33 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import 'font-awesome/css/font-awesome.min.css'; // Pastikan Font Awesome diimpor
+import 'font-awesome/css/font-awesome.min.css';
 
 const ManageRole = () => {
-  const [permission, setPermission] = useState([]);
+  const [permissions, setPermissions] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [currentPermissions, setCurrentPermissions] = useState({});
+  const [pendingChanges, setPendingChanges] = useState({});
   const [openedRoleId, setOpenedRoleId] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState({});
 
-  const fetchToken = () => {
-    return localStorage.getItem("token");
-  };
+  const fetchToken = () => localStorage.getItem("token");
 
   const fetchPermissions = useCallback(() => {
     const token = fetchToken();
     fetch("http://localhost:3000/api/permissions", {
-      method: "GET",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())
-      .then((data) => setPermission(data))
-      .catch((err) => console.error("Failed to fetch permission:", err));
+      .then(setPermissions)
+      .catch((err) => console.error("Failed to fetch permissions:", err));
   }, []);
 
-  const fetchRoles = useCallback(() => {
+  const fetchRolePermissions = useCallback((roleId) => {
     const token = fetchToken();
-    fetch("http://localhost:3000/api/roles", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setRoles(data))
-      .catch((err) => console.error("Failed to fetch roles:", err));
-  }, []);
-
-  useEffect(() => {
-    fetchPermissions();
-    fetchRoles();
-  }, [fetchPermissions, fetchRoles]);
-
-  const handleCheckboxChange = (roleId, permissionId, checked) => {
-    const token = fetchToken();
-    const url = `http://localhost:3000/api/roles/${roleId}/permissions/${permissionId}`;
-    const method = checked ? "POST" : "DELETE";
-
-    fetch(url, {
-      method,
+    fetch(`http://localhost:3001/api/roles/${roleId}/permissions`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -59,40 +35,139 @@ const ManageRole = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Permission updated:", data);
-        fetchPermissions();
+        setCurrentPermissions((prev) => ({
+          ...prev,
+          [roleId]: new Set(data.map((p) => p.permission_id)),
+        }));
       })
-      .catch((err) => console.error("Failed to update permission:", err));
+      .catch((err) => console.error("Failed to fetch role permissions:", err));
+  }, []);
+
+  const fetchRoles = useCallback(() => {
+    const token = fetchToken();
+    fetch("http://localhost:3000/api/roles", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setRoles(data);
+        data.forEach((role) => fetchRolePermissions(role.id));
+      })
+      .catch((err) => console.error("Failed to fetch roles:", err));
+  }, [fetchRolePermissions]);
+
+  useEffect(() => {
+    fetchPermissions();
+    fetchRoles();
+  }, [fetchPermissions, fetchRoles]);
+
+  const handleCheckboxChange = (roleId, permissionId, checked) => {
+    setPendingChanges((prev) => {
+      const roleChanges = prev[roleId] || { add: new Set(), remove: new Set() };
+      const currentHasPermission = currentPermissions[roleId]?.has(permissionId);
+
+      if (checked !== currentHasPermission) {
+        if (checked) {
+          roleChanges.add.add(permissionId);
+          roleChanges.remove.delete(permissionId);
+        } else {
+          roleChanges.remove.add(permissionId);
+          roleChanges.add.delete(permissionId);
+        }
+      } else {
+        roleChanges.add.delete(permissionId);
+        roleChanges.remove.delete(permissionId);
+      }
+
+      return { ...prev, [roleId]: roleChanges };
+    });
   };
 
-  const toggleDropdown = (roleId) => {
-    setOpenedRoleId((prev) => (prev === roleId ? null : roleId));
+  const isPermissionChecked = (roleId, permissionId) => {
+    const currentHasPermission = currentPermissions[roleId]?.has(permissionId) || false;
+    const pending = pendingChanges[roleId];
+
+    if (!pending) return currentHasPermission;
+
+    if (pending.add.has(permissionId)) return true;
+    if (pending.remove.has(permissionId)) return false;
+
+    return currentHasPermission;
   };
 
-  const toggleCategoryDropdown = (category) => {
-    setDropdownOpen((prev) => ({
-      ...prev,
-      [category]: !prev[category]
-    }));
-  };
+  const savePermissions = async () => {
+    const token = fetchToken();
+    const savePromises = [];
 
-  const Breadcrumbs = ({ paths }) => {
-    return (
-      <nav>
-        <ul className="breadcrumbs">
-          {paths.map((path, index) => (
-            <li key={index}>
-              {path.link ? (
-                <Link to={path.link}>{path.label}</Link>
-              ) : (
-                <span>{path.label}</span>
-              )}
-              {index < paths.length - 1 && " / "}
-            </li>
-          ))}
-        </ul>
-      </nav>
-    );
+    console.log("Pending changes: ", pendingChanges); // Debug log untuk memeriksa data
+
+    Object.entries(pendingChanges).forEach(([roleId, changes]) => {
+      // Handle additions
+      changes.add.forEach((permissionId) => {
+        const promise = fetch(
+          `http://localhost:3001/api/roles/${roleId}/permissions/add/${permissionId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            if (!data.success) {
+              throw new Error("Failed to add permission");
+            }
+          })
+          .catch((err) => {
+            console.error("Error adding permission:", err);
+          });
+        savePromises.push(promise);
+      });
+
+      // Handle removals
+      changes.remove.forEach((permissionId) => {
+        const promise = fetch(
+          `http://localhost:3001/api/roles/${roleId}/permissions/delete/${permissionId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            if (!data.success) {
+              throw new Error("Failed to remove permission");
+            }
+          })
+          .catch((err) => {
+            console.error("Error removing permission:", err);
+          });
+        savePromises.push(promise);
+      });
+    });
+
+    try {
+      // Wait for all save promises to complete
+      await Promise.all(savePromises);
+
+      // Refresh permissions after save
+      roles.forEach((role) => fetchRolePermissions(role.id));
+
+      // Clear pending changes and show success message
+      setPendingChanges({});
+      alert("Permissions saved successfully!");
+    } catch (error) {
+      console.error("Error saving permissions:", error);
+      alert("Error saving permissions. Please try again.");
+    }
   };
 
   const categorizePermissions = (permissions) => {
@@ -124,7 +199,19 @@ const ManageRole = () => {
     return categories;
   };
 
-  const categorizedPermissions = categorizePermissions(permission);
+  const categorizedPermissions = categorizePermissions(permissions);
+
+  const hasUnsavedChanges = Object.values(pendingChanges).some(
+    (changes) => changes.add.size > 0 || changes.remove.size > 0
+  );
+
+  const toggleDropdown = (roleId) => {
+    setOpenedRoleId((prevId) => (prevId === roleId ? null : roleId));
+  };
+
+  const toggleCategoryDropdown = (category) => {
+    setDropdownOpen((prevState) => ({ ...prevState, [category]: !prevState[category] }));
+  };
 
   return (
     <div className="main-container">
@@ -137,15 +224,16 @@ const ManageRole = () => {
         />
         <div className="manage-content">
           <h1 className="manage-content-h1">Manage Role</h1>
-          <p className='manage-content-p'>Manage, optimize, and distribute your content easily to achieve maximum results.</p>
+          <p className="manage-content-p">
+            Manage, optimize, and distribute your content easily to achieve maximum results.
+          </p>
         </div>
         {Array.isArray(roles) && (
           <div className="card">
             <div className="rolem">
-            <h3>Select role</h3>
-            <span>Please select a role:</span>
-           
-            <hr className="hrrole"></hr>
+              <h3>Select role</h3>
+              <span>Please select a role:</span>
+              <hr className="hrrole" />
             </div>
             <table className="managerole">
               <tbody>
@@ -156,12 +244,20 @@ const ManageRole = () => {
                         <div
                           className="role-header"
                           onClick={() => toggleDropdown(role.id)}
-                          style={{ cursor: 'pointer', fontWeight:'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                          style={{
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
                         >
                           <span>{role.name}</span>
                           <span style={{ display: 'flex', alignItems: 'center' }}>
-                            <span style={{ marginRight: '10px' }}></span>
-                            <i className={`fa ${openedRoleId === role.id ? 'fa-chevron-up' : 'fa-chevron-down'} icon-animate`} style={{ marginLeft: '10px' }}></i>
+                            <i
+                              className={`fa ${openedRoleId === role.id ? 'fa-chevron-up' : 'fa-chevron-down'} icon-animate`}
+                              style={{ marginLeft: '10px' }}
+                            />
                           </span>
                         </div>
                       </td>
@@ -169,51 +265,53 @@ const ManageRole = () => {
                     {openedRoleId === role.id && (
                       <tr>
                         <td>
-                          <table className="managerole" style={{ width: '100%', marginTop: '10px' }}>
+                          <table
+                            className="managerole"
+                            style={{ width: '100%', marginTop: '10px' }}
+                          >
+                            <thead>
+                              <tr>
+                                <th>Category</th>
+                                <th>Permission</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
                             <tbody>
                               {Object.keys(categorizedPermissions).map((category) => (
                                 <React.Fragment key={category}>
                                   <tr>
-                                    <td>
-                                      <span onClick={() => toggleCategoryDropdown(category)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span>{category}</span>
-                                        <i className={`fa ${dropdownOpen[category] ? 'fa-chevron-up' : 'fa-chevron-down'} icon-animate`} style={{ marginLeft: '10px' }}></i>
-                                      </span>
+                                    <td colSpan="3">
+                                      <div
+                                        style={{ cursor: 'pointer', marginBottom: '10px' }}
+                                        onClick={() => toggleCategoryDropdown(category)}
+                                      >
+                                        <b>{category}</b>
+                                        <i
+                                          className={`fa ${dropdownOpen[category] ? 'fa-chevron-up' : 'fa-chevron-down'} icon-animate`}
+                                          style={{ marginLeft: '10px' }}
+                                        />
+                                      </div>
                                     </td>
                                   </tr>
-                                  {dropdownOpen[category] && (
-                                    <tr>
+                                  {dropdownOpen[category] && categorizedPermissions[category].map((permission) => (
+                                    <tr key={permission.id}>
+                                      <td></td>
+                                      <td>{permission.name}</td>
                                       <td>
-                                        <table className="manageuser" style={{ width: '100%', marginTop: '5px' }}>
-                                          <thead>
-                                            <tr>
-                                              <th>Permission Name</th>
-                                              <th>Action</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody>
-                                            {categorizedPermissions[category].map((perm) => (
-                                              <tr key={perm.id}>
-                                                <td>{perm.name}</td>
-                                                <td>
-                                                  <label className="custom-checkbox">
-                                                    <input
-                                                      type="checkbox"
-                                                      disabled={role.id === 5}
-                                                      checked={role.id === 5 ? true : Math.random() < 0.5} // Ganti logika bila diperlukan
-                                                      onChange={(e) =>
-                                                        handleCheckboxChange(role.id, perm.id, e.target.checked)
-                                                      }
-                                                    />
-                                                  </label>
-                                                </td>
-                                              </tr>
-                                            ))}
-                                          </tbody>
-                                        </table>
+                                        <input
+                                          type="checkbox"
+                                          checked={isPermissionChecked(role.id, permission.id)}
+                                          onChange={(e) =>
+                                            handleCheckboxChange(
+                                              role.id,
+                                              permission.id,
+                                              e.target.checked
+                                            )
+                                          }
+                                        />
                                       </td>
                                     </tr>
-                                  )}
+                                  ))}
                                 </React.Fragment>
                               ))}
                             </tbody>
@@ -227,10 +325,39 @@ const ManageRole = () => {
             </table>
           </div>
         )}
+        <div className="btn-apply-container">
+          <button
+            className={`btn-apply ${hasUnsavedChanges ? '' : 'disabled'}`}
+            disabled={!hasUnsavedChanges}
+            onClick={savePermissions}
+          >
+            Save Permissions
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default ManageRole;
 
+
+const Breadcrumbs = ({ paths }) => {
+  return (
+    <nav>
+      <ul className="breadcrumbs">
+        {paths.map((path, index) => (
+          <li key={index}>
+            {path.link ? (
+              <Link to={path.link}>{path.label}</Link>
+            ) : (
+              <span>{path.label}</span>
+            )}
+            {index < paths.length - 1 && " / "}
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};
+
+export default ManageRole;
