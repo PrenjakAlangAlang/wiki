@@ -5,7 +5,7 @@ import profile from "../assets/user.png";
 import search from "../assets/search.png";
 import ModalLogout from "./ModalLogout";
 import Sidebar2 from "./Sidebar2";
-import 'font-awesome/css/font-awesome.min.css';
+import "font-awesome/css/font-awesome.min.css";
 
 const Navbar = ({ searchTerm, setSearchTerm }) => {
   const location = useLocation();
@@ -24,18 +24,40 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
   useEffect(() => {
     const handleStorageChange = () => {
       try {
-        const userData = JSON.parse(localStorage.getItem("user"));
-        setUser(userData);
-      } catch {
+        // Ambil data user dari localStorage dan dekode token untuk permission
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+
+        if (token) {
+          try {
+            // Decode token untuk mendapatkan permissions
+            const tokenData = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
+            const userWithPermissions = {
+              ...storedUser,
+              permissions: tokenData.permissions || [],
+            };
+            setUser(userWithPermissions);
+            console.log("User loaded with permissions:", userWithPermissions);
+          } catch (e) {
+            console.error("Error parsing token:", e);
+            setUser(storedUser);
+          }
+        } else {
+          setUser(storedUser);
+        }
+      } catch (e) {
+        console.error("Error reading user data:", e);
         setUser(null);
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
+    handleStorageChange(); // Pastikan untuk memanggilnya saat pertama kali render
+
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, []);
+  }, []); // Tidak ada dependensi, berarti hanya dijalankan sekali
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -91,68 +113,50 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
       <div className="header">
         <nav>
           <div className="navbar-header">
-            <button
-              onClick={() => setIsSidebar2Open(!isSidebar2Open)}
-              className="hamburger-menu"
-            >
+            <button onClick={() => setIsSidebar2Open(!isSidebar2Open)} className="hamburger-menu">
               <svg width="24" height="24" viewBox="0 0 24 24">
-                <path
-                  d="M3 6h18M3 12h18m-7 6h7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
+                <path d="M3 6h18M3 12h18m-7 6h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </button>
             <div className="navbar-left">
-              <Link
-                to="/"
-                className="nav-link logo-container"
-                onClick={clearSearch}
-              >
+              <Link to="/" className="nav-link logo-container" onClick={clearSearch}>
                 <img src={logo} alt="Logo Pemda DIY" className="logo" />
               </Link>
             </div>
           </div>
 
-          <div className="navbar-center">
-            <div className="search-bar">
-              <input
-                type="text"
-                value={searchTerm || ""}
-                onChange={handleSearch}
-                placeholder="Search ..."
-              />
-              <button onClick={() => navigate(`/search/${searchTerm.trim()}`)}>
-                <img src={search} alt="Search" className="search-icon" />
-              </button>
+          {user && user.permissions && user.permissions.includes("search_contents") && (
+            <div className="navbar-center">
+              <div className="search-bar">
+                <input type="text" value={searchTerm || ""} onChange={handleSearch} placeholder="Search ..." />
+                <button onClick={() => navigate(`/search/${searchTerm.trim()}`)}>
+                  <img src={search} alt="Search" className="search-icon" />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="navbar-right">
             {user ? (
               <>
                 <div className="profile-container">
-                  <div
-                    className="profile"
-                    onClick={() => setShowDropdown(!showDropdown)}
-                  >
+                  <div className="profile" onClick={() => setShowDropdown(!showDropdown)}>
                     <img src={profile} alt="Profile" />
                   </div>
-                  <div
-                    className={`profile-dropdown ${showDropdown ? "show" : ""}`}
-                  >
-                    <Link
-                      to="/profile"
-                      onClick={() => {
-                        clearSearch();
-                        setShowDropdown(false);
-                      }}
-                    >
-                      <i className="fa fa-user" style={{ marginRight: '11px' }}></i> Profile
-                    </Link>
+                  <div className={`profile-dropdown ${showDropdown ? "show" : ""}`}>
+                    {user && user.permissions && user.permissions.includes("view_user") && (
+                      <Link
+                        to="/profile"
+                        onClick={() => {
+                          clearSearch();
+                          setShowDropdown(false);
+                        }}
+                      >
+                        <i className="fa fa-user" style={{ marginRight: "11px" }}></i> Profile
+                      </Link>
+                    )}
 
-                    {(user.role_id === 1 || user.role_id === 5) && (
+                    {user && user.permissions && user.permissions.includes("view_all_users") && (
                       <Link
                         to="/manage"
                         onClick={() => {
@@ -160,12 +164,11 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                           setShowDropdown(false);
                         }}
                       >
-                        <i className="fa fa-users" style={{ marginRight: '5px' }}></i> Manage User
+                        <i className="fa fa-users" style={{ marginRight: "5px" }}></i> Manage User
                       </Link>
                     )}
-                    {(user.role_id === 1 ||
-                      user.role_id === 5 ||
-                      user.role_id === 2) && (
+
+                    {user && user.permissions && user.permissions.includes("view_drafts") && (
                       <Link
                         to="/manage-content"
                         onClick={() => {
@@ -173,10 +176,11 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                           setShowDropdown(false);
                         }}
                       >
-                        <i className="fa fa-folder" style={{ marginRight: '8px' }}></i> Manage Content
+                        <i className="fa fa-folder" style={{ marginRight: "8px" }}></i> Manage Content
                       </Link>
                     )}
-                    {user.role_id === 3 && (
+
+                    {user && user.permissions && user.permissions.includes("view_user_contents") && (
                       <Link
                         to="/view-status-content"
                         onClick={() => {
@@ -184,11 +188,11 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                           setShowDropdown(false);
                         }}
                       >
-                        <i className="fa fa-check-circle" style={{ marginRight: '5px' }}></i> View Status Content
+                        <i className="fa fa-check-circle" style={{ marginRight: "5px" }}></i> View Status Content
                       </Link>
                     )}
 
-                    {user.role_id === 5 && (
+                    {user && user.permissions && user.permissions.includes("manage_role") && (
                       <Link
                         to="/manage-role"
                         onClick={() => {
@@ -196,7 +200,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                           setShowDropdown(false);
                         }}
                       >
-                        <i className="fa fa-clipboard" style={{ marginRight: '6px' }}></i> Manage Role
+                        <i className="fa fa-clipboard" style={{ marginRight: "6px" }}></i> Manage Role
                       </Link>
                     )}
 
@@ -206,14 +210,13 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                         handleLogoutConfirmation(); // Panggil konfirmasi logout
                       }}
                     >
-                      <i className="fa fa-sign-out" style={{ marginRight: '11px', color:'red' }}></i> Logout
+                      <i className="fa fa-sign-out" style={{ marginRight: "11px", color: "red" }}></i> Logout
                     </button>
                   </div>
                 </div>
                 <div className="username-container">
                   <span className="user-name">{user.name}</span>
-                  <span className="user-role">{user.role}</span>{" "}
-                  {/* Menampilkan role */}
+                  <span className="user-role">{user.role}</span> {/* Menampilkan role */}
                 </div>
               </>
             ) : (
@@ -232,10 +235,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
       </div>
 
       {/* Render Sidebar2 */}
-      <Sidebar2
-        isOpen={isSidebar2Open}
-        onClose={() => setIsSidebar2Open(false)}
-      />
+      <Sidebar2 isOpen={isSidebar2Open} onClose={() => setIsSidebar2Open(false)} />
 
       {/* Modal Logout */}
       <ModalLogout
