@@ -1775,3 +1775,63 @@ input {
     background-color: #218838;;
   }
 
+  .button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #0066b2;
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 0px 0px 4px rgba(180, 160, 255, 0.253);
+  cursor: pointer;
+  transition-duration: 0.3s;
+  overflow: hidden;
+  position: fixed; /* Fixed position to stay at the bottom center */
+  bottom: 20px; /* Distance from the bottom */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust for exact center */
+  z-index: 1000; /* Ensure it stays above other content */
+}
+
+.svgIcon {
+  width: 12px;
+  transition-duration: 0.3s;
+}
+
+.svgIcon path {
+  fill: white;
+}
+
+.button:hover {
+  width: 140px;
+  border-radius: 50px;
+  transition-duration: 0.3s;
+  background-color: #0066b2;
+  align-items: center;
+}
+
+.button:hover .svgIcon {
+  transition-duration: 0.3s;
+  transform: translateY(-200%);
+}
+
+.button::before {
+  position: absolute;
+  bottom: -20px;
+  content: "Back to Top";
+  color: white;
+  font-size: 0px;
+}
+
+.button:hover::before {
+  font-size: 13px;
+  opacity: 1;
+  transition-duration: 0.3s;
+  bottom: unset;
+}
+.button.disabled {
+    opacity: 0;
+  }
