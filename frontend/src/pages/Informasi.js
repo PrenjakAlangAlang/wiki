@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import DeleteCard from '../component/DeleteCard';
 
@@ -12,6 +12,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
   const [isButtonVisible, setIsButtonVisible] = useState(false); // State for scroll-to-top button visibility
   const { id } = useParams();
   const navigate = useNavigate();
+  const hasLoadedRef = useRef(false);
 
   const formatDate = (dateString) => {
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
@@ -22,7 +23,12 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
 
-    const fetchUserData = async () => {
+    const fetchAllData = async () => {
+      // Skip if we've already loaded this content ID
+      if (hasLoadedRef.current) {
+        return;
+      }
+
       if (!token) {
         console.warn("No token found!");
         setUser(storedUser);
@@ -30,63 +36,64 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
       }
 
       try {
-        const response = await fetch("/api/decode", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-          },
-          body: JSON.stringify({
-            encrypted_token: token,
+        hasLoadedRef.current = true;  // Mark as loaded before the fetch
+
+        // Fetch user data and content data in parallel
+        const [userResponse, contentResponse] = await Promise.all([
+          fetch("/api/decode", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+            },
+            body: JSON.stringify({
+              encrypted_token: token,
+            }),
           }),
-        });
+          fetch(`http://localhost:3000/api/content/${id}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          })
+        ]);
 
-        if (!response.ok) throw new Error("Failed to fetch user data");
-
-        const userData = await response.json();
-        setUser(userData);
-        console.log("User loaded with permissions:", userData);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setUser(storedUser);
-      }
-    };
-
-    fetchUserData();
-
-    const fetchData = async () => {
-      const token = localStorage.getItem('token');
-
-      try {
-        const response = await fetch(`http://localhost:3000/api/content/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorMessage = await response.text();
-          throw new Error(errorMessage || 'Failed to fetch data');
+        if (!userResponse.ok) throw new Error("Failed to fetch user data");
+        if (!contentResponse.ok) {
+          const errorMessage = await contentResponse.text();
+          throw new Error(errorMessage || 'Failed to fetch content data');
         }
 
-        const data = await response.json();
-        setContent(data);
-        setSubheadings(data?.subheadings || []);
-        setTags(data.content.tag ? data.content.tag.split(',') : []);
-        setUpdatedAt(formatDate(data.content.updated_at));
+        // Parse both responses
+        const [userData, contentData] = await Promise.all([
+          userResponse.json(),
+          contentResponse.json()
+        ]);
+
+        // Update user data
+        setUser(userData);
+        console.log("User loaded with permissions:", userData);
+
+        // Update content data
+        setContent(contentData);
+        setSubheadings(contentData?.subheadings || []);
+        setTags(contentData.content.tag ? contentData.content.tag.split(',') : []);
+        setUpdatedAt(formatDate(contentData.content.updated_at));
         setContentId(id);
-        setAuthorName(data.author_name);
-      } catch (err) {
-        console.error("Error fetching content:", err);
+        setAuthorName(contentData.author_name);
+
+      } catch (error) {
+        hasLoadedRef.current = false;  // Reset on error
+        console.error("Error fetching data:", error);
+        setUser(storedUser);
         setError("Failed to fetch content. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) fetchData();
+    fetchAllData();
   }, [id, setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName]);
 
   useEffect(() => {

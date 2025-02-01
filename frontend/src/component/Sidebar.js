@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import "font-awesome/css/font-awesome.min.css";
+
 const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
     const location = useLocation();
     const [editorName, setEditorName] = useState("Loading...");
     const isHomePage = location.pathname === "/";
     const [currentUser, setCurrentUser] = useState(null);
     const [viewCount, setViewCount] = useState(0); // State for view count
+    const [author, setAuthor] = useState("Loading..."); // State for author name
 
     const defaultHomeContents = [
         { id: "welcome", title: "Selamat datang di Wiki Pemda" },
@@ -54,7 +56,14 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
     useEffect(() => {
         if (contentId && currentUser?.permissions?.includes("view_latest_editor")) {
             // Only fetch editor name if user has permission
-            fetch(`http://localhost:3000/api/latest-editor-name/${contentId}`)
+            const token = localStorage.getItem("token");
+            fetch(`http://localhost:3000/api/latest-editor-name/${contentId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+            })
                 .then((res) => res.json())
                 .then((data) => {
                     setEditorName(data.editorName || "Unknown Editor");
@@ -80,6 +89,12 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
             .catch((err) => console.error("Error fetching view count:", err));
         }
     }, [contentId]);
+
+    useEffect(() => {
+        if (contentId) {
+            setAuthor(authorName);
+        }
+    }, [contentId, authorName]);
 
     return (
         <main className="main">
@@ -143,7 +158,14 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
                                     ))}
                             </ul>
                         </div>
-                        
+                        {!isHomePage && (
+                            <div className="small-box">
+                                <h5 className="tags-title">CREATED CONTENT BY</h5>
+                                <ul className="link-list">
+                                    <li>{author}</li>
+                                </ul>
+                            </div>
+                        )}
                         {!isHomePage && currentUser?.permissions?.includes("view_latest_editor") && (
                             <div className="small-box">
                                 <h5 className="tags-title">LAST EDITED BY</h5>
@@ -158,10 +180,12 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
                             <div className="small-box">
                                 <h5 className="tags-title">VIEW COUNT</h5>
                                 <ul className="link-list">
-                                    <li>{viewCount} <i className="fa fa-eye" style={{ marginRight: "5px", marginLeft: "5px" }}></i>views</li>
+                                    <li>{viewCount} <i className="fa fa-eye" style={{ marginRight: "5px", marginLeft: "10px" }}></i>views</li>
                                 </ul>
                             </div>
                         )}
+
+                        
                     </ul>
                 </div>
             </aside>
