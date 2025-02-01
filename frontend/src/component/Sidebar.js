@@ -17,22 +17,37 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
         const storedUser = JSON.parse(localStorage.getItem("user"));
         const token = localStorage.getItem("token");
 
-        if (token) {
+        const fetchUserData = async () => {
+            if (!token) {
+                console.warn("No token found!");
+                setCurrentUser(storedUser);
+                return;
+            }
+
             try {
-                // Decode token to extract permissions
-                const tokenData = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
-                const userWithPermissions = {
-                    ...storedUser,
-                    permissions: tokenData.permissions || [],
-                };
-                setCurrentUser(userWithPermissions);
-            } catch (e) {
-                console.error("Error parsing token:", e);
+                const response = await fetch("/api/decode", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                    },
+                    body: JSON.stringify({
+                        encrypted_token: token, // Kirim token dalam body
+                    }),
+                });
+
+                if (!response.ok) throw new Error("Failed to fetch user data");
+
+                const userData = await response.json();
+                setCurrentUser(userData);
+                console.log("User loaded with permissions:", userData);
+            } catch (error) {
+                console.error("Error fetching user data:", error);
                 setCurrentUser(storedUser);
             }
-        } else {
-            setCurrentUser(storedUser);
-        }
+        };
+
+        fetchUserData();
     }, []); // Run once on component mount
 
     useEffect(() => {

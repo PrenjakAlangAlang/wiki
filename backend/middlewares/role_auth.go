@@ -24,8 +24,7 @@ func RoleAuthMiddleware(requiredPermission string, next http.Handler) http.Handl
 		log.Printf("Fetching permissions for role_id: %d", userClaims.RoleID)
 
 		// Ambil permissions berdasarkan role_id dari database
-		// Konversikan RoleID dari int64 ke int
-		permissions, err := getPermissionsForRole(int(userClaims.RoleID)) // konversi ke int
+		permissions, err := getPermissionsForRole(int(userClaims.RoleID))
 		if err != nil {
 			log.Printf("Failed to get permissions: %v", err)
 			http.Error(w, "Failed to get permissions", http.StatusInternalServerError)
@@ -45,6 +44,9 @@ func RoleAuthMiddleware(requiredPermission string, next http.Handler) http.Handl
 			http.Error(w, "You do not have the required permission to access this resource", http.StatusForbidden)
 			return
 		}
+
+		// Set permissions ke dalam context agar frontend bisa mengaksesnya
+		userClaims.Permissions = permissions
 
 		// Jika user memiliki permission yang diperlukan, lanjutkan ke handler berikutnya
 		next.ServeHTTP(w, r)

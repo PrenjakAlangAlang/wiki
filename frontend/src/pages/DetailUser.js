@@ -30,20 +30,38 @@ const DetailUser = () => {
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) {
+
+    const fetchUserData = async () => {
+      if (!token) {
+        console.warn("No token found!");
+        setCurrentUser(storedUser);
+        return;
+      }
+
       try {
-        // Decode token to extract permissions
-        const tokenData = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
-        const userWithPermissions = {
-          ...storedUser,
-          permissions: tokenData.permissions || [],
-        };
-        setCurrentUser(userWithPermissions);
-      } catch (e) {
-        console.error("Error parsing token:", e);
+        const response = await fetch("/api/decode", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+          },
+          body: JSON.stringify({
+            encrypted_token: token, // Kirim token dalam body
+          }),
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        const userData = await response.json();
+        setCurrentUser(userData);
+        console.log("User loaded with permissions:", userData);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
         setCurrentUser(storedUser);
       }
-    }
+    };
+
+    fetchUserData();
 
     // Fetch user details with token in Authorization header
     fetch(`http://localhost:3000/api/user/${id}`, {
@@ -222,11 +240,7 @@ const DetailUser = () => {
   };
 
   // Fungsi untuk mendapatkan title konten berdasarkan ID
-  const getContentTitle = (contentId) => {
-    // Mencari content berdasarkan contentId yang ada di tabel contents
-    const content = contents.find((content) => content.id === contentId);
-    return content ? content.title : "Unknown Title";  // Jika ditemukan, tampilkan title, jika tidak tampilkan Unknown Title
-  };
+
 
   useEffect(() => {
     if (contents && histories) {

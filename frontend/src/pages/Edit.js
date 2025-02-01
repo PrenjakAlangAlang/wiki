@@ -2,47 +2,131 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import DeleteSubheadingCard from '../component/DeleteSubheadingCard'; // Import komponen DeleteSubheadingCard
+import DeleteSubheadingCard from '../component/DeleteSubheadingCard';
 
 const Edit = () => {
   const { id } = useParams();
   const [user, setUser] = useState(null);
+  const [originalContent, setOriginalContent] = useState(null);
   const [updatedContentTitle, setUpdatedContentTitle] = useState("");
   const [updatedContentDescription, setUpdatedContentDescription] = useState("");
   const [updatedInstanceID, setUpdatedInstanceID] = useState("");
   const [updatedContentTag, setUpdatedContentTag] = useState("");
   const [subheadings, setSubheadings] = useState([]);
   const [updatedSubheadings, setUpdatedSubheadings] = useState({});
+  const [hasChanges, setHasChanges] = useState(false);
   const navigate = useNavigate();
   const [instances, setInstances] = useState([]);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State modal hapus
-  const [subheadingToDelete, setSubheadingToDelete] = useState(null); // State untuk ID subheading yang dihapus
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [subheadingToDelete, setSubheadingToDelete] = useState(null);
+  const [lastHistoryUpdate, setLastHistoryUpdate] = useState(null);
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
-    
-    if (token) {
+
+    const fetchUserData = async () => {
+      if (!token) {
+        console.warn("No token found!");
+        setUser(storedUser);
+        return;
+      }
+
       try {
-        const tokenData = JSON.parse(atob(token.split('.')[1]));
-        const userWithPermissions = {
-          ...storedUser,
-          permissions: tokenData.permissions || []
-        };
-        setUser(userWithPermissions);
-        console.log("User loaded with permissions:", userWithPermissions);
-      } catch (e) {
-        console.error("Error parsing token:", e);
+        const response = await fetch("/api/decode", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+          },
+          body: JSON.stringify({
+            encrypted_token: token,
+          }),
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        const userData = await response.json();
+        setUser(userData);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
         setUser(storedUser);
       }
-    } else {
-      console.warn("No token found!");
-      setUser(storedUser);
-    }
+    };
 
+    fetchUserData();
     fetchContent(id);
     fetchInstances();
   }, [id]);
+
+  // Add change detection effect
+  useEffect(() => {
+    if (!originalContent) return;
+
+    const hasContentChanges = 
+      originalContent.title !== updatedContentTitle ||
+      originalContent.description !== updatedContentDescription ||
+      originalContent.instance_id !== updatedInstanceID ||
+      originalContent.tag !== updatedContentTag;
+
+    const hasSubheadingChanges = subheadings.some(sub => {
+      const updatedSub = updatedSubheadings[sub.id];
+      return updatedSub && (
+        updatedSub.subheading !== sub.subheading ||
+        updatedSub.subheading_description !== sub.subheading_description
+      );
+    });
+
+    setHasChanges(hasContentChanges || hasSubheadingChanges);
+
+    // Record history if changes detected and enough time has passed
+    const shouldRecordHistory = hasChanges && 
+      (!lastHistoryUpdate || Date.now() - lastHistoryUpdate > 30000); // 30 seconds cooldown
+
+    if (shouldRecordHistory) {
+      recordEditHistory();
+    }
+  }, [updatedContentTitle, updatedContentDescription, updatedInstanceID, 
+      updatedContentTag, updatedSubheadings]);
+
+  const recordEditHistory = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const currentDate = new Date();
+      const formattedDate = currentDate.toLocaleString("en-US", {
+        timeZone: "Asia/Jakarta",
+        hour12: false,
+      });
+
+      const [date, time] = formattedDate.split(", ");
+      const [month, day, year] = date.split("/");
+      const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+
+      const historyData = {
+        content_id: parseInt(id, 10),
+        editor_id: user.id,
+        action: "Editing",
+        edited_at: formattedMySQLDate,
+      };
+
+      const historyResponse = await fetch("http://localhost:3000/api/history/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(historyData),
+      });
+
+      if (historyResponse.ok) {
+        setLastHistoryUpdate(Date.now());
+      } else {
+        console.error("Failed to record edit history");
+      }
+    } catch (error) {
+      console.error("Error recording edit history:", error);
+    }
+  };
 
   const fetchInstances = async () => {
     try {
@@ -67,6 +151,14 @@ const Edit = () => {
       });
       if (!response.ok) throw new Error("Failed to fetch content");
       const data = await response.json();
+
+      // Store original content for change detection
+      setOriginalContent({
+        title: data.content?.title || "",
+        description: data.content.description?.String || "",
+        instance_id: data.content.instance_id || "",
+        tag: data.content.tag || "",
+      });
 
       setUpdatedContentTitle(data.content?.title || "");
       setUpdatedContentDescription(data.content.description?.String || "");

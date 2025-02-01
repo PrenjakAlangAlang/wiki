@@ -23,12 +23,8 @@ const ManageUser = () => {
   const [addUserModal, setAddUserModal] = useState({ isOpen: false, userData: {} });
   const itemsPerPage = 10;
 
-  const fetchToken = () => {
-    return localStorage.getItem("token");
-  };
-
   const fetchUsers = useCallback(() => {
-    const token = fetchToken();
+    const token = localStorage.getItem("token");
     fetch("http://localhost:3000/api/users", {
       method: "GET",
       headers: {
@@ -42,7 +38,7 @@ const ManageUser = () => {
   }, []);
 
   const fetchRoles = useCallback(() => {
-    const token = fetchToken();
+    const token = localStorage.getItem("token");
     fetch("http://localhost:3000/api/roles", {
       method: "GET",
       headers: {
@@ -56,7 +52,7 @@ const ManageUser = () => {
   }, []);
 
   const fetchInstances = useCallback(() => {
-    const token = fetchToken();
+    const token = localStorage.getItem("token");
     fetch("http://localhost:3000/api/instances", {
       method: "GET",
       headers: {
@@ -73,25 +69,37 @@ const ManageUser = () => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
 
-    if (token) {
+    const fetchUserData = async () => {
+      if (!token) {
+        console.warn("No token found!");
+        setUser(storedUser);
+        return;
+      }
+
       try {
-        // Decode token to extract permissions
-        const tokenData = JSON.parse(atob(token.split(".")[1]));
-        const userWithPermissions = {
-          ...storedUser,
-          permissions: tokenData.permissions || [],
-        };
-        setUser(userWithPermissions);
-        console.log("User loaded with permissions:", userWithPermissions);
-      } catch (e) {
-        console.error("Error parsing token:", e);
+        const response = await fetch("/api/decode", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+          },
+          body: JSON.stringify({
+            encrypted_token: token, // Kirim token dalam body
+          }),
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        const userData = await response.json();
+        setUser(userData);
+        console.log("User loaded with permissions:", userData);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
         setUser(storedUser);
       }
-    } else {
-      console.warn("No token found!");
-      setUser(storedUser);
-    }
+    };
 
+    fetchUserData();
     fetchUsers();
     fetchRoles();
     fetchInstances();
@@ -136,7 +144,7 @@ const ManageUser = () => {
     if (!userId) return;
 
     try {
-      const token = fetchToken();
+      const token = localStorage.getItem("token");
       const response = await fetch(`http://localhost:3000/api/user/${userId}`, {
         method: "DELETE",
         headers: {
@@ -158,7 +166,7 @@ const ManageUser = () => {
   };
 
   const handleAddUser = async () => {
-    const token = fetchToken();
+    const token = localStorage.getItem("token");
     const payload = {
       ...formData,
       nip: Number(formData.nip),

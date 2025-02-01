@@ -2,6 +2,9 @@ package middleware
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,13 +12,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtKey = []byte("wiki") 
+// Kunci untuk JWT dan AES
+var jwtKey = []byte("wiki")
+var encryptionKey = []byte("myverystrongpasswordo32bitlength") // Pastikan panjangnya 32 byte
 
 // Claims adalah struktur untuk klaim token JWT
 type Claims struct {
-	ID     int  `json:"id"`
-	Role   string  `json:"role"`
-	RoleID int64 `json:"role_id"` // Menambahkan field role_id
+	ID     int    `json:"id"`
+	Role   string `json:"role"`
+	RoleID int64  `json:"role_id"` // Menambahkan field role_id
+	Permissions []string `json:"permissions"`
 	jwt.RegisteredClaims
 }
 
@@ -24,6 +30,40 @@ type ContextKey string
 
 // UserContextKey adalah key context untuk menyimpan klaim pengguna
 const UserContextKey ContextKey = "user"
+
+// decryptToken mendekripsi token JWT yang terenkripsi dengan AES-GCM
+func decryptToken(encryptedToken string) (string, error) {
+	decoded, err := base64.StdEncoding.DecodeString(encryptedToken)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode base64 token: %v", err)
+	}
+
+	block, err := aes.NewCipher(encryptionKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to create AES cipher: %v", err)
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", fmt.Errorf("failed to create GCM mode: %v", err)
+	}
+
+	nonceSize := aesGCM.NonceSize()
+	if len(decoded) < nonceSize {
+		return "", fmt.Errorf("invalid encrypted token format")
+	}
+
+	nonce := decoded[:nonceSize]
+	ciphertext := decoded[nonceSize:]
+
+	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to decrypt token: %v", err)
+	}
+
+	return string(plaintext), nil
+}
+
 
 // JWTAuth adalah middleware untuk memvalidasi token JWT
 func JWTAuth(next http.Handler) http.Handler {
@@ -37,7 +77,6 @@ func JWTAuth(next http.Handler) http.Handler {
 		// Periksa apakah Authorization header ada
 		authHeader := r.Header.Get("Authorization")
 
-		// Jika tidak ada header Authorization, beri respons error
 		if authHeader == "" {
 			http.Error(w, "Authorization header is missing", http.StatusUnauthorized)
 			return
@@ -49,8 +88,14 @@ func JWTAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		// Ambil token dari header
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		// Ambil token dari header dan dekripsi terlebih dahulu
+		encryptedToken := strings.TrimPrefix(authHeader, "Bearer ")
+		tokenString, err := decryptToken(encryptedToken)
+		if err != nil {
+			http.Error(w, "Failed to decrypt token", http.StatusUnauthorized)
+			return
+		}
+
 		claims := &Claims{}
 
 		// Parsing token dengan klaim

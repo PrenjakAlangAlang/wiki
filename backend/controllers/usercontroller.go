@@ -3,6 +3,10 @@ package controllers
 import (
 	"backend/entities"
 	"backend/models"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,115 +19,141 @@ import (
 
 var userModel = models.NewUserModel()
 var jwtKey = []byte("wiki") 
+var encryptionKey = []byte("myverystrongpasswordo32bitlength") // Harus 32 byte
+
+func encrypt(text string, key []byte) (string, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	nonce := make([]byte, aesGCM.NonceSize())
+	if _, err := rand.Read(nonce); err != nil {
+		return "", err
+	}
+
+	ciphertext := aesGCM.Seal(nonce, nonce, []byte(text), nil)
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
+}
+
 
 func Login(response http.ResponseWriter, request *http.Request) {
-    var user entities.User
+	var user entities.User
 
-    // Decode request body untuk mendapatkan data user
-    err := json.NewDecoder(request.Body).Decode(&user)
-    if err != nil || user.Email == "" || user.Password == "" {
-        response.Header().Set("Content-Type", "application/json")
-        response.WriteHeader(http.StatusBadRequest)
-        json.NewEncoder(response).Encode(map[string]string{
-            "error": "Invalid request format or missing fields",
-        })
-        return
-    }
+	err := json.NewDecoder(request.Body).Decode(&user)
+	if err != nil || user.Email == "" || user.Password == "" {
+		response.Header().Set("Content-Type", "application/json")
+		response.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(response).Encode(map[string]string{
+			"error": "Invalid request format or missing fields",
+		})
+		return
+	}
 
-    // Verifikasi kredensial pengguna
-    userModel := models.NewUserModel()
-    authenticatedUser, err := userModel.Authenticate(user.Email, user.Password)
-    if err != nil {
-        response.Header().Set("Content-Type", "application/json")
-        response.WriteHeader(http.StatusUnauthorized)
-        json.NewEncoder(response).Encode(map[string]string{
-            "error": "Invalid email or password",
-        })
-        return
-    }
+	userModel := models.NewUserModel()
+	authenticatedUser, err := userModel.Authenticate(user.Email, user.Password)
+	if err != nil {
+		response.Header().Set("Content-Type", "application/json")
+		response.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(response).Encode(map[string]string{
+			"error": "Invalid email or password",
+		})
+		return
+	}
 
-    // Ambil data role berdasarkan user
-    roleModel := models.NewRoleModel()
-    role, err := roleModel.FindRoleById(authenticatedUser.Role_Id)
-    if err != nil {
-        response.Header().Set("Content-Type", "application/json")
-        response.WriteHeader(http.StatusNotFound)
-        json.NewEncoder(response).Encode(map[string]string{
-            "error": "Role not found",
-        })
-        return
-    }
+	roleModel := models.NewRoleModel()
+	role, err := roleModel.FindRoleById(authenticatedUser.Role_Id)
+	if err != nil {
+		response.Header().Set("Content-Type", "application/json")
+		response.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(response).Encode(map[string]string{
+			"error": "Role not found",
+		})
+		return
+	}
 
-    // Ambil permissions terkait role melalui tabel role_permission
-    permissionModel := models.NewPermissionModel()
-    permissions, err := permissionModel.GetPermissionsByRole(role.Id)
-    if err != nil {
-        response.Header().Set("Content-Type", "application/json")
-        response.WriteHeader(http.StatusNotFound)
-        json.NewEncoder(response).Encode(map[string]string{
-            "error": "Permissions not found for this role",
-        })
-        return
-    }
+	permissionModel := models.NewPermissionModel()
+	permissions, err := permissionModel.GetPermissionsByRole(role.Id)
+	if err != nil {
+		response.Header().Set("Content-Type", "application/json")
+		response.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(response).Encode(map[string]string{
+			"error": "Permissions not found for this role",
+		})
+		return
+	}
 
-    // Membuat JWT token dengan permission terkait role
-    expirationTime := time.Now().Add(1 * time.Hour) // Token berakhir dalam 1 jam
-    permissionsList := []string{}
-    for _, permission := range permissions {
-        permissionsList = append(permissionsList, permission.Name)
-    }
+	expirationTime := time.Now().Add(1 * time.Hour)
+	permissionsList := []string{}
+	for _, permission := range permissions {
+		permissionsList = append(permissionsList, permission.Name)
+	}
 
-    claims := jwt.MapClaims{
-        "id":           authenticatedUser.Id,
-        "role":         role.Name,
-        "role_id":      authenticatedUser.Role_Id,
-        "permissions":  permissionsList,
-        "instance_id":  authenticatedUser.Instance_Id,
-        "exp":          expirationTime.Unix(),
-    }
+	claims := jwt.MapClaims{
+		"id":          authenticatedUser.Id,
+		"role":        role.Name,
+		"role_id":     authenticatedUser.Role_Id,
+		"permissions": permissionsList,
+		"instance_id": authenticatedUser.Instance_Id,
+		"exp":         expirationTime.Unix(),
+	}
 
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    tokenString, err := token.SignedString(jwtKey)
-    if err != nil {
-        response.Header().Set("Content-Type", "application/json")
-        response.WriteHeader(http.StatusInternalServerError)
-        json.NewEncoder(response).Encode(map[string]string{
-            "error": "Could not generate token",
-        })
-        return
-    }
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		response.Header().Set("Content-Type", "application/json")
+		response.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(response).Encode(map[string]string{
+			"error": "Could not generate token",
+		})
+		return
+	}
 
-    // Kirimkan token dan data pengguna dalam response
-    instanceModel := models.NewInstanceModel()
-    instance, err := instanceModel.FindInstanceById(authenticatedUser.Instance_Id)
-    if err != nil {
-        response.Header().Set("Content-Type", "application/json")
-        response.WriteHeader(http.StatusNotFound)
-        json.NewEncoder(response).Encode(map[string]string{
-            "error": "Instance not found",
-        })
-        return
-    }
+	// Enkripsi token sebelum dikirim ke client
+	encryptedToken, err := encrypt(tokenString, encryptionKey)
+	if err != nil {
+		response.Header().Set("Content-Type", "application/json")
+		response.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(response).Encode(map[string]string{
+			"error": "Could not encrypt token",
+		})
+		return
+	}
 
-    // Menyusun response JSON dengan token, role, permissions, dan data pengguna
-    jsonResponse := map[string]interface{}{
-        "id":          authenticatedUser.Id,
-        "name":        authenticatedUser.Name,
-        "email":       authenticatedUser.Email,
-        "instance":    instance.Name,
-        "instance_id": authenticatedUser.Instance_Id,
-        "role":        role.Name,
-        "role_id":     authenticatedUser.Role_Id,
-        "nip":         authenticatedUser.NIP,
-        "permissions": permissionsList,
-        "token":       tokenString,
-    }
+	instanceModel := models.NewInstanceModel()
+	instance, err := instanceModel.FindInstanceById(authenticatedUser.Instance_Id)
+	if err != nil {
+		response.Header().Set("Content-Type", "application/json")
+		response.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(response).Encode(map[string]string{
+			"error": "Instance not found",
+		})
+		return
+	}
 
-    // Kirim response dengan data pengguna dan token
-    response.Header().Set("Content-Type", "application/json")
-    response.WriteHeader(http.StatusOK)
-    json.NewEncoder(response).Encode(jsonResponse)
+	jsonResponse := map[string]interface{}{
+		"id":          authenticatedUser.Id,
+		"name":        authenticatedUser.Name,
+		"email":       authenticatedUser.Email,
+		"instance":    instance.Name,
+		"instance_id": authenticatedUser.Instance_Id,
+		"role":        role.Name,
+		"role_id":     authenticatedUser.Role_Id,
+		"nip":         authenticatedUser.NIP,
+		"permissions": permissionsList,
+		"token":       encryptedToken, // Token yang sudah dienkripsi
+	}
+
+	response.Header().Set("Content-Type", "application/json")
+	response.WriteHeader(http.StatusOK)
+	json.NewEncoder(response).Encode(jsonResponse)
 }
+
 
 
 

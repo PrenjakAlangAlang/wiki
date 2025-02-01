@@ -20,24 +20,38 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
-    
-    if (token) {
+
+    const fetchUserData = async () => {
+      if (!token) {
+        console.warn("No token found!");
+        setUser(storedUser);
+        return;
+      }
+
       try {
-        const tokenData = JSON.parse(atob(token.split('.')[1]));
-        const userWithPermissions = {
-          ...storedUser,
-          permissions: tokenData.permissions || []
-        };
-        setUser(userWithPermissions);
-        console.log("User loaded with permissions:", userWithPermissions);
-      } catch (e) {
-        console.error("Error parsing token:", e);
+        const response = await fetch("/api/decode", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+          },
+          body: JSON.stringify({
+            encrypted_token: token,
+          }),
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        const userData = await response.json();
+        setUser(userData);
+        console.log("User loaded with permissions:", userData);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
         setUser(storedUser);
       }
-    } else {
-      console.warn("No token found!");
-      setUser(storedUser);
-    }
+    };
+
+    fetchUserData();
 
     const fetchData = async () => {
       const token = localStorage.getItem('token');
