@@ -17,4 +17,5 @@ type Content struct {
 	Author_name string         `json:"author_name"`
 	Status      string         `json:"status"`
 	Deleted_at  sql.NullTime   `json:"deleted_at"`
+	ViewCount   int            `json:"view_count"` // New field
 }

@@ -79,7 +79,8 @@ func main() {
 	r.Handle("/api/roles/{role_id}/permissions",middleware.JWTAuth(middleware.RoleAuthMiddleware("view_role_permission",http.HandlerFunc(rolePermissionController.GetPermissionsByRole)))).Methods("GET")
 	r.Handle("/api/roles/{role_id}/permissions/add/{permission_id}",middleware.JWTAuth(middleware.RoleAuthMiddleware("add_permission",http.HandlerFunc(rolePermissionController.AddPermissionToRole)))).Methods("POST") // 
 	r.Handle("/api/roles/{role_id}/permissions/delete/{permission_id}",middleware.JWTAuth(middleware.RoleAuthMiddleware("remove_permission",http.HandlerFunc(rolePermissionController.RemovePermissionFromRole)))).Methods("DELETE") //
-	
+	r.Handle("/api/content/viewcount/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_content", http.HandlerFunc(contentcontroller.GetContentViewCount)))).Methods("GET")
+
 	// Endpoint Untuk decyrypt
 	r.HandleFunc("/api/decode", helpers.GetDecodedJWT).Methods("POST")
 
