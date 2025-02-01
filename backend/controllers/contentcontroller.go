@@ -105,9 +105,16 @@ func GetContentByID(response http.ResponseWriter, request *http.Request) {
         return
     }
 
+    // Increment view count
+    err = contentModel.IncrementViewCount(int(id))
+    if err != nil {
+        http.Error(response, "Failed to increment view count", http.StatusInternalServerError)
+        return
+    }
+
     content, authorName, err := contentModel.FindByIDWithAuthorName(id)
     if err != nil {
-        http.Error(response, err.Error(), http.StatusInternalServerError)
+        http.Error(response, "Failed to fetch content", http.StatusInternalServerError)
         return
     }
 
@@ -118,7 +125,7 @@ func GetContentByID(response http.ResponseWriter, request *http.Request) {
 
     subheadings, err := subheadingModel.FindByContentID(content.Id)
     if err != nil {
-        http.Error(response, err.Error(), http.StatusInternalServerError)
+        http.Error(response, "Failed to fetch subheadings", http.StatusInternalServerError)
         return
     }
 
@@ -369,4 +376,23 @@ func RejectContent(w http.ResponseWriter, r *http.Request) {
     // Kirim response sukses
     w.WriteHeader(http.StatusOK)
     w.Write([]byte("Content rejected successfully"))
+}
+
+func GetContentViewCount(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    contentIDStr := vars["id"]
+    contentID, err := strconv.Atoi(contentIDStr)
+    if err != nil {
+        http.Error(w, fmt.Sprintf("Invalid content ID: %v", err), http.StatusBadRequest)
+        return
+    }
+
+    viewCount, err := contentModel.GetViewCountByContentID(contentID)
+    if err != nil {
+        http.Error(w, fmt.Sprintf("Failed to get view count: %v", err), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]int{"viewCount": viewCount})
 }

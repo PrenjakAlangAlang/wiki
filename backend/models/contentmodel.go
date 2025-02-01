@@ -224,3 +224,19 @@ func (m *ContentModel) UpdateStatus(contentID int, status string) error {
 	_, err := m.conn.Exec(query, status, contentID)
 	return err
 }
+
+func (p *ContentModel) GetViewCountByContentID(contentID int) (int, error) {
+    var viewCount int
+    query := "SELECT view_count FROM content WHERE id = ?"
+    err := p.conn.QueryRow(query, contentID).Scan(&viewCount)
+    if err != nil {
+        return 0, err
+    }
+    return viewCount, nil
+}
+
+func (p *ContentModel) IncrementViewCount(contentID int) error {
+    query := "UPDATE content SET view_count = view_count + 1 WHERE id = ?"
+    _, err := p.conn.Exec(query, contentID)
+    return err
+}

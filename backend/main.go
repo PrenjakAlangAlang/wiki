@@ -87,6 +87,8 @@ r.Handle("/api/roles/{role_id}/permissions/add/{permission_id}",
 r.Handle("/api/roles/{role_id}/permissions/delete/{permission_id}",
     middleware.JWTAuth(middleware.RoleAuthMiddleware("remove_permission",
     http.HandlerFunc(rolePermissionController.RemovePermissionFromRole)))).Methods("DELETE") //
+
+r.Handle("/api/content/viewcount/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_content", http.HandlerFunc(contentcontroller.GetContentViewCount)))).Methods("GET")
 		
 	// Endpoint tanpa middleware untuk login
 	r.HandleFunc("/api/login", usercontroller.Login).Methods("POST")
