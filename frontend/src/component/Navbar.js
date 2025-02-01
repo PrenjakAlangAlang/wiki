@@ -22,46 +22,64 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
   const [isSidebar2Open, setIsSidebar2Open] = useState(false);
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
-
-    const fetchUserData = async () => {
-      if (!token) {
-        console.warn("No token found!");
-        setUser(storedUser);
-        return;
-      }
-
+    const handleStorageChange = () => {
       try {
-        const response = await fetch("/api/decode", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-          },
-          body: JSON.stringify({
-            encrypted_token: token, // Kirim token dalam body, bukan hanya di header
-          }),
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch user data");
-
-        const userData = await response.json();
-        setUser(userData);
-        console.log("User loaded with permissions:", userData);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setUser(storedUser);
+        // Ambil data user dari localStorage
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+  
+        const fetchUserData = async () => {
+          if (!token) {
+            console.warn("No token found!");
+            setUser(storedUser); // Jika tidak ada token, langsung set user dari localStorage
+            return;
+          }
+  
+          try {
+            // Kirim token untuk decode menggunakan API
+            const response = await fetch("/api/decode", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+              },
+              body: JSON.stringify({ encrypted_token: token }), // Kirim token dalam body
+            });
+  
+            if (!response.ok) {
+              throw new Error("Failed to fetch user data");
+            }
+  
+            const userData = await response.json();
+            const userWithPermissions = {
+              ...storedUser,
+              permissions: userData.permissions || [], // Menggabungkan user dengan permissions dari decoded token
+            };
+  
+            setUser(userWithPermissions);
+            console.log("User loaded with permissions:", userWithPermissions);
+          } catch (e) {
+            console.error("Error fetching user data:", e);
+            setUser(storedUser); // Jika gagal fetch, tetap set user dari localStorage
+          }
+        };
+  
+        fetchUserData(); // Panggil fungsi untuk mengambil dan menggabungkan data user
+  
+      } catch (e) {
+        console.error("Error reading user data:", e);
+        setUser(null); // Jika terjadi error, set user ke null
       }
     };
-
-    fetchUserData(); // Panggil fungsi fetchUserData saat pertama kali render
-
-    window.addEventListener("storage", fetchUserData);
+  
+    window.addEventListener("storage", handleStorageChange);
+    handleStorageChange(); // Pastikan untuk memanggilnya saat pertama kali render
+  
     return () => {
-      window.removeEventListener("storage", fetchUserData);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
+  
 
   // Close dropdown when clicking outside
   useEffect(() => {
