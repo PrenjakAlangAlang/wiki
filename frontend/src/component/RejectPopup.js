@@ -5,19 +5,24 @@ const RejectPopup = ({ isOpen, onConfirm, onCancel, rejectReason, setRejectReaso
   if (!isOpen) return null;
 
   return (
-    <div className="popup-overlay">
-      <div className="popup-content">
-        <h3>Alasan Penolakan</h3>
+    <div className="modal-overlay">
+      <div className="modal-card">
+        <h2>Konfirmasi</h2>
+        <p>Apakah Anda yakin ingin menolak konten ini?</p>
+        <br />
         <textarea
           value={rejectReason}
           onChange={(e) => setRejectReason(e.target.value)}
           placeholder="Masukkan alasan penolakan..."
           rows="4"
+          cols="40"
+          
           required
         />
-        <div className="popup-buttons">
-          <button onClick={onCancel}>Cancel</button>
-          <button onClick={onConfirm}>Reject Content</button>
+        <div className="modal-actions">
+          <button className="btn btn-confirm" onClick={onConfirm}>Reject Content</button>
+          <button className="btn btn-cancel" onClick={onCancel}>Cancel</button>
+          
         </div>
       </div>
     </div>
