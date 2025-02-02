@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaInfoCircle, FaCheck, FaTimes } from "react-icons/fa";
 import ApprovalCard from "../component/ApprovalCard";
+import RejectPopup from "../component/RejectPopup"; // Assuming you have a RejectPopup component
 
 const ManageContent = () => {
   const [contents, setContents] = useState([]);
@@ -12,6 +13,9 @@ const ManageContent = () => {
   const [isApprovalOpen, setIsApprovalOpen] = useState(false);
   const [approvalMessage, setApprovalMessage] = useState("");
   const [pendingAction, setPendingAction] = useState(null);
+  const [isRejectPopupOpen, setIsRejectPopupOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [selectedContentId, setSelectedContentId] = useState(null);
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -32,7 +36,7 @@ const ManageContent = () => {
             "Accept": "application/json",
           },
           body: JSON.stringify({
-            encrypted_token: token, // Kirim token dalam body
+            encrypted_token: token,
           }),
         });
 
@@ -84,9 +88,93 @@ const ManageContent = () => {
       alert("You don't have permission to reject content.");
       return;
     }
-    setApprovalMessage("Apakah Anda yakin ingin menolak konten ini?");
-    setPendingAction(() => () => rejectContent(id));
-    setIsApprovalOpen(true);
+    setSelectedContentId(id);
+    setIsRejectPopupOpen(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectReason.trim()) {
+      alert("Alasan penolakan tidak boleh kosong.");
+      return;
+    }
+  
+    const token = localStorage.getItem("token");
+    try {
+      // Log the request payload for debugging
+      console.log("Sending rejection with reason:", rejectReason);
+      
+      const response = await fetch(`http://localhost:3000/api/content/reject/${selectedContentId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          reason: rejectReason.trim() 
+        }),
+      });
+  
+      // Log the response for debugging
+      const responseData = await response.text();
+      console.log("Server response:", responseData);
+  
+      if (!response.ok) {
+        throw new Error(`Failed to reject content: ${responseData}`);
+      }
+
+      if (response.ok) {
+        const currentDate = new Date();
+        const formattedDate = currentDate.toLocaleString("en-US", {
+          timeZone: "Asia/Jakarta",
+          hour12: false,
+        });
+
+        const [date, time] = formattedDate.split(", ");
+        const [month, day, year] = date.split("/");
+        const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+
+        const historyData = {
+          content_id: selectedContentId,
+          editor_id: user.id,
+          action: "Rejecting",
+          edited_at: formattedMySQLDate,
+          reason: rejectReason,
+        };
+
+        const historyResponse = await fetch("http://localhost:3000/api/history/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(historyData),
+        });
+
+        const historyResponseText = await historyResponse.text();
+        if (!historyResponse.ok) {
+          console.error("Failed to record edit history:", historyResponseText);
+          alert("Something went wrong while saving history. Please try again.");
+          return;
+        }
+
+        setContents((prevContents) => prevContents.filter((content) => content.id !== selectedContentId));
+        setCurrentPage(1);
+        setIsRejectPopupOpen(false);
+        setRejectReason("");
+      } else {
+        alert("Failed to reject content");
+        console.error("Failed to reject content:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error rejecting content:", error);
+      alert(error.message || "An error occurred while rejecting the content.");
+      return;
+    }
+  };
+
+  const handleRejectCancel = () => {
+    setIsRejectPopupOpen(false);
+    setRejectReason("");
   };
 
   const approveContent = async (id) => {
@@ -98,27 +186,25 @@ const ManageContent = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: "Approving" }), // Update status to "approved"
+        body: JSON.stringify({ status: "Approving" }),
       });
 
       if (response.ok) {
-        // Mendapatkan waktu lokal dalam zona waktu WIB
         const currentDate = new Date();
         const formattedDate = currentDate.toLocaleString("en-US", {
           timeZone: "Asia/Jakarta",
           hour12: false,
         });
 
-        // Mengonversi waktu ke format yang sesuai MySQL (YYYY-MM-DD HH:MM:SS)
         const [date, time] = formattedDate.split(", ");
         const [month, day, year] = date.split("/");
         const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
 
         const historyData = {
-          content_id: id, // content_id digunakan di tabel history
-          editor_id: user.id, // ID user yang sedang login
-          action: "Approving", // Tindakan yang dilakukan
-          edited_at: formattedMySQLDate, // Waktu perubahan dengan format yang sesuai MySQL
+          content_id: id,
+          editor_id: user.id,
+          action: "Approving",
+          edited_at: formattedMySQLDate,
         };
 
         const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
@@ -133,13 +219,12 @@ const ManageContent = () => {
         const historyResponseText = await historyResponse.text();
         if (!historyResponse.ok) {
           console.error("Failed to record edit history:", historyResponseText);
-          alert("Something went wrong while saving history. Please try again."); // Warning alert if history insertion fails
-          return; // Prevent further actions if history is not recorded
+          alert("Something went wrong while saving history. Please try again.");
+          return;
         }
 
-        //alert("Content approved successfully");//
-        setContents((prevContents) => prevContents.filter((content) => content.id !== id)); // Remove the content from the list
-        setCurrentPage(1); // Reset to the first page
+        setContents((prevContents) => prevContents.filter((content) => content.id !== id));
+        setCurrentPage(1);
       } else {
         alert("Failed to approve content");
         console.error("Failed to approve content:", response.statusText);
@@ -150,94 +235,12 @@ const ManageContent = () => {
     }
   };
 
-  const rejectContent = async (id) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`http://localhost:3000/api/content/reject/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: "Rejecting" }), // Update status to "approved"
-      });
-
-      if (response.ok) {
-        // Mendapatkan waktu lokal dalam zona waktu WIB
-        const currentDate = new Date();
-        const formattedDate = currentDate.toLocaleString("en-US", {
-          timeZone: "Asia/Jakarta",
-          hour12: false,
-        });
-
-        // Mengonversi waktu ke format yang sesuai MySQL (YYYY-MM-DD HH:MM:SS)
-        const [date, time] = formattedDate.split(", ");
-        const [month, day, year] = date.split("/");
-        const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
-
-        const historyData = {
-          content_id: id, // content_id digunakan di tabel history
-          editor_id: user.id, // ID user yang sedang login
-          action: "Rejecting", // Tindakan yang dilakukan
-          edited_at: formattedMySQLDate, // Waktu perubahan dengan format yang sesuai MySQL
-        };
-
-        const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(historyData),
-        });
-
-        const historyResponseText = await historyResponse.text();
-        if (!historyResponse.ok) {
-          console.error("Failed to record edit history:", historyResponseText);
-          alert("Something went wrong while saving history. Please try again."); // Warning alert if history insertion fails
-          return; // Prevent further actions if history is not recorded
-        }
-
-        //alert("Content rejected successfully");//
-        setContents((prevContents) => prevContents.filter((content) => content.id !== id)); // Remove the content from the list
-        setCurrentPage(1); // Reset to the first page
-      } else {
-        alert("Failed to reject content");
-        console.error("Failed to reject content:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error rejecting content:", error);
-      alert("An error occurred while rejecting the content. Please check the console for more details.");
-    }
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
-  const Breadcrumbs = ({ paths }) => {
-    return (
-      <nav>
-        <ul className="breadcrumbs">
-          {paths.map((path, index) => (
-            <li key={index}>
-              {path.link ? <Link to={path.link}>{path.label}</Link> : <span>{path.label}</span>}
-              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
-            </li>
-          ))}
-        </ul>
-      </nav>
-    );
-  };
-
-  // Calculate the current contents to display based on the current page
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentContents = contents.slice(indexOfFirstItem, indexOfLastItem);
-
-  // Handle page change
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Calculate total pages
   const totalPages = Math.ceil(contents.length / itemsPerPage);
+  const currentContents = contents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="main-container">
@@ -316,7 +319,27 @@ const ManageContent = () => {
         }}
         onCancel={() => setIsApprovalOpen(false)}
       />
+      <RejectPopup
+        isOpen={isRejectPopupOpen}
+        onConfirm={handleRejectConfirm}
+        onCancel={handleRejectCancel}
+        rejectReason={rejectReason}
+        setRejectReason={setRejectReason}
+      />
     </div>
+  );
+};
+
+const Breadcrumbs = ({ paths }) => {
+  return (
+    <nav className="breadcrumbs">
+      {paths.map((path, index) => (
+        <span key={index}>
+          {path.link ? <Link to={path.link}>{path.label}</Link> : path.label}
+          {index < paths.length - 1 && " > "}
+        </span>
+      ))}
+    </nav>
   );
 };
 

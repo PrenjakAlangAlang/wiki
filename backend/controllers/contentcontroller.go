@@ -1,19 +1,20 @@
 package controllers
 
 import (
-    "backend/entities"
-    "backend/models"
-    "database/sql"
-    "encoding/json"
-    "fmt"
-    "io"
-    "log"
-    "net/http"
-    "strconv"
-    "strings"
-    "time"
+	"backend/entities"
+	"backend/models"
+	"bytes"
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 
-    "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 )
 
 var contentModel = models.NewContentModel()
@@ -23,6 +24,18 @@ func GetIdTitleAllContents(response http.ResponseWriter, request *http.Request) 
     response.Header().Set("Content-Type", "application/json")
 
     contents, err := contentModel.FindAll()
+    if err != nil {
+        http.Error(response, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    json.NewEncoder(response).Encode(contents)
+}
+
+func GetIdTitleAllContentsNotRejected(response http.ResponseWriter, request *http.Request) {
+    response.Header().Set("Content-Type", "application/json")
+
+    contents, err := contentModel.FindNotRejected()
     if err != nil {
         http.Error(response, err.Error(), http.StatusInternalServerError)
         return
@@ -360,23 +373,56 @@ func ApproveContent(w http.ResponseWriter, r *http.Request) {
 func RejectContent(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     contentIDStr := vars["id"]
-    contentID, err := strconv.Atoi(contentIDStr) // Menggunakan strconv.Atoi untuk konversi ke int
+    contentID, err := strconv.Atoi(contentIDStr)
     if err != nil {
         http.Error(w, fmt.Sprintf("Invalid content ID: %v", err), http.StatusBadRequest)
         return
     }
 
-    // Update konten dengan status "rejected"
-    err = contentModel.UpdateStatus(contentID, "rejected")
+    // Add logging for debugging
+    body, err := io.ReadAll(r.Body)
+    if err != nil {
+        http.Error(w, "Failed to read request body", http.StatusBadRequest)
+        return
+    }
+    // Log the raw request body
+    log.Printf("Raw request body: %s", string(body))
+
+    // Create new reader from the body bytes for json.Decoder
+    r.Body = io.NopCloser(bytes.NewBuffer(body))
+
+    var requestData struct {
+        Reason string `json:"reason"`
+    }
+    err = json.NewDecoder(r.Body).Decode(&requestData)
+    if err != nil {
+        http.Error(w, fmt.Sprintf("Invalid request payload: %v", err), http.StatusBadRequest)
+        return
+    }
+
+    // Log the parsed reason
+    log.Printf("Parsed rejection reason: %s", requestData.Reason)
+
+    if requestData.Reason == "" {
+        http.Error(w, "Rejection reason is required", http.StatusBadRequest)
+        return
+    }
+
+    err = contentModel.RejectContent(contentID, requestData.Reason)
     if err != nil {
         http.Error(w, fmt.Sprintf("Failed to reject content: %v", err), http.StatusInternalServerError)
         return
     }
 
-    // Kirim response sukses
-    w.WriteHeader(http.StatusOK)
-    w.Write([]byte("Content rejected successfully"))
+    response := map[string]string{
+        "message": "Content rejected successfully",
+        "reason": requestData.Reason,
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(response)
 }
+
 
 func GetContentViewCount(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)

@@ -52,6 +52,7 @@ func main() {
 
 	// Endpoint dengan middleware JWT dan RoleAuth untuk role 1 dan 2
 	r.Handle("/api", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_contents", http.HandlerFunc(contentcontroller.GetIdTitleAllContents)))).Methods("GET")
+	r.Handle("/api/notReject", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_contents_notReject", http.HandlerFunc(contentcontroller.GetIdTitleAllContentsNotRejected)))).Methods("GET")
 	r.Handle("/api/active", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_active_content", http.HandlerFunc(contentcontroller.GetIdTitleAllContentsNotDeleted)))).Methods("GET")
 	r.Handle("/api/draft", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_drafts", http.HandlerFunc(contentcontroller.GetIdTitleAllDrafts)))).Methods("GET")
 	r.Handle("/api/content", middleware.JWTAuth(middleware.RoleAuthMiddleware("search_contents", http.HandlerFunc(contentcontroller.SearchContent)))).Methods("GET")

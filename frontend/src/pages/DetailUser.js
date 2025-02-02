@@ -46,7 +46,7 @@ const DetailUser = () => {
             "Accept": "application/json",
           },
           body: JSON.stringify({
-            encrypted_token: token, // Kirim token dalam body
+            encrypted_token: token,
           }),
         });
 
@@ -54,7 +54,6 @@ const DetailUser = () => {
 
         const userData = await response.json();
         setCurrentUser(userData);
-        console.log("User loaded with permissions:", userData);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setCurrentUser(storedUser);
@@ -63,56 +62,59 @@ const DetailUser = () => {
 
     fetchUserData();
 
-    // Fetch user details with token in Authorization header
-    fetch(`http://localhost:3000/api/user/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data);
+    const fetchData = async () => {
+      try {
+        const [userResponse, rolesResponse, instancesResponse, contentsResponse] = await Promise.all([
+          fetch(`http://localhost:3000/api/user/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch("http://localhost:3000/api/roles", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch("http://localhost:3000/api/instances", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetch("http://localhost:3000/api/notReject", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ]);
+
+        if (!userResponse.ok || !rolesResponse.ok || !instancesResponse.ok || !contentsResponse.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const userData = await userResponse.json();
+        const rolesData = await rolesResponse.json();
+        const instancesData = await instancesResponse.json();
+        const contentsData = await contentsResponse.json();
+
+        setUser(userData);
         setFormData({
-          id: data.id,
-          name: data.name,
-          nip: data.nip,
-          email: data.email,
-          password: data.password,
-          role_id: data.role_id,
-          instance_id: data.instance_id,
+          id: userData.id,
+          name: userData.name,
+          nip: userData.nip,
+          email: userData.email,
+          password: userData.password,
+          role_id: userData.role_id,
+          instance_id: userData.instance_id,
         });
-      })
-      .catch((err) => console.error("Failed to fetch user:", err));
+        setRoles(rolesData);
+        setInstances(instancesData);
+        setContents(contentsData || []);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      }
+    };
 
-    // Fetch roles with token
-    fetch("http://localhost:3000/api/roles", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setRoles(data))
-      .catch((err) => console.error("Failed to fetch roles:", err));
-
-    // Fetch instances with token
-    fetch("http://localhost:3000/api/instances", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setInstances(data))
-      .catch((err) => console.error("Failed to fetch instances:", err));
-
-    // Fetch contents with token
-    fetch("http://localhost:3000/api", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setContents(data || []))
-      .catch((err) => console.error("Failed to fetch contents:", err));
+    fetchData();
   }, [id, token]);
 
   const handleInputChange = (e) => {
@@ -138,7 +140,6 @@ const DetailUser = () => {
       instance_id: parseInt(formData.instance_id, 10),
     };
 
-    // Submit form with token in Authorization header
     fetch(`http://localhost:3000/api/user/edit/${formData.id}`, {
       method: "PUT",
       headers: {
@@ -154,7 +155,6 @@ const DetailUser = () => {
         return res.json();
       })
       .then(() => {
-        //alert("User updated successfully!");
         setIsEditing(false);
         fetch(`http://localhost:3000/api/user/${id}`, {
           headers: {
@@ -169,7 +169,6 @@ const DetailUser = () => {
   };
 
   const loadHistories = () => {
-    // Fetch history with token
     fetch(`http://localhost:3000/api/history/user/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -178,16 +177,6 @@ const DetailUser = () => {
       .then((res) => res.json())
       .then((data) => setHistories(data || []))
       .catch((err) => console.error("Failed to fetch histories:", err));
-
-    // Fetch contents with token
-    // fetch(`http://localhost:3000/api/contents/user/${id}`, {
-    //   headers: {
-    //     Authorization: `Bearer ${token}`,
-    //   },
-    // })
-    //   .then((res) => res.json())
-    //   .then((data) => setContents(data || []))
-    //   .catch((err) => console.error("Failed to fetch contents:", err));
   };
 
   const handleToggleHistory = () => {
@@ -214,78 +203,57 @@ const DetailUser = () => {
     if (!dateTime) return "Invalid Date";
 
     const parsedDate = new Date(dateTime.replace(" ", "T"));
-    if (isNaN(parsedDate)) return "Invalid Date"; // Cek apakah parsing valid
+    if (isNaN(parsedDate)) return "Invalid Date";
 
-    // Format waktu (jam:menit)
     const optionsTime = {
       hour: "2-digit",
       minute: "2-digit",
     };
-    const formattedTime = new Intl.DateTimeFormat("id-ID", optionsTime).format(
-      parsedDate
-    );
+    const formattedTime = new Intl.DateTimeFormat("id-ID", optionsTime).format(parsedDate);
 
-    // Format tanggal (tanggal bulan tahun dalam bahasa Indonesia)
     const optionsDate = {
       day: "numeric",
-      month: "long", // Menggunakan bulan lengkap (Desember)
+      month: "long",
       year: "numeric",
     };
-    const formattedDate = new Intl.DateTimeFormat("id-ID", optionsDate).format(
-      parsedDate
-    );
+    const formattedDate = new Intl.DateTimeFormat("id-ID", optionsDate).format(parsedDate);
 
-    // Gabungkan jam dan tanggal dengan pemisah "-"
     return `${formattedTime} - ${formattedDate}`;
   };
 
-  // Fungsi untuk mendapatkan title konten berdasarkan ID
-
-
   useEffect(() => {
     if (contents && histories) {
-      // Buat objek lookup untuk mempercepat pencarian title berdasarkan id
       const contentMap = contents.reduce((map, content) => {
-        map[content.id] = content.title; // key: content.id, value: content.title
+        map[content.id] = content.title;
         return map;
       }, {});
 
-      const newMergedData = [
-        // Data dari histories
-        ...histories.map((history) => {
-          const title = contentMap[history.content_id] || "Unknown Content"; // Ambil title dari contentMap
-          return {
-            type: "history",
-            id: history.id,
-            title, // Gunakan title dari contentMap
-            created_at: history.edited_at,
-            action: history.action || "Edit", // Use the action directly from the database
-          };
-        }),
-      ];
+      const newMergedData = histories.map((history) => {
+        const title = contentMap[history.content_id];
+        return {
+          type: "history",
+          id: history.id,
+          title: title || `Unknown Content (ID: ${history.content_id})`,
+          created_at: history.edited_at,
+          action: history.action || "Edit",
+        };
+      });
 
-      // Urutkan berdasarkan tanggal terbaru
       newMergedData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-      // Update state mergedData
       setMergedData(newMergedData);
     }
   }, [contents, histories]);
 
-  // Calculate the current items to display based on the current page
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentMergedData = mergedData.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Handle page change
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
-  // Calculate total pages
   const totalPages = Math.ceil(mergedData.length / itemsPerPage);
 
-  // Menangani loading state
   if (!user || !contents || !histories) {
     return <div>Loading...</div>;
   }
@@ -301,7 +269,7 @@ const DetailUser = () => {
               ) : (
                 <span>{path.label}</span>
               )}
-              {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
+              {index < paths.length - 1 && " / "}
             </li>
           ))}
         </ul>
@@ -398,7 +366,7 @@ const DetailUser = () => {
                 <label>Password</label>
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <input
-                    type={passwordVisible ? "text" : "password"} // Toggle password visibility
+                    type={passwordVisible ? "text" : "password"}
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
@@ -413,8 +381,7 @@ const DetailUser = () => {
                       border: "none",
                     }}
                   >
-                    {passwordVisible ? <FaEyeSlash /> : <FaEye />}{" "}
-                    {/* Icon to toggle visibility */}
+                    {passwordVisible ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
               </div>
@@ -504,7 +471,11 @@ const DetailUser = () => {
               <tbody>
                 {currentMergedData.map((item) => (
                   <tr key={item.id}>
-                    <td>{item.title}</td>
+                    <td>
+                      {item.title === "Unknown Content"
+                        ? `Content ID ${item.content_id} (Deleted or Inaccessible)`
+                        : item.title}
+                    </td>
                     <td>{formatDateTime(item.created_at)}</td>
                     <td>{item.action}</td>
                   </tr>

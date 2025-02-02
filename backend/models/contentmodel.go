@@ -42,6 +42,41 @@ func (p *ContentModel) FindAll() ([]entities.Content, error) {
     return dataContent, nil
 }
 
+func (p *ContentModel) FindNotRejected() ([]entities.Content, error) {
+    query := `
+        SELECT c.id, c.title, c.description, c.author_id, c.instance_id, 
+               c.created_at, c.updated_at, c.tag, c.status, c.deleted_at, c.view_count, 
+               c.rejection_reason, u.name as author_name
+        FROM content c 
+        LEFT JOIN user u ON c.author_id = u.id 
+        WHERE c.deleted_at IS NULL
+    `
+    rows, err := p.conn.Query(query)
+    if err != nil {
+        return []entities.Content{}, err
+    }
+    defer rows.Close()
+
+    var dataContent []entities.Content
+    for rows.Next() {
+        var content entities.Content
+        err := rows.Scan(
+            &content.Id, &content.Title, &content.Description, &content.Author_id, 
+             &content.Instance_id, &content.Created_at, 
+            &content.Updated_at, &content.Tag, &content.Status, 
+            &content.Deleted_at, &content.ViewCount, &content.Rejection_reason, 
+            &content.Author_name,
+        )
+        if err != nil {
+            return []entities.Content{}, err
+        }
+        dataContent = append(dataContent, content)
+    }
+    return dataContent, nil
+}
+
+
+
 func (p *ContentModel) FindNotDelete() ([]entities.Content, error) {
     query := "SELECT id, title FROM content WHERE status = 'approved' AND deleted_at IS NULL"
     rows, err := p.conn.Query(query)
@@ -240,3 +275,30 @@ func (p *ContentModel) IncrementViewCount(contentID int) error {
     _, err := p.conn.Exec(query, contentID)
     return err
 }
+
+func (p *ContentModel) RejectContent(contentID int, reason string) error {
+    query := `
+        UPDATE content 
+        SET status = 'rejected', 
+            rejection_reason = ?, 
+            updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ?
+    `
+    
+    result, err := p.conn.Exec(query, reason, contentID)
+    if err != nil {
+        return fmt.Errorf("failed to execute query: %v", err)
+    }
+
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("failed to get rows affected: %v", err)
+    }
+
+    if rowsAffected == 0 {
+        return fmt.Errorf("no content found with ID %d", contentID)
+    }
+
+    return nil
+}
+
