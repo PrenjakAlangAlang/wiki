@@ -15,11 +15,6 @@ const ViewStatusContent = () => {
     });
 
     useEffect(() => {
-        // if (!user || user.role_id !== 3) {
-        //     navigate('/'); // Redirect jika bukan user dengan role 3
-        //     return;
-        // }
-
         const fetchContents = async () => {
             const token = localStorage.getItem('token');
             try {
@@ -37,25 +32,27 @@ const ViewStatusContent = () => {
             }
         };
 
-        fetchContents();
+        if (user?.id) {
+            fetchContents();
+        }
     }, [user, navigate]);
 
     const Breadcrumbs = ({ paths }) => {
         return (
-          <nav>
-            <ul className="breadcrumbs">
-              {paths.map((path, index) => (
-                <li key={index}>
-                  {path.link ? (
-                    <Link to={path.link}>{path.label}</Link>
-                  ) : (
-                    <span>{path.label}</span>
-                  )}
-                  {index < paths.length - 1 && " / "} {/* Menambahkan separator */}
-                </li>
-              ))}
-            </ul>
-          </nav>
+            <nav>
+                <ul className="breadcrumbs">
+                    {paths.map((path, index) => (
+                        <li key={index}>
+                            {path.link ? (
+                                <Link to={path.link}>{path.label}</Link>
+                            ) : (
+                                <span>{path.label}</span>
+                            )}
+                            {index < paths.length - 1 && " / "}
+                        </li>
+                    ))}
+                </ul>
+            </nav>
         );
     };
 
@@ -75,11 +72,11 @@ const ViewStatusContent = () => {
     return (
         <div className="main-container">
             <div className="table-container">
-                <Breadcrumbs 
+                <Breadcrumbs
                     paths={[
                         { label: "Home", link: "/" },
-                        { label: "View Status Content" }, // Halaman saat ini tidak memiliki link
-                    ]} 
+                        { label: "View Status Content" },
+                    ]}
                 />
                 <div className="view-status-header">
                     <h1 className="view-status-content-h1">View Status Content</h1>
@@ -92,6 +89,7 @@ const ViewStatusContent = () => {
                             <th>Created</th>
                             <th>Updated</th>
                             <th>Status</th>
+                            <th>Alasan Penolakan</th> {/* Kolom baru untuk alasan penolakan */}
                         </tr>
                     </thead>
                     <tbody>
@@ -101,16 +99,21 @@ const ViewStatusContent = () => {
                                 <td>{content.created_at}</td>
                                 <td>{content.updated_at}</td>
                                 <td>{content.status}</td>
+                                <td>
+    {/* Tampilkan rejection_reason jika status adalah "rejected" */}
+    {content.status === "rejected" && content.rejection_reason.Valid ? content.rejection_reason.String : "-"}
+</td>
+
                             </tr>
                         ))}
                     </tbody>
                 </table>
                 <div className="pagination">
                     <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
-                    &lt;&lt;
+                        &lt;&lt;
                     </button>
                     <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                    &lt;
+                        &lt;
                     </button>
                     {Array.from({ length: totalPages }, (_, index) => (
                         <button
@@ -122,10 +125,10 @@ const ViewStatusContent = () => {
                         </button>
                     ))}
                     <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                    &gt;
+                        &gt;
                     </button>
                     <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}>
-                    &gt;&gt;
+                        &gt;&gt;
                     </button>
                 </div>
             </div>
