@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { FaPencilAlt } from "react-icons/fa";
 const ViewStatusContent = () => {
     const [contents, setContents] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -89,7 +89,8 @@ const ViewStatusContent = () => {
                             <th>Created</th>
                             <th>Updated</th>
                             <th>Status</th>
-                            <th>Alasan Penolakan</th> {/* Kolom baru untuk alasan penolakan */}
+                            <th>Alasan Penolakan</th>
+                            <th>Action</th> {/* Kolom baru untuk aksi */}
                         </tr>
                     </thead>
                     <tbody>
@@ -100,10 +101,13 @@ const ViewStatusContent = () => {
                                 <td>{content.updated_at}</td>
                                 <td>{content.status}</td>
                                 <td>
-    {/* Tampilkan rejection_reason jika status adalah "rejected" */}
-    {content.status === "rejected" && content.rejection_reason.Valid ? content.rejection_reason.String : "-"}
-</td>
-
+                                    {content.status === "rejected" && content.rejection_reason.Valid ? content.rejection_reason.String : "-"}
+                                </td>
+                                <td>
+                                    {content.status === "rejected" && (
+                                        <button className="Detail Approve" onClick={() => navigate(`/editrejectcontent/${content.id}`)}><FaPencilAlt style={{ marginRight: "5px" }} size={12} />Edit</button>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>

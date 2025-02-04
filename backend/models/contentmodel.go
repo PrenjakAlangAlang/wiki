@@ -45,11 +45,10 @@ func (p *ContentModel) FindAll() ([]entities.Content, error) {
 func (p *ContentModel) FindNotRejected() ([]entities.Content, error) {
     query := `
         SELECT c.id, c.title, c.description, c.author_id, c.instance_id, 
-               c.created_at, c.updated_at, c.tag, c.status, c.deleted_at, c.view_count, 
+               c.created_at, c.updated_at, c.tag, c.status, c.view_count, 
                c.rejection_reason, u.name as author_name
         FROM content c 
         LEFT JOIN user u ON c.author_id = u.id 
-        WHERE c.deleted_at IS NULL
     `
     rows, err := p.conn.Query(query)
     if err != nil {
@@ -64,7 +63,7 @@ func (p *ContentModel) FindNotRejected() ([]entities.Content, error) {
             &content.Id, &content.Title, &content.Description, &content.Author_id, 
              &content.Instance_id, &content.Created_at, 
             &content.Updated_at, &content.Tag, &content.Status, 
-            &content.Deleted_at, &content.ViewCount, &content.Rejection_reason, 
+            &content.ViewCount, &content.Rejection_reason, 
             &content.Author_name,
         )
         if err != nil {
@@ -302,4 +301,26 @@ func (p *ContentModel) RejectContent(contentID int, reason string) error {
 
     return nil
 }
+func (p *ContentModel) UpdateRejectByID(content entities.Content) error {
+    query := `
+        UPDATE content 
+        SET title = ?, description = ?, updated_at = ?, instance_id = ?, tag = ?, status = 'pending'
+        WHERE id = ? AND status = 'rejected'
+    `
 
+    result, err := p.conn.Exec(query, content.Title, content.Description.String, time.Now().Format("2006-01-02 15:04:05"), content.Instance_id, content.Tag, content.Id)
+    if err != nil {
+        return err
+    }
+
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return err
+    }
+
+    if rowsAffected == 0 {
+        return fmt.Errorf("no rows updated: content is not in 'rejected' status or does not exist")
+    }
+
+    return nil
+}
