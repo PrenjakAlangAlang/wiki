@@ -300,4 +300,26 @@ func (p *ContentModel) RejectContent(contentID int, reason string) error {
 
     return nil
 }
+func (p *ContentModel) UpdateRejectByID(content entities.Content) error {
+    query := `
+        UPDATE content 
+        SET title = ?, description = ?, updated_at = ?, instance_id = ?, tag = ?, status = 'pending'
+        WHERE id = ? AND status = 'rejected'
+    `
 
+    result, err := p.conn.Exec(query, content.Title, content.Description.String, time.Now().Format("2006-01-02 15:04:05"), content.Instance_id, content.Tag, content.Id)
+    if err != nil {
+        return err
+    }
+
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return err
+    }
+
+    if rowsAffected == 0 {
+        return fmt.Errorf("no rows updated: content is not in 'rejected' status or does not exist")
+    }
+
+    return nil
+}

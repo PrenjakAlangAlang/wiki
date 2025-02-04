@@ -203,7 +203,7 @@ const ManageRole = () => {
     permissions.forEach((perm) => {
       if (perm.name.startsWith("view_")) {
         categories['View Management'].push(perm);
-      } else if (perm.name.startsWith("create_") || perm.name.startsWith("edit_") || perm.name.startsWith("delete_")) {
+      } else if (perm.name.startsWith("create_") || perm.name.startsWith("edit_") || perm.name.startsWith("delete_")|| perm.name.startsWith("resubmit_")) {
         categories['Content Management'].push(perm);
       } else if (perm.name.startsWith("search_") || perm.name.startsWith("view_user_contents")) {
         categories['Search Management'].push(perm);

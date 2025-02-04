@@ -20,6 +20,7 @@ import ManageContent from './pages/ManageContent'; // Import ManageContent
 import ContentDetail from './pages/ContentDetail'; // Import ContentDetail
 import ViewStatusContent from './pages/ViewStatusContent'; // Import komponen baru
 import ManageRole from './pages/ManageRole';
+import EditRejectContent from './pages/EditRejectContent'; // Import EditRejectContent
 
 // App Komponen Utama
 const App = () => {
@@ -71,6 +72,7 @@ const App = () => {
                             <Route path="/login" element={<Login />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/addcontent" element={<AddContent />} />
+                            <Route path="/editrejectcontent/:id" element={<EditRejectContent />} />
                             <Route path="/addsubheading/:id" element={<AddSubheading />} />
                             <Route path="/search/:term" element={<SearchContent setSearchTerm={setSearchTerm} />} />
                             <Route path="/manage" element={<ManageUser />} />

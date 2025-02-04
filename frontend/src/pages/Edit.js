@@ -343,7 +343,7 @@ const Edit = () => {
                 value={updatedInstanceID}
                 onChange={(e) => setUpdatedInstanceID(e.target.value)}
                 required
-                disabled={user?.role_id === 3}
+                disabled={user?.role_id === 3 || user?.role_id === 1 || user?.role_id === 2}
               >
                 <option value="">Pilih Instansi</option>
                 {instances.map((instance) => (
