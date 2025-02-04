@@ -45,11 +45,10 @@ func (p *ContentModel) FindAll() ([]entities.Content, error) {
 func (p *ContentModel) FindNotRejected() ([]entities.Content, error) {
     query := `
         SELECT c.id, c.title, c.description, c.author_id, c.instance_id, 
-               c.created_at, c.updated_at, c.tag, c.status, c.deleted_at, c.view_count, 
+               c.created_at, c.updated_at, c.tag, c.status, c.view_count, 
                c.rejection_reason, u.name as author_name
         FROM content c 
         LEFT JOIN user u ON c.author_id = u.id 
-        WHERE c.deleted_at IS NULL
     `
     rows, err := p.conn.Query(query)
     if err != nil {
@@ -63,8 +62,7 @@ func (p *ContentModel) FindNotRejected() ([]entities.Content, error) {
         err := rows.Scan(
             &content.Id, &content.Title, &content.Description, &content.Author_id, 
              &content.Instance_id, &content.Created_at, 
-            &content.Updated_at, &content.Tag, &content.Status, 
-            &content.Deleted_at, &content.ViewCount, &content.Rejection_reason, 
+            &content.Updated_at, &content.Tag, &content.Status, &content.ViewCount, &content.Rejection_reason, 
             &content.Author_name,
         )
         if err != nil {
