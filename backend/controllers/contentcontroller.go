@@ -442,3 +442,36 @@ func GetContentViewCount(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(map[string]int{"viewCount": viewCount})
 }
+
+func ResubmitRejectedContent(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    contentIDStr := vars["id"]
+    contentID, err := strconv.Atoi(contentIDStr)
+    if err != nil {
+        http.Error(w, "Invalid content ID", http.StatusBadRequest)
+        return
+    }
+
+    var content entities.Content
+    err = json.NewDecoder(r.Body).Decode(&content)
+    if err != nil {
+        http.Error(w, "Invalid request body", http.StatusBadRequest)
+        return
+    }
+
+    // Log data yang diterima
+    log.Printf("Received content data: %+v", content)
+
+    // Update konten dengan data baru (hanya jika statusnya 'rejected')
+    content.Id = int64(contentID)
+    err = contentModel.UpdateRejectByID(content)
+    if err != nil {
+        http.Error(w, "Failed to update content: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(map[string]string{
+        "message": "Content resubmitted successfully",
+    })
+}
