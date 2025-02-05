@@ -109,9 +109,11 @@ func SearchContent(response http.ResponseWriter, request *http.Request) {
 func GetContentByID(response http.ResponseWriter, request *http.Request) {
     response.Header().Set("Content-Type", "application/json")
 
+    // Ambil parameters dari URL
     vars := mux.Vars(request)
     idStr := vars["id"]
 
+    // Parsing ID untuk memastikan validitas
     id, err := strconv.ParseInt(idStr, 10, 64)
     if err != nil {
         http.Error(response, "Invalid content ID", http.StatusBadRequest)
@@ -125,32 +127,39 @@ func GetContentByID(response http.ResponseWriter, request *http.Request) {
         return
     }
 
-    content, authorName, err := contentModel.FindByIDWithAuthorName(id)
+    // Ambil konten, nama penulis, dan nama instansi
+    content, authorName, instanceName, err := contentModel.FindByIDWithAuthorName(id)
     if err != nil {
         http.Error(response, "Failed to fetch content", http.StatusInternalServerError)
         return
     }
 
+    // Pastikan konten tidak kosong
     if content == nil {
         http.Error(response, "Content not found", http.StatusNotFound)
         return
     }
 
+    // Ambil subheadings terkait dengan konten
     subheadings, err := subheadingModel.FindByContentID(content.Id)
     if err != nil {
         http.Error(response, "Failed to fetch subheadings", http.StatusInternalServerError)
         return
     }
 
+    // Menyusun data untuk dikirim sebagai respons
     data := map[string]interface{}{
-        "content":     content,
-        "author_name": authorName,
-        "subheadings": subheadings,
+        "content":       content,
+        "author_name":   authorName,
+        "instance_name": instanceName, // Menambahkan instance_name
+        "subheadings":   subheadings,
     }
 
-    json.NewEncoder(response).Encode(data)
+    // Mengencode data menjadi JSON dan mengirimkannya
+    if err := json.NewEncoder(response).Encode(data); err != nil {
+        http.Error(response, "Failed to encode response", http.StatusInternalServerError)
+    }
 }
-
 func EditContentByID(response http.ResponseWriter, request *http.Request) {
     response.Header().Set("Content-Type", "application/json")
 

@@ -212,24 +212,29 @@ func (p *ContentModel) DeleteByID(contentID int64) error {
 }
 
 
-func (p *ContentModel) FindByIDWithAuthorName(id int64) (*entities.Content, string, error) {
-	query := `
-        SELECT c.id, c.title, c.description, c.author_id, c.instance_id, c.created_at, c.updated_at, c.tag, u.name AS author_name
+func (p *ContentModel) FindByIDWithAuthorName(id int64) (*entities.Content, string, string, error) {
+    query := `
+        SELECT c.id, c.title, c.description, c.author_id, c.instance_id, 
+               c.created_at, c.updated_at, c.tag, u.name AS author_name, 
+               i.name AS instance_name
         FROM content c
         LEFT JOIN user u ON c.author_id = u.id
+        LEFT JOIN instance i ON c.instance_id = i.id
         WHERE c.id = ?`
-	row := p.conn.QueryRow(query, id)
 
-	var content entities.Content
-	var authorName string
-	err := row.Scan(&content.Id, &content.Title, &content.Description, &content.Author_id, &content.Instance_id, &content.Created_at, &content.Updated_at, &content.Tag, &authorName)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, "", nil
-		}
-		return nil, "", err
-	}
-	return &content, authorName, nil
+    row := p.conn.QueryRow(query, id)
+    var content entities.Content
+    var authorName, instanceName string
+    err := row.Scan(&content.Id, &content.Title, &content.Description, &content.Author_id,
+        &content.Instance_id, &content.Created_at, &content.Updated_at, &content.Tag,
+        &authorName, &instanceName)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return nil, "", "", nil
+        }
+        return nil, "", "", err
+    }
+    return &content, authorName, instanceName, nil
 }
 
 func (s *ContentModel) GetContentsByAuthorId(authorId int64) ([]entities.Content, error) {

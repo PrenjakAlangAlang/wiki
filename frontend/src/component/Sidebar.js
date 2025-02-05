@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import "font-awesome/css/font-awesome.min.css";
 
-const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
+const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName, instanceName }) => {
     const location = useLocation();
     const [editorName, setEditorName] = useState("Loading...");
     const isHomePage = location.pathname === "/";
@@ -163,6 +163,7 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName }) => {
                                 <h5 className="tags-title">CREATED CONTENT BY</h5>
                                 <ul className="link-list">
                                     <li>{author}</li>
+                                    <li>{instanceName}</li>
                                 </ul>
                             </div>
                         )}

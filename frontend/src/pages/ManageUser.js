@@ -154,7 +154,6 @@ const ManageUser = () => {
       });
 
       if (response.ok) {
-        //alert("User deleted successfully!");
         fetchUsers();
         closeDeleteModal();
       } else {
@@ -184,7 +183,6 @@ const ManageUser = () => {
     })
       .then((res) => res.json())
       .then(() => {
-        //alert("User added successfully!");
         setFormData({
           name: "",
           nip: "",
@@ -202,6 +200,19 @@ const ManageUser = () => {
   const closeAddUserModal = () => {
     setAddUserModal({ isOpen: false, userData: {} });
   };
+
+  const getDisabledRoles = useCallback(() => {
+    if (user?.role_id === 1) {
+      // Jika yang login adalah role id 1, nonaktifkan role id 5, 1, 4
+      return [5, 1, 4];
+    } else if (user?.role_id === 5) {
+      // Jika yang login adalah role id 5, nonaktifkan role id 4
+      return [4];
+    }
+    return [];
+  }, [user]);
+
+  const disabledRoles = getDisabledRoles();
 
   const Breadcrumbs = ({ paths }) => {
     return (
@@ -346,11 +357,13 @@ const ManageUser = () => {
                 <label>Role</label>
                 <select name="role_id" value={formData.role_id || ""} onChange={handleInputChange} required>
                   <option value="">Select Role</option>
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name}
-                    </option>
-                  ))}
+                  {roles
+                    .filter((role) => !disabledRoles.includes(role.id))
+                    .map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
