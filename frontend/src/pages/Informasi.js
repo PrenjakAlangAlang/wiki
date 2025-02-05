@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import DeleteCard from '../component/DeleteCard';
 
-const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName }) => {
+const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName, setInstanceName }) => {
   const [user, setUser] = useState(null);
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +82,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         setUpdatedAt(formatDate(contentData.content.updated_at));
         setContentId(id);
         setAuthorName(contentData.author_name);
+        setInstanceName(contentData.instance_name || "Unknown Instance"); // Set instance name
 
       } catch (error) {
         hasLoadedRef.current = false;  // Reset on error
@@ -94,7 +95,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     };
 
     fetchAllData();
-  }, [id, setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName]);
+  }, [id, setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName, setInstanceName]);
 
   useEffect(() => {
     const handleScroll = () => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import Informasi from './pages/Informasi';
@@ -30,7 +30,9 @@ const App = () => {
     const [updatedAt, setUpdatedAt] = useState('');
     const [authorName, setAuthorName] = useState('');
     const [contentId, setContentId] = useState(null);
+    const [instanceName, setInstanceName] = useState(''); // State untuk instance name
     const [isSidebar2Open, setIsSidebar2Open] = useState(false); // State untuk sidebar kedua
+    const hasFetchedData = useRef(false);
 
     // Komponen SidebarWrapper
     const SidebarWrapper = () => {
@@ -44,6 +46,7 @@ const App = () => {
                 updatedAt={updatedAt}
                 contentId={contentId}
                 authorName={authorName}
+                instanceName={instanceName} // Pass instanceName to Sidebar
             />
         ) : null;
     };
@@ -66,7 +69,7 @@ const App = () => {
                         <Routes>
                             <Route path="/" element={<Home setSubheadings={setSubheadings} setTags={setTags} />} />
                             <Route path="/informasi/:id" element={
-                                <Informasi setSubheadings={setSubheadings} setTags={setTags} setUpdatedAt={setUpdatedAt} setContentId={setContentId} setAuthorName={setAuthorName} />
+                                <Informasi setSubheadings={setSubheadings} setTags={setTags} setUpdatedAt={setUpdatedAt} setContentId={setContentId} setAuthorName={setAuthorName} setInstanceName={setInstanceName} />
                             } />
                             <Route path="/edit/:id" element={<Edit />} />
                             <Route path="/login" element={<Login />} />

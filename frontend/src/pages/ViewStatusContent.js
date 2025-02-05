@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaPencilAlt } from "react-icons/fa";
+
 const ViewStatusContent = () => {
     const [contents, setContents] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -26,7 +27,9 @@ const ViewStatusContent = () => {
                     },
                 });
                 const data = await response.json();
-                setContents(data);
+                // Sort contents by ID in descending order
+                const sortedData = data.sort((a, b) => b.id - a.id);
+                setContents(sortedData);
             } catch (error) {
                 console.error('Error fetching contents:', error);
             }

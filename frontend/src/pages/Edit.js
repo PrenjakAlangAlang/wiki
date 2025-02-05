@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -20,8 +20,12 @@ const Edit = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [subheadingToDelete, setSubheadingToDelete] = useState(null);
   const [lastHistoryUpdate, setLastHistoryUpdate] = useState(null);
+  const hasFetchedData = useRef(false);
 
   useEffect(() => {
+    if (hasFetchedData.current) return;
+    hasFetchedData.current = true;
+
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
 
