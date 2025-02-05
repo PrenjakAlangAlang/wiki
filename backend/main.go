@@ -50,7 +50,7 @@ func main() {
 		handlers.AllowCredentials(), // Izinkan penggunaan credentials (cookies, dll.)
 	)
 
-	// Endpoint dengan middleware JWT dan RoleAuth untuk role 1 dan 2
+	
 	r.Handle("/api", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_contents", http.HandlerFunc(contentcontroller.GetIdTitleAllContents)))).Methods("GET")
 	r.Handle("/api/notReject", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_contents_notReject", http.HandlerFunc(contentcontroller.GetIdTitleAllContentsNotRejected)))).Methods("GET")
 	r.Handle("/api/active", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_active_content", http.HandlerFunc(contentcontroller.GetIdTitleAllContentsNotDeleted)))).Methods("GET")
@@ -60,7 +60,7 @@ func main() {
 	r.Handle("/api/content/edit/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("edit_content", http.HandlerFunc(contentcontroller.EditContentByID)))).Methods("PUT")
 	r.Handle("/api/content/add", middleware.JWTAuth(middleware.RoleAuthMiddleware("create_content", http.HandlerFunc(contentcontroller.CreateContent)))).Methods("POST")
 	r.Handle("/api/subheading/add/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("create_subheading", http.HandlerFunc(subheadingcontroller.CreateSubheading)))).Methods("POST")
-	r.Handle("/api/subheading/delete/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("delete_subheading", http.HandlerFunc(contentcontroller.DeleteSubheadingByID)))).Methods("DELETE")
+	r.Handle("/api/subheading/delete/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("delete_subheading", http.HandlerFunc(subheadingcontroller.DeleteSubheadingByID)))).Methods("DELETE")
 	r.Handle("/api/content/delete/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("delete_content", http.HandlerFunc(contentcontroller.DeleteContent)))).Methods("PUT")
 	r.Handle("/api/contents/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_user_contents", http.HandlerFunc(contentcontroller.GetUserContents)))).Methods("GET")
 	r.Handle("/api/instances", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_instances", http.HandlerFunc(instancecontroller.GetInstances)))).Methods("GET")
