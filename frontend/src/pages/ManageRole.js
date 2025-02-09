@@ -369,6 +369,7 @@ const ManageRole = () => {
                                           <thead>
                                             <tr>
                                               <th>Permission Name</th>
+                                              <th>Deskripsi</th>
                                               <th>Action</th>
                                             </tr>
                                           </thead>
@@ -376,6 +377,7 @@ const ManageRole = () => {
                                             {categorizedPermissions[category].map((perm) => (
                                               <tr key={perm.id}>
                                                 <td>{perm.name}</td>
+                                                <td>{perm.description}</td> {/* Tampilkan deskripsi */}
                                                 <td>
                                                   <label className="custom-checkbox">
                                                     <input

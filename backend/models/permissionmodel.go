@@ -19,24 +19,30 @@ func NewPermissionModel() *PermissionModel {
 	return &PermissionModel{conn: conn}
 }
 
-func (p *PermissionModel) GetAllPermissionList() ([]entities.Instance, error) {
-	query := "SELECT id, name FROM permissions"
+func (p *PermissionModel) GetAllPermissionList() ([]entities.Permission, error) {
+	query := "SELECT id, name, description FROM permissions"
 	rows, err := p.conn.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch permissions: %v", err)
 	}
 	defer rows.Close()
 
-	var permissions []entities.Instance
+	var permissions []entities.Permission
 	for rows.Next() {
-		var instance entities.Instance
-		if err := rows.Scan(&instance.Id, &instance.Name); err != nil {
-			return nil, fmt.Errorf("failed to get permissions: %v", err)
+		var permission entities.Permission
+		if err := rows.Scan(&permission.Id, &permission.Name, &permission.Description); err != nil {
+			return nil, fmt.Errorf("failed to scan permissions: %v", err)
 		}
-		permissions = append(permissions, instance)
+		permissions = append(permissions, permission)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over permissions: %v", err)
+	}
+
 	return permissions, nil
 }
+
 
 func (p *PermissionModel) GetPermissionsByRole(roleId int64) ([]entities.Permission, error) {
 	// Query untuk mengambil permission berdasarkan role_id
