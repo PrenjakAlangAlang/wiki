@@ -13,6 +13,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
   const { id } = useParams();
   const navigate = useNavigate();
   const hasLoadedRef = useRef(false);
+  const hasIncrementedViewCountRef = useRef(false); // Ref to track if view count has been incremented
 
   const formatDate = (dateString) => {
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
@@ -121,6 +122,39 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
       setTags([]);
     };
   }, [setSubheadings, setTags]);
+
+  useEffect(() => {
+    const incrementViewCount = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.warn("No token found!");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/content/increment-viewcount/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to increment view count");
+            }
+
+            console.log("View count incremented successfully");
+        } catch (error) {
+            console.error("Error incrementing view count:", error);
+        }
+    };
+
+    if (!hasIncrementedViewCountRef.current) {
+        incrementViewCount();
+        hasIncrementedViewCountRef.current = true; // Mark as incremented
+    }
+}, [id]);
 
   const handleEditClick = () => {
     if (!user) {
