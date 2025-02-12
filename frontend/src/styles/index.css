@@ -158,11 +158,11 @@ body {
 .small-box {
     background-color: #fff;
     margin-top: 20px;
-    padding: 20px;
+    padding: 20px; /* Remove padding from container */
     max-width: 270px;
     border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Ensures content stays within rounded corners */
     font-family: Roboto, sans-serif;
 }
 
@@ -178,43 +178,76 @@ body {
 
 .tags-title {
     background-color: #498EFF;
-    border-radius: 10px;
     color: white;
-    padding: 10px;
-    margin: 50;
+    padding: 5px 16px;
+    margin: 0;
     width: 100%;
-    height: 20;
+    font-size: 14px;
+    font-weight: 500;
     box-sizing: border-box;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
 }
 
 .link-list {
     list-style-type: none;
-    padding-top: 5px;
-    
+    padding: 12px 16px;
+    margin: 0;
 }
 
 .link-list li {
     position: relative;
-    padding: 8px 0;
-    display: flex;   /* Mengatur untuk membuat elemen dalam satu baris */
-    align-items: baseline; /* Menjaga elemen sejajar secara vertikal */
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    color: #333;
+    font-size: 14px;
+    align-items: baseline;
 }
+
 .link-list li i {
-    margin-right: 8px; /* Jarak antara ikon dan teks */
-    color: #474444; /* Warna bisa disesuaikan */
+    margin-right: 8px;
+    color: #666;
+    font-size: 12px;
 }
 
 .link-list a {
-    
-    text-decoration: none; /* Disable underline */
-    color: #161515; /* Inherit color from parent */
+    text-decoration: none;
+    color: #333;
 }
 
 .link-list a:hover {
-    text-decoration: none; /* Ensure underline is disabled on hover as well */
-    color: #000000;
+    text-decoration: none;
+    color: #0085FF;
 }
-
+.link-list .author{
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+}
+.link-list .instance{
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+}
+.link-list .editorname{
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+}
+.link-list .updateat{
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+}
+.link-list .vcount{
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+}
 #subheading {
     padding-top: 100px;
     margin-top: -60px;
