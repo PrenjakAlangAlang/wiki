@@ -162,8 +162,8 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName, instance
                             <div className="small-box">
                                 <h5 className="tags-title">CREATED CONTENT BY</h5>
                                 <ul className="link-list">
-                                    <li>{author}</li>
-                                    <li>{instanceName}</li>
+                                    <li className="author">{author}</li>
+                                    <li className="instance">{instanceName}</li>
                                 </ul>
                             </div>
                         )}
@@ -171,8 +171,8 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName, instance
                             <div className="small-box">
                                 <h5 className="tags-title">LAST EDITED BY</h5>
                                 <ul className="link-list">
-                                    <li>{editorName === "Unknown Editor" ? authorName : editorName}</li>
-                                    {updatedAt && <li>at {updatedAt}</li>}
+                                    <li className="editorname">{editorName === "Unknown Editor" ? authorName : editorName}</li>
+                                    {updatedAt && <li className="updateat">at {updatedAt}</li>}
                                 </ul>
                             </div>
                         )}
@@ -181,7 +181,7 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName, instance
                             <div className="small-box">
                                 <h5 className="tags-title">VIEW COUNT</h5>
                                 <ul className="link-list">
-                                    <li>{viewCount} <i className="fa fa-eye" style={{ marginRight: "5px", marginLeft: "10px" }}></i>views</li>
+                                    <li className="vcount">{viewCount} <i className="fa fa-eye" style={{ marginRight: "5px", marginLeft: "10px" }}></i>views</li>
                                 </ul>
                             </div>
                         )}
