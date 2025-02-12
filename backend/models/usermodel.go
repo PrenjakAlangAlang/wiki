@@ -26,6 +26,7 @@ func NewUserModel() *UserModel {
 	}
 }
 
+
 func (p *UserModel) Authenticate(email, password string) (*entities.User, error) {
 	user := &entities.User{}
 	// query := "SELECT id, name, email, password, role_id, instance_id FROM user WHERE email = ? AND password = ?"
@@ -172,6 +173,29 @@ func (m *UserModel) SoftDeleteUserById(id int) error {
     return err
 }
 
+func (m *UserModel) GetGuestPermissions() ([]string, error) {
+	query := `
+		SELECT p.name 
+		FROM permissions p 
+		JOIN role_permissions rp ON p.id = rp.permission_id 
+		WHERE rp.role_id = 4`
+
+	rows, err := m.conn.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var permissions []string
+	for rows.Next() {
+		var permission string
+		if err := rows.Scan(&permission); err != nil {
+			return nil, err
+		}
+		permissions = append(permissions, permission)
+	}
+	return permissions, nil
+}
 
 
 

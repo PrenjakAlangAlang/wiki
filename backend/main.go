@@ -84,6 +84,8 @@ func main() {
 	r.Handle("/api/content/resubmit/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("resubmit_content", http.HandlerFunc(contentcontroller.ResubmitRejectedContent)))).Methods("PUT")
 	r.Handle("/api/content/increment-viewcount/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_content", http.HandlerFunc(contentcontroller.IncrementViewCount)))).Methods("PUT")
 
+	r.HandleFunc("/api/guest", usercontroller.DefaultTokenHandler).Methods("GET")
+
 	// Endpoint Untuk decyrypt
 	r.HandleFunc("/api/decode", helpers.GetDecodedJWT).Methods("POST")
 

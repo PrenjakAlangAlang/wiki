@@ -27,35 +27,35 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
         // Ambil data user dari localStorage
         const storedUser = JSON.parse(localStorage.getItem("user"));
         const token = localStorage.getItem("token");
-  
+
         const fetchUserData = async () => {
           if (!token) {
             console.warn("No token found!");
             setUser(storedUser); // Jika tidak ada token, langsung set user dari localStorage
             return;
           }
-  
+
           try {
             // Kirim token untuk decode menggunakan API
             const response = await fetch("/api/decode", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "Accept": "application/json",
+                Accept: "application/json",
               },
               body: JSON.stringify({ encrypted_token: token }), // Kirim token dalam body
             });
-  
+
             if (!response.ok) {
               throw new Error("Failed to fetch user data");
             }
-  
+
             const userData = await response.json();
             const userWithPermissions = {
               ...storedUser,
               permissions: userData.permissions || [], // Menggabungkan user dengan permissions dari decoded token
             };
-  
+
             setUser(userWithPermissions);
             console.log("User loaded with permissions:", userWithPermissions);
           } catch (e) {
@@ -63,23 +63,21 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
             setUser(storedUser); // Jika gagal fetch, tetap set user dari localStorage
           }
         };
-  
+
         fetchUserData(); // Panggil fungsi untuk mengambil dan menggabungkan data user
-  
       } catch (e) {
         console.error("Error reading user data:", e);
         setUser(null); // Jika terjadi error, set user ke null
       }
     };
-  
+
     window.addEventListener("storage", handleStorageChange);
     handleStorageChange(); // Pastikan untuk memanggilnya saat pertama kali render
-  
+
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
-  
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -113,13 +111,45 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
     setIsModalOpen(true); // Buka modal konfirmasi saat logout
   };
 
-  const handleLogout = () => {
+
+  const handleLogout = async () => {
     try {
-      localStorage.removeItem("user");
-      setUser(null);
+      // Fetch guest token
+      const response = await fetch("/api/guest", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to fetch guest token");
+      }
+  
+      const guestData = await response.json();
+      
+      // Set guest token and default user data
+      localStorage.setItem("token", guestData.token);
+      const defaultUser = {
+        role: guestData.role,
+        role_id: guestData.role_id,
+        permissions: guestData.permissions,
+      };
+      localStorage.setItem("user", JSON.stringify(defaultUser));
+      
+      // Update user state with guest data
+      setUser(defaultUser);
+      
+      // Dispatch event for other components
       window.dispatchEvent(new Event("storage"));
-      navigate(`/`);
-      setIsModalOpen(false); // Tutup modal setelah logout
+      
+      // Close modal and navigate
+      setIsModalOpen(false);
+      navigate("/");
+      
+      // Auto refresh
+      window.location.reload();
     } catch (error) {
       console.error("Error during logout:", error);
     }
@@ -159,26 +189,24 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
           )}
 
           <div className="navbar-right">
-            {user ? (
+            {user && user.permissions?.includes("view_user") ? ( // Cek izin 'view_user'
               <>
                 <div className="profile-container">
                   <div className="profile" onClick={() => setShowDropdown(!showDropdown)}>
                     <img src={profile} alt="Profile" />
                   </div>
                   <div className={`profile-dropdown ${showDropdown ? "show" : ""}`}>
-                    {user && user.permissions && user.permissions.includes("view_user") && (
-                      <Link
-                        to="/profile"
-                        onClick={() => {
-                          clearSearch();
-                          setShowDropdown(false);
-                        }}
-                      >
-                        <i className="fa fa-user" style={{ marginRight: "11px" }}></i> Profile
-                      </Link>
-                    )}
+                    <Link
+                      to="/profile"
+                      onClick={() => {
+                        clearSearch();
+                        setShowDropdown(false);
+                      }}
+                    >
+                      <i className="fa fa-user" style={{ marginRight: "11px" }}></i> Profile
+                    </Link>
 
-                    {user && user.permissions && user.permissions.includes("view_all_users") && (
+                    {user.permissions?.includes("view_all_users") && (
                       <Link
                         to="/manage"
                         onClick={() => {
@@ -190,7 +218,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                       </Link>
                     )}
 
-                    {user && user.permissions && user.permissions.includes("view_drafts") && (
+                    {user.permissions?.includes("view_drafts") && (
                       <Link
                         to="/manage-content"
                         onClick={() => {
@@ -202,7 +230,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                       </Link>
                     )}
 
-                    {user && user.permissions && user.permissions.includes("view_user_contents") && (
+                    {user.permissions?.includes("view_user_contents") && (
                       <Link
                         to="/view-status-content"
                         onClick={() => {
@@ -214,7 +242,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                       </Link>
                     )}
 
-                    {user && user.permissions && user.permissions.includes("manage_role") && (
+                    {user.permissions?.includes("manage_role") && (
                       <Link
                         to="/manage-role"
                         onClick={() => {
@@ -229,7 +257,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                     <button
                       onClick={() => {
                         setShowDropdown(false);
-                        handleLogoutConfirmation(); // Panggil konfirmasi logout
+                        handleLogoutConfirmation();
                       }}
                     >
                       <i className="fa fa-sign-out" style={{ marginRight: "11px", color: "red" }}></i> Logout
@@ -238,7 +266,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                 </div>
                 <div className="username-container">
                   <span className="user-name">{user.name}</span>
-                  <span className="user-role">{user.role}</span> {/* Menampilkan role */}
+                  <span className="user-role">{user.role}</span>
                 </div>
               </>
             ) : (
