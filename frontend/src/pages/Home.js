@@ -9,38 +9,46 @@ function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Fungsi untuk mendapatkan guest token
+    const initGuestToken = async () => {
+      const guestResponse = await fetch("/api/guest", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      });
+
+      if (!guestResponse.ok) {
+        throw new Error("Failed to fetch guest token");
+      }
+
+      const guestData = await guestResponse.json();
+      return {
+        token: guestData.token,
+        userData: {
+          role: guestData.role,
+          role_id: guestData.role_id,
+          permissions: guestData.permissions,
+        }
+      };
+    };
+
     const initializeAuth = async () => {
       try {
+        // Cek token yang ada
         let token = localStorage.getItem("token");
         let storedUser = localStorage.getItem("user");
-  
-        // Fetch guest token if no token exists
+
+        // Jika tidak ada token atau user, gunakan guest token
         if (!token || !storedUser) {
-          const guestResponse = await fetch("/api/guest", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json",
-            },
-          });
-  
-          if (!guestResponse.ok) {
-            throw new Error("Failed to fetch guest token");
-          }
-  
-          const guestData = await guestResponse.json();
+          const guestData = await initGuestToken();
           token = guestData.token;
           localStorage.setItem("token", token);
-          
-          const defaultUser = {
-            role: guestData.role,
-            role_id: guestData.role_id,
-            permissions: guestData.permissions,
-          };
-          localStorage.setItem("user", JSON.stringify(defaultUser));
-          storedUser = JSON.stringify(defaultUser);
+          localStorage.setItem("user", JSON.stringify(guestData.userData));
+          storedUser = JSON.stringify(guestData.userData);
         }
-  
+
         // Decode token untuk mendapatkan informasi user
         const decodeResponse = await fetch("/api/decode", {
           method: "POST",
@@ -52,22 +60,53 @@ function Home() {
             encrypted_token: token,
           }),
         });
-  
+
         if (!decodeResponse.ok) {
-          throw new Error("Failed to decode token");
+          // Jika decode gagal, gunakan guest token sebagai fallback
+          const guestData = await initGuestToken();
+          token = guestData.token;
+          localStorage.setItem("token", token);
+          localStorage.setItem("user", JSON.stringify(guestData.userData));
+          storedUser = JSON.stringify(guestData.userData);
+          
+          // Coba decode lagi dengan guest token
+          const retryDecode = await fetch("/api/decode", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+            },
+            body: JSON.stringify({
+              encrypted_token: token,
+            }),
+          });
+          
+          if (!retryDecode.ok) {
+            throw new Error("Failed to decode token even with guest token");
+          }
+          
+          const userData = await retryDecode.json();
+          const parsedStoredUser = JSON.parse(storedUser);
+          
+          const userWithPermissions = {
+            ...parsedStoredUser,
+            permissions: userData.permissions || [],
+          };
+          
+          setUser(userWithPermissions);
+          return;
         }
-  
+
         const userData = await decodeResponse.json();
         const parsedStoredUser = JSON.parse(storedUser);
         
-        // Combine stored user data with decoded permissions
         const userWithPermissions = {
           ...parsedStoredUser,
           permissions: userData.permissions || [],
         };
         
         setUser(userWithPermissions);
-  
+
         // Fetch konten aktif jika user memiliki permission
         if (userWithPermissions.permissions?.includes("view_active_content")) {
           const contentResponse = await fetch("/api/active", {
@@ -77,19 +116,28 @@ function Home() {
               "Authorization": `Bearer ${token}`,
             },
           });
-  
+
           if (!contentResponse.ok) {
             throw new Error("Failed to fetch content");
           }
-  
+
           const contentData = await contentResponse.json();
           setContents(contentData);
         }
       } catch (error) {
         console.error("Error in initialization:", error);
+        // Jika terjadi error, coba inisialisasi ulang dengan guest token
+        try {
+          const guestData = await initGuestToken();
+          localStorage.setItem("token", guestData.token);
+          localStorage.setItem("user", JSON.stringify(guestData.userData));
+          setUser(guestData.userData);
+        } catch (e) {
+          console.error("Failed to initialize guest token:", e);
+        }
       }
     };
-  
+
     initializeAuth();
   }, [navigate]);
 
@@ -104,7 +152,6 @@ function Home() {
 
     window.addEventListener('scroll', handleScroll);
 
-    // Cleanup event listener on component unmount
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };

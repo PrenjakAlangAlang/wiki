@@ -1,15 +1,10 @@
 import React from 'react';
 
-const ModalLogout = ({ isOpen, onClose }) => {
+const ModalLogout = ({ isOpen, onClose, onConfirm }) => {
     if (!isOpen) return null; // Tidak menampilkan modal jika tidak terbuka
 
     const handleConfirmLogout = () => {
-        // Hapus token dan user dari localStorage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        
-        // (Opsional) Redirect ke halaman login
-        window.location.href = '/';
+        onConfirm(); // Panggil fungsi onConfirm saat logout dikonfirmasi
     };
 
     return (
@@ -25,7 +20,7 @@ const ModalLogout = ({ isOpen, onClose }) => {
                         Batal
                     </button>
                 </div>
-                
+
             </div>
         </div>
     );
