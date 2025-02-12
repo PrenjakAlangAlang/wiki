@@ -59,6 +59,11 @@ Accept: application/json
 }
 
 
+### Get all contents not rejected
+# @name GetAllContentsNotRejected
+GET http://localhost:3001/api/guest
+Accept: application/json
+
 
 
 
@@ -121,7 +126,7 @@ Accept: application/json
 ### Get all contents
 # @name GetAllContents
 GET http://localhost:3001/api/active
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzY2OTI3ODMsImlkIjoyLCJpbnN0YW5jZV9pZCI6Miwicm9sZSI6Mn0.5XUnZ9jOlcWVAJG2mS5ZGVf-iSTIL4Kx_MmPD2HLaVs
+Authorization: 
 Accept: application/json
 
 ###

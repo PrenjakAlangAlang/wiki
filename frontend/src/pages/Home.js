@@ -5,66 +5,92 @@ import { FaPlus } from "react-icons/fa";
 function Home() {
   const [contents, setContents] = useState([]);
   const [user, setUser] = useState(null);
-  const [isButtonVisible, setIsButtonVisible] = useState(false); // State for scroll-to-top button visibility
+  const [isButtonVisible, setIsButtonVisible] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
-
-    const fetchUserData = async () => {
-      if (!token) {
-        console.warn("No token found!");
-        setUser(storedUser);
-        return;
-      }
-
+    const initializeAuth = async () => {
       try {
-        const response = await fetch("/api/decode", {
+        let token = localStorage.getItem("token");
+        let storedUser = localStorage.getItem("user");
+  
+        // Fetch guest token if no token exists
+        if (!token || !storedUser) {
+          const guestResponse = await fetch("/api/guest", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+            },
+          });
+  
+          if (!guestResponse.ok) {
+            throw new Error("Failed to fetch guest token");
+          }
+  
+          const guestData = await guestResponse.json();
+          token = guestData.token;
+          localStorage.setItem("token", token);
+          
+          const defaultUser = {
+            role: guestData.role,
+            role_id: guestData.role_id,
+            permissions: guestData.permissions,
+          };
+          localStorage.setItem("user", JSON.stringify(defaultUser));
+          storedUser = JSON.stringify(defaultUser);
+        }
+  
+        // Decode token untuk mendapatkan informasi user
+        const decodeResponse = await fetch("/api/decode", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
           },
           body: JSON.stringify({
-            encrypted_token: token, // Kirim token dalam body, bukan hanya di header
+            encrypted_token: token,
           }),
         });
+  
+        if (!decodeResponse.ok) {
+          throw new Error("Failed to decode token");
+        }
+  
+        const userData = await decodeResponse.json();
+        const parsedStoredUser = JSON.parse(storedUser);
         
-
-        if (!response.ok) throw new Error("Failed to fetch user data");
-
-        const userData = await response.json();
-        setUser(userData);
-        console.log("User loaded with permissions:", userData);
+        // Combine stored user data with decoded permissions
+        const userWithPermissions = {
+          ...parsedStoredUser,
+          permissions: userData.permissions || [],
+        };
+        
+        setUser(userWithPermissions);
+  
+        // Fetch konten aktif jika user memiliki permission
+        if (userWithPermissions.permissions?.includes("view_active_content")) {
+          const contentResponse = await fetch("/api/active", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+  
+          if (!contentResponse.ok) {
+            throw new Error("Failed to fetch content");
+          }
+  
+          const contentData = await contentResponse.json();
+          setContents(contentData);
+        }
       } catch (error) {
-        console.error("Error fetching user data:", error);
-        setUser(storedUser);
+        console.error("Error in initialization:", error);
       }
     };
-
-    fetchUserData();
-
-    const fetchData = async () => {
-      try {
-        const response = await fetch("/api/active", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch content data");
-
-        const data = await response.json();
-        setContents(data);
-      } catch (error) {
-        console.error("Error fetching content:", error);
-      }
-    };
-
-    fetchData();
+  
+    initializeAuth();
   }, [navigate]);
 
   useEffect(() => {

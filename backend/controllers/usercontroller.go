@@ -42,6 +42,24 @@ func encrypt(text string, key []byte) (string, error) {
 }
 
 
+func GetGuestPermissions(w http.ResponseWriter, r *http.Request) {
+    permissions, err := userModel.GetGuestPermissions()
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    response := map[string]interface{}{
+        "role_id":     4,
+        "permissions": permissions,
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(response)
+}
+
+
+
 func Login(response http.ResponseWriter, request *http.Request) {
 	var user entities.User
 
@@ -152,6 +170,82 @@ func Login(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	response.WriteHeader(http.StatusOK)
 	json.NewEncoder(response).Encode(jsonResponse)
+}
+
+
+func DefaultTokenHandler(response http.ResponseWriter, request *http.Request) {
+    // Ambil role dengan role_id = 4 dari database
+    roleModel := models.NewRoleModel()
+    role, err := roleModel.FindRoleById(4)
+    if err != nil {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusNotFound)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Role not found",
+        })
+        return
+    }
+
+    // Ambil permissions berdasarkan role_id = 4 dari database
+    permissionModel := models.NewPermissionModel()
+    permissions, err := permissionModel.GetPermissionsByRole(role.Id)
+    if err != nil {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusNotFound)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Permissions not found for this role",
+        })
+        return
+    }
+
+    expirationTime := time.Now().Add(1 * time.Hour)
+    permissionsList := []string{}
+    for _, permission := range permissions {
+        permissionsList = append(permissionsList, permission.Name)
+    }
+
+    // Buat claims untuk token
+    claims := jwt.MapClaims{
+        "role":        role.Name,
+        "role_id":     role.Id,
+        "permissions": permissionsList,
+        "exp":         expirationTime.Unix(),
+    }
+
+    // Buat token JWT
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    tokenString, err := token.SignedString(jwtKey)
+    if err != nil {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusInternalServerError)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Could not generate token",
+        })
+        return
+    }
+
+    // Enkripsi token sebelum dikirim ke client
+    encryptedToken, err := encrypt(tokenString, encryptionKey)
+    if err != nil {
+        response.Header().Set("Content-Type", "application/json")
+        response.WriteHeader(http.StatusInternalServerError)
+        json.NewEncoder(response).Encode(map[string]string{
+            "error": "Could not encrypt token",
+        })
+        return
+    }
+
+    // Siapkan response
+    jsonResponse := map[string]interface{}{
+        "role":        role.Name,
+        "role_id":     role.Id,
+        "permissions": permissionsList,
+        "token":       encryptedToken, // Token yang sudah dienkripsi
+    }
+
+    response.Header().Set("Content-Type", "application/json")
+    response.WriteHeader(http.StatusOK)
+    json.NewEncoder(response).Encode(jsonResponse)
 }
 
 
