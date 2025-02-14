@@ -32,11 +32,15 @@ api.interceptors.response.use(
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify({ role, role_id, permissions }));
         
-        // Force redirect to home page
+        // Force redirect to home page if not already on home page
         const currentPath = window.location.pathname;
         if (currentPath !== '/') {
           window.location.replace('/');
           return Promise.reject(new Error('Redirecting to home page'));
+        } else {
+          // If already on home page, refresh the page
+          window.location.reload();
+          return Promise.reject(new Error('Refreshing home page'));
         }
         
         // Only retry the request if we're already on the home page
@@ -47,6 +51,8 @@ api.interceptors.response.use(
         // Force redirect even if guest token fails
         if (window.location.pathname !== '/') {
           window.location.replace('/');
+        } else {
+          window.location.reload();
         }
         return Promise.reject(error);
       }
