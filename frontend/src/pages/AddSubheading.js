@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import ReactQuill from 'react-quill'; // Tambahkan ReactQuill
 import 'react-quill/dist/quill.snow.css'; // Tambahkan style untuk ReactQuill
+import { apiService } from '../services/ApiService'; // Import ApiService
 
 const AddSubheading = () => {
     const [subheading, setSubheading] = useState('');
@@ -43,18 +44,11 @@ const AddSubheading = () => {
     
         try {
             // Mengirim data subheading ke API
-            const response = await fetch(`http://localhost:3000/api/subheading/add/${id}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(subheadingData),
-            });
+            const response = await apiService.createSubheading(id, subheadingData);
     
-            if (!response.ok) throw new Error("Failed to add subheading");
+            if (response.status !== 200) throw new Error("Failed to add subheading");
     
-            const responseData = await response.json();
+            const responseData = response.data;
             console.log("Subheading added:", responseData);
     
             // Mengambil waktu lokal di zona waktu Asia/Jakarta
@@ -78,16 +72,9 @@ const AddSubheading = () => {
             };
     
             // Mengirim data riwayat ke API
-            const historyResponse = await fetch("http://localhost:3000/api/history/add", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(historyData),
-            });
+            const historyResponse = await apiService.addHistory(historyData);
     
-            if (!historyResponse.ok) {
+            if (historyResponse.status !== 200) {
                 console.error("Failed to record history for Editing action");
             } else {
                 console.log("History recorded successfully");

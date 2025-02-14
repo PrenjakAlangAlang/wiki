@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import ReactQuill from "react-quill"; // Import ReactQuill
 import "react-quill/dist/quill.snow.css"; // Import stylesheet
 import ConfirmationCard from "../component/ConfirmationCard"; // Import ConfirmationCard
+import { apiService } from '../services/ApiService'; // Import ApiService
 
 const AddContent = () => {
     const [title, setTitle] = useState("");
@@ -36,29 +37,15 @@ const AddContent = () => {
     useEffect(() => {
         const fetchInstances = async () => {
             try {
-                // Ambil token dari localStorage atau sessionStorage
                 const token = localStorage.getItem("token");
                 if (!token) {
                     console.error("Authorization token is missing");
                     return;
                 }
 
-                // Tambahkan token pada header Authorization
-                const response = await fetch("/api/instances", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`, // Menambahkan token di header
-                    },
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setInstances(data);
-                    console.log("Fetched Instances:", data);
-                } else {
-                    console.error("Failed to fetch instances.");
-                }
+                const response = await apiService.getInstances();
+                setInstances(response.data);
+                console.log("Fetched Instances:", response.data);
             } catch (error) {
                 console.error("Error fetching instances:", error);
             }
@@ -112,17 +99,10 @@ const AddContent = () => {
             }
     
             // Buat konten baru
-            const response = await fetch(`/api/content/add`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(contentData),
-            });
+            const response = await apiService.createContent(contentData);
     
-            if (response.ok) {
-                const result = await response.json();
+            if (response.status === 200) {
+                const result = response.data;
                 const contentId = result.content_id;
     
                 // Mendapatkan waktu lokal di zona waktu Asia/Jakarta
@@ -146,18 +126,11 @@ const AddContent = () => {
                 };
     
                 // Kirim data riwayat
-                const historyResponse = await fetch(`/api/history/add`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(historyData),
-                });
+                const historyResponse = await apiService.addHistory(historyData);
     
-                if (!historyResponse.ok) {
+                if (historyResponse.status !== 200) {
                     console.error("Failed to record history.");
-                    const errorMessage = await historyResponse.text();
+                    const errorMessage = historyResponse.data;
                     console.error("History error response:", errorMessage);
                 }
     
@@ -169,7 +142,7 @@ const AddContent = () => {
                     navigate(`/informasi/${contentId}`);
                 }
             } else {
-                const errorText = await response.text();
+                const errorText = response.data;
                 alert("Can't access the backend: " + errorText);
                 console.error("Error creating content:", errorText);
             }
