@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import DeleteCard from '../component/DeleteCard';
+import { apiService } from '../services/ApiService'; // Import apiService
 
 const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAuthorName, setInstanceName }) => {
   const [user, setUser] = useState(null);
@@ -41,49 +42,22 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
 
         // Fetch user data and content data in parallel
         const [userResponse, contentResponse] = await Promise.all([
-          fetch("/api/decode", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json",
-            },
-            body: JSON.stringify({
-              encrypted_token: token,
-            }),
-          }),
-          fetch(`http://localhost:3000/api/content/${id}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          })
-        ]);
-
-        if (!userResponse.ok) throw new Error("Failed to fetch user data");
-        if (!contentResponse.ok) {
-          const errorMessage = await contentResponse.text();
-          throw new Error(errorMessage || 'Failed to fetch content data');
-        }
-
-        // Parse both responses
-        const [userData, contentData] = await Promise.all([
-          userResponse.json(),
-          contentResponse.json()
+          apiService.decodeToken(token), // Use apiService for decoding token
+          apiService.getContentById(id)  // Use apiService for fetching content
         ]);
 
         // Update user data
-        setUser(userData);
-        console.log("User loaded with permissions:", userData);
+        setUser(userResponse.data);
+        console.log("User loaded with permissions:", userResponse.data);
 
         // Update content data
-        setContent(contentData);
-        setSubheadings(contentData?.subheadings || []);
-        setTags(contentData.content.tag ? contentData.content.tag.split(',') : []);
-        setUpdatedAt(formatDate(contentData.content.updated_at));
+        setContent(contentResponse.data);
+        setSubheadings(contentResponse.data?.subheadings || []);
+        setTags(contentResponse.data.content.tag ? contentResponse.data.content.tag.split(',') : []);
+        setUpdatedAt(formatDate(contentResponse.data.content.updated_at));
         setContentId(id);
-        setAuthorName(contentData.author_name);
-        setInstanceName(contentData.instance_name || "Unknown Instance"); // Set instance name
+        setAuthorName(contentResponse.data.author_name);
+        setInstanceName(contentResponse.data.instance_name || "Unknown Instance"); // Set instance name
 
       } catch (error) {
         hasLoadedRef.current = false;  // Reset on error
@@ -132,18 +106,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/content/increment-viewcount/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to increment view count");
-            }
-
+            await apiService.incrementViewCount(id); // Use apiService for incrementing view count
             console.log("View count incremented successfully");
         } catch (error) {
             console.error("Error incrementing view count:", error);
@@ -154,7 +117,7 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
         incrementViewCount();
         hasIncrementedViewCountRef.current = true; // Mark as incremented
     }
-}, [id]);
+  }, [id]);
 
   const handleEditClick = () => {
     if (!user) {
@@ -188,51 +151,29 @@ const Informasi = ({ setSubheadings, setTags, setUpdatedAt, setContentId, setAut
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/content/delete/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      await apiService.deleteContent(id); // Use apiService for deleting content
+
+      const currentDate = new Date();
+      const formattedDate = currentDate.toLocaleString("en-US", {
+        timeZone: "Asia/Jakarta",
+        hour12: false,
       });
 
-      if (response.ok) {
-        const currentDate = new Date();
-        const formattedDate = currentDate.toLocaleString("en-US", {
-          timeZone: "Asia/Jakarta",
-          hour12: false,
-        });
+      const [date, time] = formattedDate.split(", ");
+      const [month, day, year] = date.split("/");
+      const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
 
-        const [date, time] = formattedDate.split(", ");
-        const [month, day, year] = date.split("/");
-        const formattedMySQLDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${time}`;
+      const historyData = {
+        content_id: parseInt(id, 10),
+        editor_id: user?.id,
+        action: "Deleting",
+        edited_at: formattedMySQLDate,
+      };
 
-        const historyData = {
-          content_id: parseInt(id, 10),
-          editor_id: user?.id,
-          action: "Deleting",
-          edited_at: formattedMySQLDate,
-        };
+      await apiService.addHistory(historyData); // Use apiService for adding history
+      console.log("History recorded successfully");
 
-        const historyResponse = await fetch("http://localhost:3000/api/history/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(historyData),
-        });
-
-        if (!historyResponse.ok) {
-          console.error("Failed to record history for Deleting action");
-        } else {
-          console.log("History recorded successfully");
-        }
-
-        navigate("/");
-      } else {
-        alert("Failed to delete content");
-      }
+      navigate("/");
     } catch (err) {
       console.error("Error deleting content:", err);
       alert("An error occurred while deleting the content");

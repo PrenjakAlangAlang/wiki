@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import DeleteSubheadingCard from '../component/DeleteSubheadingCard';
+import { apiService } from '../services/ApiService'; // Import apiService yang telah dibuat
 
 const Edit = () => {
   const { id } = useParams();
@@ -37,21 +38,8 @@ const Edit = () => {
       }
 
       try {
-        const response = await fetch("/api/decode", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-          },
-          body: JSON.stringify({
-            encrypted_token: token,
-          }),
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch user data");
-
-        const userData = await response.json();
-        setUser(userData);
+        const response = await apiService.decodeToken(token);
+        setUser(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setUser(storedUser);
@@ -63,7 +51,6 @@ const Edit = () => {
     fetchInstances();
   }, [id]);
 
-  // Add change detection effect
   useEffect(() => {
     if (!originalContent) return;
 
@@ -83,9 +70,8 @@ const Edit = () => {
 
     setHasChanges(hasContentChanges || hasSubheadingChanges);
 
-    // Record history if changes detected and enough time has passed
     const shouldRecordHistory = hasChanges && 
-      (!lastHistoryUpdate || Date.now() - lastHistoryUpdate > 30000); // 30 seconds cooldown
+      (!lastHistoryUpdate || Date.now() - lastHistoryUpdate > 30000);
 
     if (shouldRecordHistory) {
       recordEditHistory();
@@ -113,16 +99,8 @@ const Edit = () => {
         edited_at: formattedMySQLDate,
       };
 
-      const historyResponse = await fetch("http://localhost:3000/api/history/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(historyData),
-      });
-
-      if (historyResponse.ok) {
+      const historyResponse = await apiService.addHistory(historyData);
+      if (historyResponse.status === 200) {
         setLastHistoryUpdate(Date.now());
       } else {
         console.error("Failed to record edit history");
@@ -134,29 +112,18 @@ const Edit = () => {
 
   const fetchInstances = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/instances", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error("Failed to fetch instances");
-      const data = await response.json();
-      setInstances(data);
+      const response = await apiService.getInstances();
+      setInstances(response.data);
     } catch (error) {
       console.error(error);
-      alert("An error occurred while fetching instances.");
     }
   };
 
   const fetchContent = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/api/content/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error("Failed to fetch content");
-      const data = await response.json();
+      const response = await apiService.getContentById(id);
+      const data = response.data;
 
-      // Store original content for change detection
       setOriginalContent({
         title: data.content?.title || "",
         description: data.content.description?.String || "",
@@ -183,7 +150,6 @@ const Edit = () => {
       setSubheadings(data.subheadings || []);
     } catch (error) {
       console.error(error);
-      alert("An error occurred while fetching content");
     }
   };
 
@@ -204,17 +170,8 @@ const Edit = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:3000/api/subheading/delete/${subheadingId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.ok) {
-        //alert("Subheading berhasil dihapus");
+      const response = await apiService.deleteSubheading(subheadingId);
+      if (response.status === 200) {
         setSubheadings((prev) => prev.filter((sub) => sub.id !== subheadingId));
       } else {
         alert("Gagal menghapus subheading");
@@ -263,23 +220,8 @@ const Edit = () => {
     };
     
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Authorization token is missing. Please log in again.");
-        navigate("/login");
-        return;
-      }
-
-      const response = await fetch(`http://localhost:3000/api/content/edit/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (response.ok) {
+      const response = await apiService.editContent(id, requestBody);
+      if (response.status === 200) {
         navigate(`/informasi/${id}`);
       } else {
         alert("Gagal mengupdate konten.");

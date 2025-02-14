@@ -5,6 +5,8 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -12,26 +14,27 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Kunci untuk JWT dan AES
 var jwtKey = []byte("wiki")
-var encryptionKey = []byte("myverystrongpasswordo32bitlength") // Pastikan panjangnya 32 byte
+var encryptionKey = []byte("myverystrongpasswordo32bitlength")
 
-// Claims adalah struktur untuk klaim token JWT
 type Claims struct {
-	ID     int    `json:"id"`
-	Role   string `json:"role"`
-	RoleID int64  `json:"role_id"` // Menambahkan field role_id
+	ID          int      `json:"id"`
+	Role        string   `json:"role"`
+	RoleID      int64    `json:"role_id"`
 	Permissions []string `json:"permissions"`
 	jwt.RegisteredClaims
 }
 
-// ContextKey adalah tipe baru untuk key di context
 type ContextKey string
 
-// UserContextKey adalah key context untuk menyimpan klaim pengguna
 const UserContextKey ContextKey = "user"
 
-// decryptToken mendekripsi token JWT yang terenkripsi dengan AES-GCM
+// Response structure for unauthorized errors
+type UnauthorizedResponse struct {
+	Message string `json:"message"`
+	Code    int    `json:"code"`
+}
+
 func decryptToken(encryptedToken string) (string, error) {
 	decoded, err := base64.StdEncoding.DecodeString(encryptedToken)
 	if err != nil {
@@ -64,59 +67,64 @@ func decryptToken(encryptedToken string) (string, error) {
 	return string(plaintext), nil
 }
 
+// Helper function to send unauthorized response
+func sendUnauthorizedResponse(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	
+	response := UnauthorizedResponse{
+		Message: message,
+		Code:    http.StatusUnauthorized,
+	}
+	
+	json.NewEncoder(w).Encode(response)
+}
 
-// JWTAuth adalah middleware untuk memvalidasi token JWT
 func JWTAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Mengecualikan pengecekan token untuk endpoint login
-		if r.URL.Path == "/login" {
+		// Skip token check for login and guest endpoints
+		if r.URL.Path == "/login" || r.URL.Path == "/guest" {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		// Periksa apakah Authorization header ada
 		authHeader := r.Header.Get("Authorization")
-
 		if authHeader == "" {
-			http.Error(w, "Authorization header is missing", http.StatusUnauthorized)
+			sendUnauthorizedResponse(w, "Authorization header is missing")
 			return
 		}
 
-		// Pastikan header dimulai dengan Bearer
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, "Authorization header must be in the form of 'Bearer {token}'", http.StatusUnauthorized)
+			sendUnauthorizedResponse(w, "Authorization header must be in the form of 'Bearer {token}'")
 			return
 		}
 
-		// Ambil token dari header dan dekripsi terlebih dahulu
 		encryptedToken := strings.TrimPrefix(authHeader, "Bearer ")
 		tokenString, err := decryptToken(encryptedToken)
 		if err != nil {
-			http.Error(w, "Failed to decrypt token", http.StatusUnauthorized)
+			sendUnauthorizedResponse(w, "Failed to decrypt token")
 			return
 		}
 
 		claims := &Claims{}
-
-		// Parsing token dengan klaim
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			// Verifikasi metode penandatanganan token
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 			return jwtKey, nil
 		})
 
-		// Jika terjadi error atau token tidak valid, beri respons error
 		if err != nil || !token.Valid {
-			http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+			// Check if token is expired
+			if errors.Is(err, jwt.ErrTokenExpired) {
+				sendUnauthorizedResponse(w, "Token has expired")
+				return
+			}						
+			sendUnauthorizedResponse(w, "Invalid token")
 			return
 		}
 
-		// Jika token valid, simpan klaim dalam context
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)
-
-		// Lanjutkan dengan request yang sudah dibekali context
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
