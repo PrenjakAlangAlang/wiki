@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaInfoCircle, FaTrash } from "react-icons/fa";
 import DeleteUserCard from "../component/DeleteUserCard"; // Import DeleteUserCard component
 import AddUserCard from "../component/AddUserCard"; // Import AddUserCard component
+import { apiService } from "../services/ApiService"; // Import apiService
 
 const ManageUser = () => {
   const [user, setUser] = useState(null);
@@ -24,44 +25,20 @@ const ManageUser = () => {
   const itemsPerPage = 10;
 
   const fetchUsers = useCallback(() => {
-    const token = localStorage.getItem("token");
-    fetch("http://localhost:3000/api/users", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setUsers(data))
+    apiService.getAllUsers()
+      .then((res) => setUsers(res.data))
       .catch((err) => console.error("Failed to fetch users:", err));
   }, []);
 
   const fetchRoles = useCallback(() => {
-    const token = localStorage.getItem("token");
-    fetch("http://localhost:3000/api/roles", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setRoles(data))
+    apiService.getRoles()
+      .then((res) => setRoles(res.data))
       .catch((err) => console.error("Failed to fetch roles:", err));
   }, []);
 
   const fetchInstances = useCallback(() => {
-    const token = localStorage.getItem("token");
-    fetch("http://localhost:3000/api/instances", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setInstances(data))
+    apiService.getInstances()
+      .then((res) => setInstances(res.data))
       .catch((err) => console.error("Failed to fetch instances:", err));
   }, []);
 
@@ -77,22 +54,9 @@ const ManageUser = () => {
       }
 
       try {
-        const response = await fetch("/api/decode", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-          },
-          body: JSON.stringify({
-            encrypted_token: token, // Kirim token dalam body
-          }),
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch user data");
-
-        const userData = await response.json();
-        setUser(userData);
-        console.log("User loaded with permissions:", userData);
+        const response = await apiService.decodeToken(token);
+        setUser(response.data);
+        console.log("User loaded with permissions:", response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setUser(storedUser);
@@ -144,28 +108,16 @@ const ManageUser = () => {
     if (!userId) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/api/user/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        fetchUsers();
-        closeDeleteModal();
-      } else {
-        alert("Failed to delete user.");
-      }
+      await apiService.deleteUser(userId);
+      fetchUsers();
+      closeDeleteModal();
     } catch (error) {
       console.error("Error deleting user:", error);
+      alert("Failed to delete user.");
     }
   };
 
   const handleAddUser = async () => {
-    const token = localStorage.getItem("token");
     const payload = {
       ...formData,
       nip: Number(formData.nip),
@@ -173,28 +125,21 @@ const ManageUser = () => {
       instance_id: Number(formData.instance_id),
     };
 
-    fetch("http://localhost:3000/api/createuser", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setFormData({
-          name: "",
-          nip: "",
-          email: "",
-          password: "",
-          role_id: "",
-          instance_id: "",
-        });
-        fetchUsers();
-        closeAddUserModal();
-      })
-      .catch((err) => console.error("Failed to add user:", err));
+    try {
+      await apiService.createUser(payload);
+      setFormData({
+        name: "",
+        nip: "",
+        email: "",
+        password: "",
+        role_id: "",
+        instance_id: "",
+      });
+      fetchUsers();
+      closeAddUserModal();
+    } catch (err) {
+      console.error("Failed to add user:", err);
+    }
   };
 
   const closeAddUserModal = () => {

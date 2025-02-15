@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { apiService } from '../services/ApiService'; // Import ApiService
 
 const ContentDetail = () => {
   const { id } = useParams();
@@ -12,19 +13,8 @@ const ContentDetail = () => {
     const fetchContent = async () => {
       const token = localStorage.getItem("token");
       try {
-        const response = await fetch(
-          `http://localhost:3000/api/content/${id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const data = await response.json();
-        console.log(data);
-        setContent(data);
+        const response = await apiService.getContentById(id);
+        setContent(response.data);
       } catch (error) {
         console.error("Error fetching content:", error);
         setError("Failed to fetch content");

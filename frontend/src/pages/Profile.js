@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ModalLogout from '../component/ModalLogout';
+import { apiService } from '../services/ApiService';
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -17,21 +18,10 @@ const Profile = () => {
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/user/${userData.id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,  // Sertakan token dalam header
-                    },
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setUser(data);
-                } else {
-                    throw new Error('Failed to fetch user data');
-                }
+                const response = await apiService.getUserById(userData.id);
+                setUser(response.data);
             } catch (error) {
-                console.error(error);
+                console.error('Failed to fetch user data:', error);
                 // navigate('/login');
             }
         };
@@ -44,10 +34,36 @@ const Profile = () => {
         setIsModalOpen(true);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');  // Hapus token juga saat logout
-        navigate('/');
+    const handleLogout = async () => {
+        try {
+            // Fetch guest token
+            const response = await apiService.getGuestToken();
+            const guestData = response.data;
+
+            // Set guest token and default user data
+            localStorage.setItem("token", guestData.token);
+            const defaultUser = {
+                role: guestData.role,
+                role_id: guestData.role_id,
+                permissions: guestData.permissions,
+            };
+            localStorage.setItem("user", JSON.stringify(defaultUser));
+
+            // Update user state with guest data
+            setUser(defaultUser);
+
+            // Dispatch event for other components
+            window.dispatchEvent(new Event("storage"));
+
+            // Close modal and navigate
+            setIsModalOpen(false);
+            navigate("/");
+
+            // Auto refresh
+            window.location.reload();
+        } catch (error) {
+            console.error("Error during logout:", error);
+        }
     };
 
     const Breadcrumbs = ({ paths }) => {

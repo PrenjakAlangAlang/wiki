@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaPencilAlt } from "react-icons/fa";
+import { apiService } from '../services/ApiService';
 
 const ViewStatusContent = () => {
     const [contents, setContents] = useState([]);
@@ -17,18 +18,9 @@ const ViewStatusContent = () => {
 
     useEffect(() => {
         const fetchContents = async () => {
-            const token = localStorage.getItem('token');
             try {
-                const response = await fetch(`http://localhost:3000/api/contents/user/${user.id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const data = await response.json();
-                // Sort contents by ID in descending order
-                const sortedData = data.sort((a, b) => b.id - a.id);
+                const response = await apiService.getUserContents(user.id);
+                const sortedData = response.data.sort((a, b) => b.id - a.id);
                 setContents(sortedData);
             } catch (error) {
                 console.error('Error fetching contents:', error);

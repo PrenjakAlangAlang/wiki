@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { apiService } from '../services/ApiService';
 
 const DetailUser = () => {
   const [mergedData, setMergedData] = useState([]);
@@ -39,21 +40,8 @@ const DetailUser = () => {
       }
 
       try {
-        const response = await fetch("/api/decode", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-          },
-          body: JSON.stringify({
-            encrypted_token: token,
-          }),
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch user data");
-
-        const userData = await response.json();
-        setCurrentUser(userData);
+        const response = await apiService.decodeToken(token);
+        setCurrentUser(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setCurrentUser(storedUser);
@@ -65,50 +53,25 @@ const DetailUser = () => {
     const fetchData = async () => {
       try {
         const [userResponse, rolesResponse, instancesResponse, contentsResponse] = await Promise.all([
-          fetch(`http://localhost:3000/api/user/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch("http://localhost:3000/api/roles", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch("http://localhost:3000/api/instances", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch("http://localhost:3000/api/notReject", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
+          apiService.getUserById(id),
+          apiService.getRoles(),
+          apiService.getInstances(),
+          apiService.getNotRejectedContents(),
         ]);
 
-        if (!userResponse.ok || !rolesResponse.ok || !instancesResponse.ok || !contentsResponse.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const userData = await userResponse.json();
-        const rolesData = await rolesResponse.json();
-        const instancesData = await instancesResponse.json();
-        const contentsData = await contentsResponse.json();
-
-        setUser(userData);
+        setUser(userResponse.data);
         setFormData({
-          id: userData.id,
-          name: userData.name,
-          nip: userData.nip,
-          email: userData.email,
-          password: userData.password,
-          role_id: userData.role_id,
-          instance_id: userData.instance_id,
+          id: userResponse.data.id,
+          name: userResponse.data.name,
+          nip: userResponse.data.nip,
+          email: userResponse.data.email,
+          password: userResponse.data.password,
+          role_id: userResponse.data.role_id,
+          instance_id: userResponse.data.instance_id,
         });
-        setRoles(rolesData);
-        setInstances(instancesData);
-        setContents(contentsData || []);
+        setRoles(rolesResponse.data);
+        setInstances(instancesResponse.data);
+        setContents(contentsResponse.data || []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
@@ -125,7 +88,7 @@ const DetailUser = () => {
     }));
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
 
     if (!currentUser?.permissions?.includes("edit_user")) {
@@ -140,43 +103,23 @@ const DetailUser = () => {
       instance_id: parseInt(formData.instance_id, 10),
     };
 
-    fetch(`http://localhost:3000/api/user/edit/${formData.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(formattedData),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to update user");
-        }
-        return res.json();
-      })
-      .then(() => {
-        setIsEditing(false);
-        fetch(`http://localhost:3000/api/user/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-          .then((res) => res.json())
-          .then((data) => setUser(data))
-          .catch((err) => console.error("Failed to fetch updated user:", err));
-      })
-      .catch((err) => console.error("Failed to update user:", err));
+    try {
+      await apiService.editUser(formData.id, formattedData);
+      setIsEditing(false);
+      const updatedUserResponse = await apiService.getUserById(id);
+      setUser(updatedUserResponse.data);
+    } catch (error) {
+      console.error("Failed to update user:", error);
+    }
   };
 
-  const loadHistories = () => {
-    fetch(`http://localhost:3000/api/history/user/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setHistories(data || []))
-      .catch((err) => console.error("Failed to fetch histories:", err));
+  const loadHistories = async () => {
+    try {
+      const response = await apiService.getHistoryByUserId(id);
+      setHistories(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch histories:", error);
+    }
   };
 
   const handleToggleHistory = () => {

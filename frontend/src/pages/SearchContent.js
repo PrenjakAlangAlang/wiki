@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { apiService } from '../services/ApiService';
 
 function SearchContent({ setSearchTerm }) {
     const { term } = useParams();
@@ -25,21 +26,9 @@ function SearchContent({ setSearchTerm }) {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const token = localStorage.getItem('token');
             try {
-                const response = await fetch(`http://localhost:3000/api/content?q=${term}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                if (!response.ok) {
-                    setResults([]);
-                } else {
-                    const data = await response.json();
-                    setResults(data.data);
-                }
+                const response = await apiService.searchContent({ q: term });
+                setResults(response.data.data);
             } catch (error) {
                 setResults([]);
             }

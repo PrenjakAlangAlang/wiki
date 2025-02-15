@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import "font-awesome/css/font-awesome.min.css";
+import { apiService } from '../services/ApiService';
 
 const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName, instanceName }) => {
     const location = useLocation();
@@ -28,22 +29,9 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName, instance
             }
 
             try {
-                const response = await fetch("/api/decode", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json",
-                    },
-                    body: JSON.stringify({
-                        encrypted_token: token, // Kirim token dalam body
-                    }),
-                });
-
-                if (!response.ok) throw new Error("Failed to fetch user data");
-
-                const userData = await response.json();
-                setCurrentUser(userData);
-                console.log("User loaded with permissions:", userData);
+                const response = await apiService.decodeToken(token);
+                setCurrentUser(response.data);
+                console.log("User loaded with permissions:", response.data);
             } catch (error) {
                 console.error("Error fetching user data:", error);
                 setCurrentUser(storedUser);
@@ -56,17 +44,9 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName, instance
     useEffect(() => {
         if (contentId && currentUser?.permissions?.includes("view_latest_editor")) {
             // Only fetch editor name if user has permission
-            const token = localStorage.getItem("token");
-            fetch(`http://localhost:3000/api/latest-editor-name/${contentId}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-            })
-                .then((res) => res.json())
-                .then((data) => {
-                    setEditorName(data.editorName || "Unknown Editor");
+            apiService.getLatestEditorNameByContentId(contentId)
+                .then((response) => {
+                    setEditorName(response.data.editorName || "Unknown Editor");
                 })
                 .catch(() => setEditorName("Unknown Editor"));
         }
@@ -74,19 +54,11 @@ const Sidebar = ({ subheadings, tags, updatedAt, contentId, authorName, instance
 
     useEffect(() => {
         if (contentId) {
-            const token = localStorage.getItem("token");
-            fetch(`http://localhost:3000/api/content/viewcount/${contentId}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-            })
-            .then((res) => res.json())
-            .then((data) => {
-                setViewCount(data.viewCount);
-            })
-            .catch((err) => console.error("Error fetching view count:", err));
+            apiService.getContentViewCount(contentId)
+                .then((response) => {
+                    setViewCount(response.data.viewCount);
+                })
+                .catch((err) => console.error("Error fetching view count:", err));
         }
     }, [contentId]);
 

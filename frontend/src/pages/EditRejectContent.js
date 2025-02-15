@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { apiService } from '../services/ApiService';
 
 const EditRejectContent = () => {
     const { id } = useParams();
@@ -24,16 +25,9 @@ const EditRejectContent = () => {
 
     useEffect(() => {
         const fetchContent = async () => {
-            const token = localStorage.getItem('token');
             try {
-                const response = await fetch(`http://localhost:3000/api/content/${id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const data = await response.json();
+                const response = await apiService.getContentById(id);
+                const data = response.data;
                 setTitle(data.content.title);
                 setDescription(data.content.description.String);
                 setTag(data.content.tag);
@@ -44,17 +38,9 @@ const EditRejectContent = () => {
         };
 
         const fetchInstances = async () => {
-            const token = localStorage.getItem('token');
             try {
-                const response = await fetch('/api/instances', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const data = await response.json();
-                setInstances(data);
+                const response = await apiService.getInstances();
+                setInstances(response.data);
             } catch (error) {
                 console.error('Error fetching instances:', error);
             }
@@ -78,22 +64,8 @@ const EditRejectContent = () => {
         };
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:3000/api/content/resubmit/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(contentData),
-            });
-
-            if (response.ok) {
-                navigate('/view-status-content');
-            } else {
-                const errorText = await response.text();
-                alert('Failed to resubmit content: ' + errorText);
-            }
+            await apiService.resubmitRejectedContent(id, contentData);
+            navigate('/view-status-content');
         } catch (error) {
             console.error('Error resubmitting content:', error);
             alert('There was an error resubmitting the content.');

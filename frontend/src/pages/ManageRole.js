@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import 'font-awesome/css/font-awesome.min.css';
 import SavePermissionsCard from '../component/SavePermissionsCard'; // Import the new component
+import { apiService } from '../services/ApiService';
 
 const ManageRole = () => {
   const [permissions, setPermissions] = useState([]);
@@ -13,53 +14,35 @@ const ManageRole = () => {
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false); // State for modal visibility
   const [isButtonVisible, setIsButtonVisible] = useState(false); // State for scroll-to-top button visibility
 
-  const fetchToken = () => localStorage.getItem("token");
-
-  const fetchPermissions = useCallback(() => {
-    const token = fetchToken();
-    fetch("http://localhost:3000/api/permissions", {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then(setPermissions)
-      .catch((err) => console.error("Failed to fetch permissions:", err));
+  const fetchPermissions = useCallback(async () => {
+    try {
+      const response = await apiService.getPermissions();
+      setPermissions(response.data);
+    } catch (err) {
+      console.error("Failed to fetch permissions:", err);
+    }
   }, []);
 
-  const fetchRolePermissions = useCallback((roleId) => {
-    const token = fetchToken();
-    fetch(`http://localhost:3001/api/roles/${roleId}/permissions`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setCurrentPermissions((prev) => ({
-          ...prev,
-          [roleId]: new Set(data.map((p) => p.permission_id)),
-        }));
-      })
-      .catch((err) => console.error("Failed to fetch role permissions:", err));
+  const fetchRolePermissions = useCallback(async (roleId) => {
+    try {
+      const response = await apiService.getRolePermissions(roleId);
+      setCurrentPermissions((prev) => ({
+        ...prev,
+        [roleId]: new Set(response.data.map((p) => p.permission_id)),
+      }));
+    } catch (err) {
+      console.error("Failed to fetch role permissions:", err);
+    }
   }, []);
 
-  const fetchRoles = useCallback(() => {
-    const token = fetchToken();
-    fetch("http://localhost:3000/api/roles", {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setRoles(data);
-        data.forEach((role) => fetchRolePermissions(role.id));
-      })
-      .catch((err) => console.error("Failed to fetch roles:", err));
+  const fetchRoles = useCallback(async () => {
+    try {
+      const response = await apiService.getRoles();
+      setRoles(response.data);
+      response.data.forEach((role) => fetchRolePermissions(role.id));
+    } catch (err) {
+      console.error("Failed to fetch roles:", err);
+    }
   }, [fetchRolePermissions]);
 
   useEffect(() => {
@@ -119,7 +102,6 @@ const ManageRole = () => {
   };
 
   const savePermissions = async () => {
-    const token = fetchToken();
     const savePromises = [];
 
     console.log("Pending changes: ", pendingChanges); // Debug log untuk memeriksa data
@@ -127,17 +109,7 @@ const ManageRole = () => {
     Object.entries(pendingChanges).forEach(([roleId, changes]) => {
       // Handle additions
       changes.add.forEach((permissionId) => {
-        const promise = fetch(
-          `http://localhost:3001/api/roles/${roleId}/permissions/add/${permissionId}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-          .then((res) => res.json())
+        const promise = apiService.addPermissionToRole(roleId, permissionId)
           .then((data) => {
             if (!data.success) {
               throw new Error("Failed to add permission");
@@ -151,17 +123,7 @@ const ManageRole = () => {
 
       // Handle removals
       changes.remove.forEach((permissionId) => {
-        const promise = fetch(
-          `http://localhost:3001/api/roles/${roleId}/permissions/delete/${permissionId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
-          .then((res) => res.json())
+        const promise = apiService.removePermissionFromRole(roleId, permissionId)
           .then((data) => {
             if (!data.success) {
               throw new Error("Failed to remove permission");

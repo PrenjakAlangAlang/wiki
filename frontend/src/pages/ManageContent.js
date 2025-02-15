@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaInfoCircle, FaCheck, FaTimes } from "react-icons/fa";
 import ApprovalCard from "../component/ApprovalCard";
 import RejectPopup from "../component/RejectPopup"; // Assuming you have a RejectPopup component
+import { apiService } from "../services/ApiService"; // Import apiService
 
 const ManageContent = () => {
   const [contents, setContents] = useState([]);
@@ -29,22 +30,9 @@ const ManageContent = () => {
       }
 
       try {
-        const response = await fetch("/api/decode", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-          },
-          body: JSON.stringify({
-            encrypted_token: token,
-          }),
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch user data");
-
-        const userData = await response.json();
-        setUser(userData);
-        console.log("User loaded with permissions:", userData);
+        const response = await apiService.decodeToken(token);
+        setUser(response.data);
+        console.log("User loaded with permissions:", response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setUser(storedUser);
@@ -55,15 +43,8 @@ const ManageContent = () => {
 
     const fetchContents = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/draft", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await response.json();
-        const sortedData = data.sort((a, b) => b.id - a.id);
+        const response = await apiService.getDrafts();
+        const sortedData = response.data.sort((a, b) => b.id - a.id);
         setContents(sortedData);
       } catch (error) {
         console.error("Error fetching contents:", error);
@@ -97,32 +78,18 @@ const ManageContent = () => {
       alert("Alasan penolakan tidak boleh kosong.");
       return;
     }
-  
+
     const token = localStorage.getItem("token");
     try {
       // Log the request payload for debugging
       console.log("Sending rejection with reason:", rejectReason);
-      
-      const response = await fetch(`http://localhost:3000/api/content/reject/${selectedContentId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ 
-          reason: rejectReason.trim() 
-        }),
-      });
-  
-      // Log the response for debugging
-      const responseData = await response.text();
-      console.log("Server response:", responseData);
-  
-      if (!response.ok) {
-        throw new Error(`Failed to reject content: ${responseData}`);
-      }
 
-      if (response.ok) {
+      const response = await apiService.rejectContent(selectedContentId, rejectReason.trim());
+
+      // Log the response for debugging
+      console.log("Server response:", response.data);
+
+      if (response.status === 200) {
         const currentDate = new Date();
         const formattedDate = currentDate.toLocaleString("en-US", {
           timeZone: "Asia/Jakarta",
@@ -141,18 +108,10 @@ const ManageContent = () => {
           reason: rejectReason,
         };
 
-        const historyResponse = await fetch("http://localhost:3000/api/history/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(historyData),
-        });
+        const historyResponse = await apiService.addHistory(historyData);
 
-        const historyResponseText = await historyResponse.text();
-        if (!historyResponse.ok) {
-          console.error("Failed to record edit history:", historyResponseText);
+        if (historyResponse.status !== 200) {
+          console.error("Failed to record edit history:", historyResponse.data);
           alert("Something went wrong while saving history. Please try again.");
           return;
         }
@@ -180,16 +139,9 @@ const ManageContent = () => {
   const approveContent = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`http://localhost:3000/api/content/approve/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: "Approving" }),
-      });
+      const response = await apiService.approveContent(id);
 
-      if (response.ok) {
+      if (response.status === 200) {
         const currentDate = new Date();
         const formattedDate = currentDate.toLocaleString("en-US", {
           timeZone: "Asia/Jakarta",
@@ -207,18 +159,10 @@ const ManageContent = () => {
           edited_at: formattedMySQLDate,
         };
 
-        const historyResponse = await fetch(`http://localhost:3000/api/history/add`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(historyData),
-        });
+        const historyResponse = await apiService.addHistory(historyData);
 
-        const historyResponseText = await historyResponse.text();
-        if (!historyResponse.ok) {
-          console.error("Failed to record edit history:", historyResponseText);
+        if (historyResponse.status !== 200) {
+          console.error("Failed to record edit history:", historyResponse.data);
           alert("Something went wrong while saving history. Please try again.");
           return;
         }
@@ -331,22 +275,22 @@ const ManageContent = () => {
 };
 
 const Breadcrumbs = ({ paths }) => {
-    return (
-      <nav>
-        <ul className="breadcrumbs">
-          {paths.map((path, index) => (
-            <li key={index}>
-              {path.link ? (
-                <Link to={path.link}>{path.label}</Link>
-              ) : (
-                <span>{path.label}</span>
-              )}
-              {index < paths.length - 1 && " / "}
-            </li>
-          ))}
-        </ul>
-      </nav>
-    );
-  };
+  return (
+    <nav>
+      <ul className="breadcrumbs">
+        {paths.map((path, index) => (
+          <li key={index}>
+            {path.link ? (
+              <Link to={path.link}>{path.label}</Link>
+            ) : (
+              <span>{path.label}</span>
+            )}
+            {index < paths.length - 1 && " / "}
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};
 
 export default ManageContent;
