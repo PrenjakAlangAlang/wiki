@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"backend/entities"
+	middleware "backend/middlewares"
 	"backend/models"
 	"bytes"
 	"database/sql"
@@ -47,7 +48,16 @@ func GetIdTitleAllContentsNotRejected(response http.ResponseWriter, request *htt
 func GetIdTitleAllContentsNotDeleted(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 
-	contents, err := contentModel.FindNotDelete()
+	// Ambil instance_id dari context
+	claims, ok := request.Context().Value(middleware.UserContextKey).(*middleware.Claims)
+	if !ok {
+		http.Error(response, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	instanceID := claims.InstanceID
+
+	contents, err := contentModel.FindNotDelete(instanceID)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

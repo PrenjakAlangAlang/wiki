@@ -75,9 +75,9 @@ func (p *ContentModel) FindNotRejected() ([]entities.Content, error) {
 
 
 
-func (p *ContentModel) FindNotDelete() ([]entities.Content, error) {
-    query := "SELECT id, title FROM content WHERE status = 'approved' AND deleted_at IS NULL"
-    rows, err := p.conn.Query(query)
+func (p *ContentModel) FindNotDelete(instanceID int) ([]entities.Content, error) {
+    query := "SELECT id, title FROM content WHERE status = 'approved' AND deleted_at IS NULL AND (instance_id = ? OR instance_id = 38)"
+    rows, err := p.conn.Query(query, instanceID)
     if err != nil {
         return []entities.Content{}, err
     }

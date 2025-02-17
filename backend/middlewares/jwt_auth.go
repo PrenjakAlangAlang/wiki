@@ -22,6 +22,7 @@ type Claims struct {
 	Role        string   `json:"role"`
 	RoleID      int64    `json:"role_id"`
 	Permissions []string `json:"permissions"`
+	InstanceID  int      `json:"instance_id"`
 	jwt.RegisteredClaims
 }
 
