@@ -115,7 +115,7 @@ function Home() {
             <li>Domain layanan SPBE.</li>
           </ul>
           <p className="content-p">
-  <Link to="/informasi/150">selengkapnya...</Link>
+  <Link to="/informasi/90">selengkapnya...</Link>
 </p>
         <h2 id="organisasi" className="content-h2">
         Rekomendasi Rencana dan Anggaran SPBE
@@ -125,14 +125,14 @@ function Home() {
         Rekomendasi Rencana dan Anggaran SPBE adalah surat yang dikeluarkan oleh Diskominfo DIY kepada OPD pemohon rekomendasi sebagai tanda bahwa OPD dapat mencantumkan pelaksanaan investasi TIK yang berupa daftar kebutuhan investasi ke dalam Rencana Kerja Anggaran (RKA). Berikut informasi yang harus diketahui terkait rekomendasi rencana dan anggaran SPBE
           </p>
           <ul>
-            <li><Link to="/informasi/151">Informasi umum terkait Rekomendasi Rencana dan Anggaran SPBE</Link></li>
-            <li><Link to="/informasi/152">Manual Pengajuan Rekomendasi TIK (peladen.jogjaprov.go.id)</Link></li>
-            <li><Link to="/informasi/153">SOP Penyusunan Rekomendasi Investasi TIK</Link></li>
-            <li><Link to="/informasi/154">Standar Dokumentasi Aplikasi</Link></li>
-            <li><Link to="/informasi/155">Standar Teknis Pembangunan dan Pengembangan Aplikasi</Link></li>
-            <li><Link to="/informasi/156">Standar Keamanan Aplikasi</Link></li>
-            <li><Link to="/informasi/157">Ketentuan Umum Pembangunan dan Pengembangan Aplikasi</Link></li>
-            <li><Link to="/informasi/158">Standar Peralatan yang Diusulkan Rekomendasi TIK (hardware)</Link></li>
+            <li><Link to="/informasi/91">Informasi umum terkait Rekomendasi Rencana dan Anggaran SPBE</Link></li>
+            <li><Link to="/informasi/92">Manual Pengajuan Rekomendasi TIK (peladen.jogjaprov.go.id)</Link></li>
+            <li><Link to="/informasi/93">SOP Penyusunan Rekomendasi Investasi TIK</Link></li>
+            <li><Link to="/informasi/94">Standar Dokumentasi Aplikasi</Link></li>
+            <li><Link to="/informasi/95">Standar Teknis Pembangunan dan Pengembangan Aplikasi</Link></li>
+            <li><Link to="/informasi/96">Standar Keamanan Aplikasi</Link></li>
+            <li><Link to="/informasi/97">Ketentuan Umum Pembangunan dan Pengembangan Aplikasi</Link></li>
+            <li><Link to="/informasi/98">Standar Peralatan yang Diusulkan Rekomendasi TIK (hardware)</Link></li>
           </ul>
         <h2 id="organisasi" className="content-h2">
           Organisasi Perangkat Daerah Pemda DIY
@@ -142,7 +142,7 @@ function Home() {
         {user?.permissions?.includes("view_active_content") && (
   <ul className="numbered">
     {contents
-      .filter((content) => content.id < 150 || content.id > 158)
+      .filter((content) => content.id < 90 || content.id > 98)
       .map((content) => (
         <li key={content.id}>
           <Link to={`/informasi/${content.id}`}>{content.title}</Link>
