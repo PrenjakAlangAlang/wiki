@@ -106,7 +106,7 @@ func Login(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	expirationTime := time.Now().Add(60 * time.Second)
+	expirationTime := time.Now().Add(300 * time.Second)
 	permissionsList := []string{}
 	for _, permission := range permissions {
 		permissionsList = append(permissionsList, permission.Name)
