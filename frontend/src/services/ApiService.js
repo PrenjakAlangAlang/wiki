@@ -13,6 +13,15 @@ let isAlertShown = false;
 
 const showSessionExpiredModal = () => {
   return new Promise((resolve) => {
+    const isFirstVisit = localStorage.getItem('isFirstVisit');
+
+    // If the user is on the home page and it's their first visit, do not show the modal
+    if (window.location.pathname === '/' && !isFirstVisit) {
+      localStorage.setItem('isFirstVisit', 'true');
+      resolve();
+      return;
+    }
+
     const modalContainer = document.createElement('div');
     document.body.appendChild(modalContainer);
 

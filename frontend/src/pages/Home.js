@@ -100,20 +100,56 @@ function Home() {
           </p>
         </div>
         <h2 id="organisasi" className="content-h2">
+          Bidang Pengetahuan
+          <hr className="gradient-hr-sub" />
+        </h2>
+        <p className="content-p">
+        Sistem Pemerintahan Berbasis Elektronik (SPBE) adalah konsep dan praktik penerapan teknologi informasi dan komunikasi (TIK) dalam proses pemerintahan untuk meningkatkan efisiensi, efektivitas, transparansi, dan akuntabilitas pelayanan publik. Lingkup SPBE yang kita jalankan saat ini terdiri atas enam (6) bidang/domain yaitu:
+          </p>
+          <ul className="numbered">
+            <li>Domain Proses Bisnis;</li>
+            <li>Domain data dan informasi;</li>
+            <li>Domain infrastruktur SPBE;</li>
+            <li>Domain aplikasi SPBE;</li>
+            <li>Domain keamanan SPBE; dan</li>
+            <li>Domain layanan SPBE.</li>
+          </ul>
+          <p className="content-p">
+  <Link to="/informasi/150">selengkapnya...</Link>
+</p>
+        <h2 id="organisasi" className="content-h2">
+        Rekomendasi Rencana dan Anggaran SPBE
+          <hr className="gradient-hr-sub" />
+        </h2>
+        <p className="content-p">
+        Rekomendasi Rencana dan Anggaran SPBE adalah surat yang dikeluarkan oleh Diskominfo DIY kepada OPD pemohon rekomendasi sebagai tanda bahwa OPD dapat mencantumkan pelaksanaan investasi TIK yang berupa daftar kebutuhan investasi ke dalam Rencana Kerja Anggaran (RKA). Berikut informasi yang harus diketahui terkait rekomendasi rencana dan anggaran SPBE
+          </p>
+          <ul>
+            <li><Link to="/informasi/151">Informasi umum terkait Rekomendasi Rencana dan Anggaran SPBE</Link></li>
+            <li><Link to="/informasi/152">Manual Pengajuan Rekomendasi TIK (peladen.jogjaprov.go.id)</Link></li>
+            <li><Link to="/informasi/153">SOP Penyusunan Rekomendasi Investasi TIK</Link></li>
+            <li><Link to="/informasi/154">Standar Dokumentasi Aplikasi</Link></li>
+            <li><Link to="/informasi/155">Standar Teknis Pembangunan dan Pengembangan Aplikasi</Link></li>
+            <li><Link to="/informasi/156">Standar Keamanan Aplikasi</Link></li>
+            <li><Link to="/informasi/157">Ketentuan Umum Pembangunan dan Pengembangan Aplikasi</Link></li>
+            <li><Link to="/informasi/158">Standar Peralatan yang Diusulkan Rekomendasi TIK (hardware)</Link></li>
+          </ul>
+        <h2 id="organisasi" className="content-h2">
           Organisasi Perangkat Daerah Pemda DIY
           <hr className="gradient-hr-sub" />
         </h2>
 
         {user?.permissions?.includes("view_active_content") && (
-          <ul className="numbered">
-            {contents.map((content) => (
-              <li key={content.id}>
-                <Link to={`/informasi/${content.id}`}>{content.title}</Link>
-              </li>
-            ))}
-          </ul>
-        )}
-
+  <ul className="numbered">
+    {contents
+      .filter((content) => content.id < 150 || content.id > 158)
+      .map((content) => (
+        <li key={content.id}>
+          <Link to={`/informasi/${content.id}`}>{content.title}</Link>
+        </li>
+      ))}
+  </ul>
+)}
         {user?.permissions?.includes("create_content") && (
           <button className="button-create-content" onClick={handleAddClick}>
             <span className="text">Create</span>
