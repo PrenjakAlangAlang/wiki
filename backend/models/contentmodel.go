@@ -75,25 +75,65 @@ func (p *ContentModel) FindNotRejected() ([]entities.Content, error) {
 
 
 
-func (p *ContentModel) FindNotDelete(instanceID int) ([]entities.Content, error) {
-    query := "SELECT id, title FROM content WHERE status = 'approved' AND deleted_at IS NULL AND (instance_id = ? OR instance_id = 38)"
-    rows, err := p.conn.Query(query, instanceID)
-    if err != nil {
-        return []entities.Content{}, err
-    }
-    defer rows.Close()
+func (p *ContentModel) FindNotDelete(instanceID int, roleID int64) ([]entities.Content, error) {
+	var query string
+	var rows *sql.Rows
+	var err error
 
-    var dataContent []entities.Content
-    for rows.Next() {
-        var content entities.Content
-        err := rows.Scan(&content.Id, &content.Title)
-        if err != nil {
-            return []entities.Content{}, err
-        }
-        dataContent = append(dataContent, content)
-    }
-    return dataContent, nil
+	if instanceID == 0 {
+		// Jika tidak memiliki instanceID, hanya bisa melihat 'public'
+		query = `
+			SELECT id, title 
+			FROM content 
+			WHERE status = 'approved' 
+			AND accessibility = 'public'
+			AND deleted_at IS NULL`
+		rows, err = p.conn.Query(query)
+	} else {
+		if roleID == 5 {
+			// Jika role_id = 5, bisa melihat semua 'private_instance' tanpa instance_id
+			query = `
+				SELECT id, title 
+				FROM content 
+				WHERE status = 'approved' 
+				AND (accessibility = 'public' 
+					OR accessibility = 'all_instance'
+					OR accessibility = 'private_instance')
+                    AND deleted_at IS NULL`
+                    
+			rows, err = p.conn.Query(query)
+		} else {
+			// Role biasa, hanya bisa melihat 'private_instance' dari instance mereka sendiri
+			query = `
+				SELECT id, title 
+				FROM content 
+				WHERE status = 'approved' 
+				AND (accessibility = 'public' 
+					OR accessibility = 'all_instance'
+					OR (accessibility = 'private_instance' AND instance_id = ?))
+                    AND deleted_at IS NULL`
+			rows, err = p.conn.Query(query, instanceID)
+		}
+	}
+
+	if err != nil {
+		return []entities.Content{}, err
+	}
+	defer rows.Close()
+
+	var dataContent []entities.Content
+	for rows.Next() {
+		var content entities.Content
+		err := rows.Scan(&content.Id, &content.Title)
+		if err != nil {
+			return []entities.Content{}, err
+		}
+		dataContent = append(dataContent, content)
+	}
+	return dataContent, nil
 }
+
+
 
 func (p *ContentModel) FindDrafts() ([]entities.Content, error) {
 	query := `
@@ -154,29 +194,42 @@ func (model *ContentModel) Search(searchTerm string) ([]entities.Content, error)
 
 func (p *ContentModel) UpdateByID(content entities.Content) error {
 	query := `
-        UPDATE content 
-        SET title = ?, description = ?, updated_at = ?, instance_id = ?, tag = ? 
-        WHERE id = ?`
-
-	_, err := p.conn.Exec(query, content.Title, content.Description, content.Updated_at, content.Instance_id, content.Tag, content.Id)
+		UPDATE content 
+		SET title = ?, description = ?, instance_id = ?, tag = ?, accessibility = ?, updated_at = ?
+		WHERE id = ?`
+	_, err := p.conn.Exec(query, content.Title, content.Description.String, content.Instance_id, content.Tag, content.Accessibility, content.Updated_at, content.Id)
 	return err
 }
 
 func (p *ContentModel) CreateContent(content entities.Content) (int64, error) {
-	query := `
-        INSERT INTO content (title, description, author_id, created_at, updated_at, tag, instance_id, status) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    query := `
+        INSERT INTO content (
+            title, description, author_id, created_at, updated_at, 
+            tag, instance_id, status, accessibility
+        ) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	result, err := p.conn.Exec(query, content.Title, content.Description, content.Author_id, content.Created_at, content.Updated_at, content.Tag, content.Instance_id, content.Status)
-	if err != nil {
-		return 0, err
-	}
+    result, err := p.conn.Exec(
+        query, 
+        content.Title, 
+        content.Description, 
+        content.Author_id, 
+        content.Created_at, 
+        content.Updated_at, 
+        content.Tag, 
+        content.Instance_id, 
+        content.Status,
+        content.Accessibility,
+    )
+    if err != nil {
+        return 0, err
+    }
 
-	contentID, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	return contentID, nil
+    contentID, err := result.LastInsertId()
+    if err != nil {
+        return 0, err
+    }
+    return contentID, nil
 }
 
 func (p *ContentModel) DeleteByID(contentID int64) error {

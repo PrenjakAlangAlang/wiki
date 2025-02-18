@@ -45,19 +45,22 @@ func GetIdTitleAllContentsNotRejected(response http.ResponseWriter, request *htt
 	json.NewEncoder(response).Encode(contents)
 }
 
+
 func GetIdTitleAllContentsNotDeleted(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 
-	// Ambil instance_id dari context
+	// Ambil instance_id dan role_id dari context
 	claims, ok := request.Context().Value(middleware.UserContextKey).(*middleware.Claims)
 	if !ok {
 		http.Error(response, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	instanceID := claims.InstanceID
+	instanceID := claims.InstanceID // instanceID bertipe int
+	roleID := claims.RoleID         // roleID bertipe int64
 
-	contents, err := contentModel.FindNotDelete(instanceID)
+	// Panggil model dengan parameter instanceID dan roleID
+	contents, err := contentModel.FindNotDelete(instanceID, roleID)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -65,6 +68,7 @@ func GetIdTitleAllContentsNotDeleted(response http.ResponseWriter, request *http
 
 	json.NewEncoder(response).Encode(contents)
 }
+
 
 func GetIdTitleAllDrafts(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
@@ -178,12 +182,13 @@ func EditContentByID(response http.ResponseWriter, request *http.Request) {
 	log.Printf("Editing content with ID: %d", contentID)
 
 	var requestData struct {
-		Title       string                `json:"title"`
-		Description string                `json:"description"`
-		AuthorID    int64                 `json:"author_id"`
-		InstanceID  int64                 `json:"instance_id"`
-		Tag         string                `json:"tag"`
-		Subheadings []entities.Subheading `json:"subheadings"`
+		Title        string                `json:"title"`
+		Description  string                `json:"description"`
+		AuthorID     int64                 `json:"author_id"`
+		InstanceID   int64                 `json:"instance_id"`
+		Tag          string                `json:"tag"`
+		Subheadings  []entities.Subheading `json:"subheadings"`
+		Accessibility string               `json:"accessibility"`
 	}
 
 	err = json.NewDecoder(request.Body).Decode(&requestData)
@@ -200,13 +205,14 @@ func EditContentByID(response http.ResponseWriter, request *http.Request) {
 	}
 
 	updatedContent := entities.Content{
-		Id:          contentID,
-		Title:       requestData.Title,
-		Description: sql.NullString{String: requestData.Description, Valid: requestData.Description != ""},
-		Author_id:   0, // Don't update the Author_id
-		Updated_at:  time.Now().Format("2006-01-02 15:04:05"),
-		Instance_id: requestData.InstanceID,
-		Tag:         requestData.Tag,
+		Id:           contentID,
+		Title:        requestData.Title,
+		Description:  sql.NullString{String: requestData.Description, Valid: requestData.Description != ""},
+		Author_id:    0, // Don't update the Author_id
+		Updated_at:   time.Now().Format("2006-01-02 15:04:05"),
+		Instance_id:  requestData.InstanceID,
+		Tag:          requestData.Tag,
+		Accessibility: requestData.Accessibility, // Add this line
 	}
 
 	err = contentModel.UpdateByID(updatedContent)

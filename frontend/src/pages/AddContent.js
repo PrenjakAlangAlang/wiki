@@ -15,6 +15,7 @@ const AddContent = () => {
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
     const [pendingSubmit, setPendingSubmit] = useState(null);
     const navigate = useNavigate();
+    const [accessibility, setAccessibility] = useState("public");
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -84,6 +85,7 @@ const AddContent = () => {
             author_id: user?.id,
             instance_id: parseInt(instanceId, 10),
             status: user.role_id === 3 ? "pending" : "approved",
+            accessibility: accessibility, // Add this line
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         };
@@ -252,6 +254,22 @@ const AddContent = () => {
                             <label>Instansi</label>
                         </div>
                     </div>
+
+                    <div className="form-row">
+    <div className="input-data">
+        <select
+            value={accessibility}
+            onChange={(e) => setAccessibility(e.target.value)}
+            required
+        >
+            <option value="public">Public (Accessible to All)</option>
+            <option value="private_instance">Private Instance Only</option>
+            <option value="all_instance">All Instances (No Public Access)</option>
+        </select>
+        <div className="underline"></div>
+        <label>Content Accessibility</label>
+    </div>
+</div>
 
                     <div className="form-row submit-btn">
                         <div className="input-data">

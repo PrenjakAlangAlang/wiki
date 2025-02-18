@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import DeleteSubheadingCard from '../component/DeleteSubheadingCard';
-import { apiService } from '../services/ApiService'; // Import apiService yang telah dibuat
+import { apiService } from '../services/ApiService';
 
 const Edit = () => {
   const { id } = useParams();
@@ -22,6 +22,7 @@ const Edit = () => {
   const [subheadingToDelete, setSubheadingToDelete] = useState(null);
   const [lastHistoryUpdate, setLastHistoryUpdate] = useState(null);
   const hasFetchedData = useRef(false);
+  const [accessibility, setAccessibility] = useState("public");
 
   useEffect(() => {
     if (hasFetchedData.current) return;
@@ -58,7 +59,8 @@ const Edit = () => {
       originalContent.title !== updatedContentTitle ||
       originalContent.description !== updatedContentDescription ||
       originalContent.instance_id !== updatedInstanceID ||
-      originalContent.tag !== updatedContentTag;
+      originalContent.tag !== updatedContentTag ||
+      originalContent.accessibility !== accessibility;
 
     const hasSubheadingChanges = subheadings.some(sub => {
       const updatedSub = updatedSubheadings[sub.id];
@@ -77,7 +79,7 @@ const Edit = () => {
       recordEditHistory();
     }
   }, [updatedContentTitle, updatedContentDescription, updatedInstanceID, 
-      updatedContentTag, updatedSubheadings]);
+      updatedContentTag, updatedSubheadings, accessibility]);
 
   const recordEditHistory = async () => {
     try {
@@ -129,12 +131,14 @@ const Edit = () => {
         description: data.content.description?.String || "",
         instance_id: data.content.instance_id || "",
         tag: data.content.tag || "",
+        accessibility: data.content.accessibility || "public",
       });
 
       setUpdatedContentTitle(data.content?.title || "");
       setUpdatedContentDescription(data.content.description?.String || "");
       setUpdatedInstanceID(data.content.instance_id || "");
       setUpdatedContentTag(data.content.tag || "");
+      setAccessibility(data.content.accessibility || "public");
 
       const initialSubheadings = {};
       if (data.subheadings && Array.isArray(data.subheadings)) {
@@ -217,6 +221,7 @@ const Edit = () => {
       tag: updatedContentTag,
       subheadings: updatedSubheadingsArray,
       editor_id: user.id,
+      accessibility: accessibility, // Add this line
     };
     
     try {
@@ -299,6 +304,21 @@ const Edit = () => {
                 ))}
               </select>
             </div>
+
+            <div className="input-data">
+              <select
+                value={accessibility}
+                onChange={(e) => setAccessibility(e.target.value)}
+                required
+              >
+                <option value="public">Public (Accessible to All)</option>
+                <option value="private_instance">Private Instance Only</option>
+                <option value="all_instance">All Instances (No Public Access)</option>
+              </select>
+              <div className="underline"></div>
+              <label>Content Accessibility</label>
+            </div>
+
             <div className="input-data">
               <label>Tag (Berikan tanda koma sebagai pemisah antar tag)</label>
               <input

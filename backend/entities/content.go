@@ -19,4 +19,5 @@ type Content struct {
 	Deleted_at  sql.NullTime   `json:"deleted_at"`
 	ViewCount   int            `json:"view_count"` // New field
 	Rejection_reason      sql.NullString         `json:"rejection_reason"`
+	Accessibility    string         `json:"accessibility"`
 }
