@@ -1,7 +1,7 @@
 package entities
 
 type Permission struct {
-	Id   int64  `json:"id"`   // Gunakan backtick untuk penandaan JSON
-	Name string `json:"name"` // Gunakan backtick untuk penandaan JSON
-	Description string `json:"description"` // Gunakan backtick untuk penandaan JSON
+	Id   int64  `json:"id"`   
+	Name string `json:"name"` 
+	Description string `json:"description"` 
 }

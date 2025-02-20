@@ -69,7 +69,7 @@ func main() {
 	r.Handle("/api/roles", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_roles", http.HandlerFunc(rolecontroller.GetRoles)))).Methods("GET")
 	r.Handle("/api/createuser", middleware.JWTAuth(middleware.RoleAuthMiddleware("create_user", http.HandlerFunc(usercontroller.CreateUser)))).Methods("POST")
 	r.Handle("/api/user/edit/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("edit_user", http.HandlerFunc(usercontroller.EditUserById)))).Methods("PUT")
-	r.Handle("/api/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("delete_user", http.HandlerFunc(usercontroller.DeleteUser)))).Methods("DELETE")
+	r.Handle("/api/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("delete_user", http.HandlerFunc(usercontroller.DeleteUser)))).Methods("PUT")
 	r.Handle("/api/history/add", middleware.JWTAuth(middleware.RoleAuthMiddleware("add_history", http.HandlerFunc(historycontroller.AddHistory)))).Methods("POST")
 	r.Handle("/api/history/user/{id}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_history_user", http.HandlerFunc(historycontroller.GetByIdUser)))).Methods("GET")
 	r.Handle("/api/latest-editor-name/{contentId}", middleware.JWTAuth(middleware.RoleAuthMiddleware("view_latest_editor", http.HandlerFunc(historycontroller.GetLatestEditorNameByContentId)))).Methods("GET")
